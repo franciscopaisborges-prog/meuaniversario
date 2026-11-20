@@ -186,10 +186,15 @@ const browser = await chromium.launch();
 
   await test("Mapa geral carrega com marcadores clicáveis", async () => {
     await page.locator("#mapa").scrollIntoViewIfNeeded();
-    await page.waitForSelector("#overviewMap .leaflet-marker-icon");
-    const markers = await page.locator("#overviewMap .leaflet-marker-icon").count();
-    assert.equal(markers, 6, "6 marcadores (05 e 06 partilham a Portagem; 08 e 09 sem local)");
-    await page.locator("#overviewMap .leaflet-marker-icon", { hasText: "04" }).click();
+    await page.waitForSelector("#overviewMap .fr-pin");
+    const markers = await page.locator("#overviewMap .fr-pin").count();
+    assert.equal(markers, 7, "7 marcadores (08 e 09 sem local)");
+    const paths = await page.locator("#overviewMap .leaflet-overlay-pane path").count();
+    assert.ok(paths >= 10 + 3, `percursos (5 linhas + contornos) e 3 paragens desenhados: ${paths}`);
+    const arrows = await page.locator("#overviewMap .route-arrow").count();
+    assert.ok(arrows >= 10, `setas de direção: ${arrows}`);
+    assert.match(await page.locator("#routesStatus").innerText(), /Metrobus — ida/);
+    await page.locator("#overviewMap .leaflet-marker-icon:has(.fr-pin)", { hasText: "04" }).click();
     await page.waitForSelector(".leaflet-popup .popup__title");
     assert.equal(await page.locator(".leaflet-popup .popup__title").innerText(), "Torre de Almedina");
     await page.screenshot({ path: join(OUT, "home-map-popup.png") });
@@ -224,7 +229,7 @@ const browser = await chromium.launch();
         assert.ok(href.startsWith("https://www.google.com/maps/search/?api=1&query="), href);
         assert.equal(await gm.getAttribute("target"), "_blank");
       }
-      const hasMarker = await page.locator("#detailMap .leaflet-marker-icon").count();
+      const hasMarker = await page.locator("#detailMap .pin-blue").count();
       assert.equal(hasMarker, ["08", "09"].includes(id) ? 0 : 1, `marcador em ${id}`);
       // Não há checkboxes nem estados de conclusão no detalhe
       assert.equal(await page.locator('#detail input[type="checkbox"]').count(), 0);
@@ -272,6 +277,9 @@ const browser = await chromium.launch();
     const text = await page.locator("#detailContent").innerText();
     for (const s of ["Portagem", "Aeminium", "Arnado", "Mudança de sentido"]) assert.ok(text.includes(s), s);
     assert.equal(await page.locator(".metro-h").count(), 1);
+    await page.waitForSelector("#detailMap .leaflet-overlay-pane path");
+    const strokes = await page.$$eval("#detailMap .leaflet-overlay-pane path", (els) => els.map((e) => e.getAttribute("stroke")));
+    assert.ok(strokes.includes("#1d3f9e") && strokes.includes("#0b1d47"), "linhas de ida e regresso no mapa do 06");
     await page.waitForTimeout(1000);
     await page.screenshot({ path: join(OUT, "detail-metrobus-desktop.png"), fullPage: false });
     await page.locator(".metro__figure").scrollIntoViewIfNeeded();
@@ -450,7 +458,7 @@ await test("Telemóvel: sem scroll horizontal, roteiro e detalhe utilizáveis", 
   );
   assert.equal(small, 0, "alvos de toque demasiado pequenos");
   await page.locator("#mapa").scrollIntoViewIfNeeded();
-  await page.waitForSelector("#overviewMap .leaflet-marker-icon");
+  await page.waitForSelector("#overviewMap .fr-pin");
   await page.waitForTimeout(800);
   await page.screenshot({ path: join(OUT, "mobile-map.png") });
 

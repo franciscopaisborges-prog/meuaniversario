@@ -314,27 +314,31 @@ npm test
 
 ## 7. Coordenadas, mapa e percursos
 
-- As coordenadas estão em `assets/js/site/program.js`, cada uma com `precision` e `source`:
-  - **`verified`**, com marcador normal: 01 Coimbra-B (CP), 04 Torre de Almedina (Waymarking e Sygic coincidentes), 05 Largo da Portagem (roteiro da Câmara Municipal de Coimbra), 06 zona da paragem Portagem.
-  - **`approximate`**, com marcador tracejado e o aviso “posição aproximada”: 02 Terreiro da Erva, 03 Praça 8 de Maio e 07 campo de golfe.
-  - **Sem marcador:** 08 Fluxo Coworking (morada não confirmada), 09 Lanche (local por definir) e as paragens Aeminium e Arnado.
-- Para verificar e corrigir, corra o comando abaixo. Ele compara cada ponto com o OpenStreetMap e indica a distância. Depois atualize `lat`, `lng`, `precision: "verified"` e `source`.
+- **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: estação Coimbra-B, restaurante (Terreiro da Erva 20), Praça 8 de Maio, Torre e Arco de Almedina, Largo da Portagem, paragem Portagem do Metrobus e campo de golfe da Quinta das Lágrimas.
+- **Sem marcador:** 08 Fluxo Coworking (não existe no OSM e a morada está por confirmar) e 09 Lanche.
+- **Percursos** (`assets/js/site/routes-data.js`), com geometria real gerada a partir do OpenStreetMap:
+  - **Verde (a pé):** Terreiro da Erva → Rua da Sofia → Praça 8 de Maio → Rua Visconde da Luz → Arco de Almedina → Rua Ferreira Borges → Largo da Portagem → paragem do Metrobus. Calculado pelo motor de rotas pedonais do OSM.
+  - **Azul cheio (Metrobus, ida):** Portagem → Aeminium → Arnado.
+  - **Azul tracejado (Metrobus, regresso):** Arnado → Aeminium → Portagem.
+  - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Coimbra-B → restaurante (cerca de 2 km a pé) e Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,5 km).
+  - **Sem traçado:** Quinta das Lágrimas → apresentação, porque o local ainda não está confirmado.
+- **Origem do traçado do Metrobus:** linha "MM U1" do OpenStreetMap, nas relações 19653947 e 21409151. Os dois sentidos partilham a via no OSM, por isso no mapa individual do 06 aparecem afastados alguns metros para se distinguirem.
+- **Setas:** todos os percursos têm setas de direção.
+- **Enquadramento do mapa geral:** os botões "Dia completo" e "Baixa" mudam a vista.
+- **Acrescentar ou alterar percursos:** edite `ROUTES` em `routes-data.js`, com `verified: true` e uma lista de pontos que siga as ruas.
+- **Verificar as coordenadas:**
 
 ```bash
 npm run verify:coords
 ```
 
-- **Percursos:** nenhum percurso está desenhado, porque nenhum trajeto está confirmado. A legenda já define as cores: pedonal a verde, Metrobus ida a azul, Metrobus regresso a azul tracejado e outras deslocações a dourado. Para ativar um percurso, acrescente-o a `ROUTES` em `program.js` com `verified: true` e a geometria real (lista de pontos que siga as ruas ou a linha). O mapa desenha-o automaticamente com setas de direção.
-- **Horários:** todos estão “A confirmar”. Preencha `schedule` em cada atividade quando os souber.
-
----
+- **Horários:** todos estão "A confirmar". Preencha `schedule` em cada atividade.
 
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
 2. **Horários** de todas as atividades: a confirmar.
 3. **La Piccola Cucina Italiana:** reserva e posição exata no mapa a confirmar.
-4. **Praça 8 de Maio** e **campo de golfe:** coordenadas aproximadas, a verificar com `npm run verify:coords`.
 5. **Metrobus:** funcionamento, horários, títulos de transporte e posições das paragens Aeminium e Arnado a confirmar junto da Metro Mondego.
 6. **Golfe:** reserva, disponibilidade de posições cobertas para 6 pessoas, preço e duração a confirmar com o clube (+351 923 312 226).
 7. **Fluxo Coworking:** utilização do espaço e morada a confirmar. Até lá, a página 08 não mostra marcador.

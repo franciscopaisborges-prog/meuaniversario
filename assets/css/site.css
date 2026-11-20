@@ -674,7 +674,74 @@
 .swatch-line--walk { color: var(--walk); border-color: var(--walk); }
 .swatch-line--out { color: #3d7be0; border-color: #3d7be0; }
 .swatch-line--back { color: #6f8fd6; border-top-style: dashed; border-color: #6f8fd6; }
-.swatch-line--other { color: var(--gold); border-color: var(--gold); }
+.swatch-line--other { color: var(--gold); border-color: var(--gold); border-top-style: dotted; }
+.swatch-stop {
+  justify-self: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #3d7be0;
+  border: 2px solid #050505;
+  box-shadow: 0 0 0 1px #3d7be0;
+}
+.routes-status {
+  display: grid;
+  gap: 0.55rem;
+  font-size: 0.85rem;
+  color: var(--bone-dim);
+}
+.routes-status .route-line {
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--gold-line);
+  line-height: 1.45;
+}
+.routes-status small {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.route-arrow {
+  pointer-events: none;
+}
+.map-views {
+  display: flex;
+  border: 1px solid var(--gold-line);
+  background: rgba(6, 6, 6, 0.85);
+}
+.map-views button {
+  min-height: 40px;
+  padding: 0.5rem 0.85rem;
+  border: 0;
+  background: transparent;
+  color: var(--bone-dim);
+  font: 600 0.64rem/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.map-views button + button {
+  border-left: 1px solid var(--gold-line);
+}
+.map-views button[aria-pressed="true"] {
+  background: var(--gold);
+  color: var(--ink-0);
+}
+.stop-label span {
+  position: absolute;
+  left: 10px;
+  top: -9px;
+  padding: 1px 6px;
+  background: #fff;
+  border: 1px solid #0b1d47;
+  color: #0b1d47;
+  font: 600 11px/1.4 var(--font-sans);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.leaflet-tooltip.route-tip {
+  max-width: 260px;
+  white-space: normal;
+  font: 500 0.78rem/1.4 var(--font-sans);
+}
 .swatch-pin {
   justify-self: center;
   display: grid;
@@ -733,15 +800,15 @@
 .fr-pin {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #080808;
   border: 1.5px solid var(--gold);
   color: var(--gold-light);
-  font: 600 0.72rem/1 var(--font-sans);
-  letter-spacing: 0.04em;
-  box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.14), 0 8px 18px rgba(0, 0, 0, 0.5);
+  font: 600 0.66rem/1 var(--font-sans);
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.14), 0 6px 14px rgba(0, 0, 0, 0.5);
   transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 .fr-pin--approx {

@@ -4,7 +4,8 @@
  * Coordenadas:
  *  - precision: "verified"    → coordenada publicada por fonte oficial/independente
  *                               (indicada em `source`).
- *  - precision: "approximate" → posição de referência no mapa, ainda por verificar.
+ *  - precision: "approximate" → posição de referência no mapa, ainda por verificar
+ *                               (neste momento nenhuma; todas confirmadas no OSM).
  *                               É mostrada com marcador tracejado e o aviso
  *                               "posição aproximada". Corra `node tools/verify-coordinates.mjs`
  *                               para comparar com o OpenStreetMap e atualize aqui.
@@ -41,10 +42,10 @@ export const PROGRAM = [
     ],
     notes: ["Hora de encontro a confirmar."],
     location: {
-      lat: 40.224778,
-      lng: -8.44059,
+      lat: 40.2247283,
+      lng: -8.4404774,
       precision: "verified",
-      source: "CP — Comboios de Portugal, página oficial da estação Coimbra-B",
+      source: "OpenStreetMap — estação ferroviária Coimbra-B",
     },
     zoom: 16,
     mapsQuery: "Estação Coimbra-B, Coimbra",
@@ -64,10 +65,10 @@ export const PROGRAM = [
     ],
     notes: ["Hora a confirmar."],
     location: {
-      lat: 40.2128,
-      lng: -8.4315,
-      precision: "approximate",
-      source: "Posição de referência do Terreiro da Erva — por verificar",
+      lat: 40.2123868,
+      lng: -8.4309365,
+      precision: "verified",
+      source: "OpenStreetMap — restaurante La Piccola Cucina Italiana, Terreiro da Erva 20",
     },
     zoom: 17,
     mapsQuery: "La Piccola Cucina Italiana, Terreiro da Erva 20, Coimbra",
@@ -85,12 +86,12 @@ export const PROGRAM = [
       "Passeio a pé pelas ruas históricas da Baixa de Coimbra.",
       "O percurso inclui a Praça 8 de Maio, em frente ao Mosteiro de Santa Cruz, e segue pelas ruas comerciais da zona histórica.",
     ],
-    notes: ["Percurso pedonal detalhado a definir.", "Hora a confirmar."],
+    notes: ["Percurso a pé assinalado no mapa (Rua da Sofia, Praça 8 de Maio, Rua Visconde da Luz).", "Hora a confirmar."],
     location: {
-      lat: 40.21118,
-      lng: -8.42935,
-      precision: "approximate",
-      source: "Posição de referência da Praça 8 de Maio — por verificar",
+      lat: 40.2110645,
+      lng: -8.4291833,
+      precision: "verified",
+      source: "OpenStreetMap — Praça 8 de Maio",
     },
     zoom: 17,
     mapsQuery: "Praça 8 de Maio, Coimbra",
@@ -110,10 +111,10 @@ export const PROGRAM = [
     ],
     notes: ["Visita ao interior não incluída.", "Hora a confirmar."],
     location: {
-      lat: 40.20885,
-      lng: -8.42875,
+      lat: 40.2088402,
+      lng: -8.4287341,
       precision: "verified",
-      source: "Waymarking e Sygic Travel (coordenadas coincidentes)",
+      source: "OpenStreetMap — Torre e Arco de Almedina (Rua Ferreira Borges)",
     },
     zoom: 18,
     mapsQuery: "Torre de Almedina, Coimbra",
@@ -157,13 +158,12 @@ export const PROGRAM = [
     notes: [
       "Horários, frequência e funcionamento do serviço a confirmar junto da Metro Mondego.",
       "Títulos de transporte a confirmar.",
-      "As posições exatas das paragens Aeminium e Arnado ainda não estão verificadas no mapa.",
     ],
     location: {
-      lat: 40.207449,
-      lng: -8.429593,
+      lat: 40.2075878,
+      lng: -8.4307058,
       precision: "verified",
-      source: "Largo da Portagem — Câmara Municipal de Coimbra (zona da paragem Portagem)",
+      source: "OpenStreetMap — paragem Portagem do Metrobus, linha MM U1",
     },
     zoom: 16,
     mapsQuery: "Metrobus Portagem, Coimbra",
@@ -189,10 +189,10 @@ export const PROGRAM = [
       "Preço e duração a confirmar.",
     ],
     location: {
-      lat: 40.1968,
-      lng: -8.4345,
-      precision: "approximate",
-      source: "Posição de referência do campo em Santa Clara — por verificar",
+      lat: 40.1987917,
+      lng: -8.4336897,
+      precision: "verified",
+      source: "OpenStreetMap — campo de golfe da Quinta das Lágrimas",
     },
     zoom: 16,
     mapsQuery: "Quinta das Lágrimas Golfe, Rua António Augusto Gonçalves, Coimbra",
@@ -243,19 +243,7 @@ export const PROGRAM = [
   },
 ];
 
-/**
- * PERCURSOS NO MAPA
- * Só são desenhados percursos com `verified: true` e geometria real (lista de
- * coordenadas que siga as ruas/linha). Nenhum percurso está verificado neste
- * momento, por isso o mapa mostra apenas os marcadores e indica
- * "trajeto por definir". Tipos: "walk" (verde), "metro-out" (azul),
- * "metro-back" (azul-escuro tracejado), "other" (dourado).
- *
- * Exemplo (NÃO ativo):
- * { id: "baixa", type: "walk", verified: true, label: "Passeio pela Baixa",
- *   points: [[40.2112, -8.4294], [40.2101, -8.4291], ...] }
- */
-export const ROUTES = [];
+export { ROUTES, METRO_STOPS } from "./routes-data.js";
 
 export function googleMapsUrl(activity) {
   if (!activity.mapsQuery) return null;

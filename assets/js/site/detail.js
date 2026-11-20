@@ -206,7 +206,9 @@ function mapBlock(a) {
     note = "O marcador tracejado indica uma posição aproximada, ainda por verificar. Usa o Google Maps para a morada exata.";
   }
   if (a.special === "metrobus") {
-    note += " As paragens Aeminium e Arnado não estão marcadas porque as suas posições exatas ainda não foram verificadas.";
+    note += " O mapa mostra o traçado real da linha (OpenStreetMap): ida em linha cheia, regresso a tracejado (afastados alguns metros para se distinguirem) e as paragens Portagem, Aeminium e Arnado.";
+  } else if (a.id === "03" || a.id === "02" || a.id === "04" || a.id === "05") {
+    note += " A linha verde mostra o percurso a pé pela Baixa.";
   }
   return `
   <section class="d-block" aria-labelledby="mapBlockTitle">

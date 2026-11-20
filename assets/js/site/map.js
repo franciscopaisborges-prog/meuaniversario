@@ -3,7 +3,7 @@
  *  - createOverviewMap: mapa geral (preto & dourado) na página principal.
  *  - createDetailMap:   mapa individual (branco & azul) em cada atividade.
  */
-import { PROGRAM, ROUTES, COIMBRA_CENTER } from "./program.js";
+import { PROGRAM, ROUTES, METRO_STOPS, COIMBRA_CENTER } from "./program.js";
 import { esc } from "../shared/dom.js";
 
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -11,11 +11,16 @@ const ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
 
 export const ROUTE_STYLES = {
-  walk: { color: "#4f9d69", weight: 4, opacity: 0.95 },
-  "metro-out": { color: "#3d7be0", weight: 4, opacity: 0.95 },
-  "metro-back": { color: "#6f8fd6", weight: 4, opacity: 0.95, dashArray: "8 8" },
-  other: { color: "#c9a961", weight: 3, opacity: 0.9 },
+  walk: { color: "#4f9d69", weight: 4, opacity: 1 },
+  "metro-out": { color: "#3d7be0", weight: 5, opacity: 1 },
+  "metro-back": { color: "#6f8fd6", weight: 4, opacity: 1, dashArray: "7 7" },
+  other: { color: "#c9a961", weight: 3.5, opacity: 1, dashArray: "1 7", lineCap: "round" },
 };
+
+/** Percursos verificados (só estes são desenhados). */
+export const VERIFIED_ROUTES = ROUTES.filter(
+  (r) => r.verified === true && Array.isArray(r.points) && r.points.length > 1
+);
 
 function leaflet() {
   return window.L || null;
@@ -70,30 +75,109 @@ function bearing([lat1, lng1], [lat2, lng2]) {
   return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
 }
 
-/** Desenha apenas percursos verificados, com setas de direção. */
-function drawRoutes(L, map) {
-  const verified = ROUTES.filter((r) => r.verified === true && Array.isArray(r.points) && r.points.length > 1);
-  for (const route of verified) {
-    const style = ROUTE_STYLES[route.type] || ROUTE_STYLES.other;
-    L.polyline(route.points, style).addTo(map).bindTooltip(esc(route.label || ""), { sticky: true });
+/**
+ * Desenha percursos com contorno (legibilidade sobre o mapa) e setas de
+ * direção espaçadas ao longo da linha.
+ */
+/**
+ * Desloca uma linha `meters` para a direita do sentido de marcha.
+ * Usado só para separar visualmente a ida e o regresso do Metrobus,
+ * que no OpenStreetMap partilham a mesma via.
+ */
+function offsetLine(points, meters) {
+  const R = 6378137;
+  const n = points.length;
+  return points.map((p, i) => {
+    const a = points[Math.max(0, i - 1)];
+    const b = points[Math.min(n - 1, i + 1)];
+    const cos = Math.cos((p[0] * Math.PI) / 180);
+    const dx = (b[1] - a[1]) * cos; // leste
+    const dy = b[0] - a[0]; // norte
+    const len = Math.hypot(dx, dy) || 1;
+    // normal à direita: (dy, -dx)
+    const nx = dy / len;
+    const ny = -dx / len;
+    const dLat = ((ny * meters) / R) * (180 / Math.PI);
+    const dLng = ((nx * meters) / (R * cos)) * (180 / Math.PI);
+    return [p[0] + dLat, p[1] + dLng];
+  });
+}
+
+const ARROW_PHASE = { walk: 0.5, "metro-out": 0.3, "metro-back": 0.8, other: 0.5 };
+
+function drawRoutes(L, map, routes, { casing = "#050505", spacing = 160, arrowSize = 16, colors = {}, metroOffset = 0 } = {}) {
+  const layers = [];
+  for (const original of routes) {
+    const route =
+      metroOffset && original.type.startsWith("metro")
+        ? { ...original, points: offsetLine(original.points, metroOffset) }
+        : original;
+    const base = ROUTE_STYLES[route.type] || ROUTE_STYLES.other;
+    const style = colors[route.type] ? { ...base, color: colors[route.type] } : base;
+    const label = esc(route.label || "");
+    const under = L.polyline(route.points, {
+      color: casing,
+      weight: style.weight + 4,
+      opacity: 0.75,
+      lineCap: "round",
+      lineJoin: "round",
+      interactive: false,
+    }).addTo(map);
+    const line = L.polyline(route.points, { ...style, lineJoin: "round" })
+      .addTo(map)
+      .bindTooltip(label, { sticky: true, className: "route-tip" });
+    layers.push(under, line);
+
+    // Setas a cada `spacing` metros, orientadas pelo segmento.
+    let carried = spacing * (ARROW_PHASE[route.type] ?? 0.5);
     for (let i = 0; i < route.points.length - 1; i += 1) {
       const a = route.points[i];
       const b = route.points[i + 1];
-      if (map.distance(a, b) < 60) continue;
-      const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-      const angle = bearing(a, b);
-      L.marker(mid, {
-        interactive: false,
-        keyboard: false,
-        icon: L.divIcon({
-          className: "",
-          iconSize: [14, 14],
-          html: `<svg viewBox="0 0 14 14" width="14" height="14" style="transform:rotate(${angle}deg)"><path d="M3 10l4-6 4 6" fill="none" stroke="${style.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-        }),
-      }).addTo(map);
+      const seg = map.distance(a, b);
+      let at = carried;
+      while (at < seg) {
+        const t = at / seg;
+        const pos = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+        const angle = bearing(a, b);
+        const arrow = L.marker(pos, {
+          interactive: false,
+          keyboard: false,
+          icon: L.divIcon({
+            className: "route-arrow",
+            iconSize: [arrowSize, arrowSize],
+            iconAnchor: [arrowSize / 2, arrowSize / 2],
+            html: `<svg viewBox="0 0 16 16" width="${arrowSize}" height="${arrowSize}" style="transform:rotate(${angle}deg)" aria-hidden="true"><path d="M3.5 11L8 4.5l4.5 6.5" fill="none" stroke="${casing}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.5 11L8 4.5l4.5 6.5" fill="none" stroke="${style.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+          }),
+        }).addTo(map);
+        layers.push(arrow);
+        at += spacing;
+      }
+      carried = at - seg;
     }
   }
-  return verified.length;
+  return layers;
+}
+
+/** Paragens do Metrobus como pequenos marcadores. */
+function drawMetroStops(L, map, { fill = "#3d7be0", stroke = "#050505", labels = false } = {}) {
+  for (const stop of METRO_STOPS) {
+    if (labels) {
+      L.marker([stop.lat, stop.lng], {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({ className: "stop-label", iconSize: [0, 0], html: `<span>${esc(stop.name)}</span>` }),
+      }).addTo(map);
+    }
+    L.circleMarker([stop.lat, stop.lng], {
+      radius: 6,
+      color: stroke,
+      weight: 2,
+      fillColor: fill,
+      fillOpacity: 1,
+    })
+      .addTo(map)
+      .bindTooltip(`Metrobus · paragem ${esc(stop.name)}`, { direction: "top", offset: [0, -6] });
+  }
 }
 
 /**
@@ -112,7 +196,7 @@ export function createOverviewMap(container) {
     center: [COIMBRA_CENTER.lat, COIMBRA_CENTER.lng],
     zoom: 14,
     scrollWheelZoom: false,
-    zoomSnap: 0.5,
+    zoomSnap: 0.25,
   });
   addTiles(L, map);
 
@@ -126,18 +210,18 @@ export function createOverviewMap(container) {
     const { lat, lng } = group[0].location;
     const approx = group.some((a) => a.location.precision !== "verified");
     const label = group.map((a) => a.id).join("·");
-    const width = label.length > 2 ? 52 : 34;
+    const width = label.length > 2 ? 46 : 28;
     const marker = L.marker([lat, lng], {
       title: group.map((a) => `${a.id} — ${a.title}`).join(" / "),
       alt: group.map((a) => `${a.id} — ${a.title}`).join(" / "),
       riseOnHover: true,
       icon: L.divIcon({
         className: "",
-        iconSize: [width, 34],
-        iconAnchor: [width / 2, 17],
+        iconSize: [width, 28],
+        iconAnchor: [width / 2, 14],
         popupAnchor: [0, -14],
         html: `<span class="fr-pin${approx ? " fr-pin--approx" : ""}" style="width:${width}px;border-radius:${
-          width > 34 ? "17px" : "50%"
+          width > 28 ? "14px" : "50%"
         }">${esc(label)}</span>`,
       }),
     })
@@ -148,11 +232,37 @@ export function createOverviewMap(container) {
     bounds.push([lat, lng]);
   }
 
-  if (bounds.length > 1) {
-    map.fitBounds(bounds, { padding: [48, 48], maxZoom: 15 });
-  }
+  const BAIXA = PROGRAM.filter((a) => ["02", "03", "04", "05", "06"].includes(a.id) && a.location).map((a) => [
+    a.location.lat,
+    a.location.lng,
+  ]);
+  const fitAll = () => bounds.length > 1 && map.fitBounds(bounds, { padding: [28, 28], maxZoom: 16 });
+  const fitBaixa = () => BAIXA.length > 1 && map.fitBounds(BAIXA, { padding: [60, 60], maxZoom: 17 });
+  fitAll();
 
-  const routeCount = drawRoutes(L, map);
+  // Botões de enquadramento: dia completo / Baixa
+  const ViewControl = L.Control.extend({
+    options: { position: "topright" },
+    onAdd() {
+      const box = L.DomUtil.create("div", "map-views");
+      box.innerHTML =
+        '<button type="button" data-view="all" aria-pressed="true">Dia completo</button><button type="button" data-view="baixa" aria-pressed="false">Baixa</button>';
+      L.DomEvent.disableClickPropagation(box);
+      box.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-view]");
+        if (!btn) return;
+        box.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        if (btn.dataset.view === "baixa") fitBaixa();
+        else fitAll();
+      });
+      return box;
+    },
+  });
+  new ViewControl().addTo(map);
+
+  drawRoutes(L, map, VERIFIED_ROUTES);
+  drawMetroStops(L, map);
+  const routeCount = VERIFIED_ROUTES.length;
 
   function focusActivity(slug) {
     const marker = markersBySlug.get(slug);
@@ -192,9 +302,24 @@ export function createDetailMap(container, activity) {
     center,
     zoom: loc ? activity.zoom || 16 : 14,
     scrollWheelZoom: false,
+    zoomAnimation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   });
   addTiles(L, map);
   map.once("focus click", () => map.scrollWheelZoom.enable());
+
+  const own = VERIFIED_ROUTES.filter((r) => (r.activities || []).includes(activity.id));
+  if (own.length) {
+    drawRoutes(L, map, own, {
+      casing: "#ffffff",
+      spacing: 150,
+      arrowSize: 18,
+      metroOffset: 7,
+      colors: { "metro-out": "#1d3f9e", "metro-back": "#0b1d47", walk: "#2f8a55", other: "#a8853f" },
+    });
+    if (activity.special === "metrobus") {
+      drawMetroStops(L, map, { fill: "#ffffff", stroke: "#0b1d47", labels: true });
+    }
+  }
 
   if (loc) {
     const approx = loc.precision !== "verified";
@@ -215,6 +340,13 @@ export function createDetailMap(container, activity) {
           approx ? "<br><em>Posição aproximada — a confirmar.</em>" : ""
         }`
       );
+  }
+
+  // Mapas com percursos: enquadrar o percurso principal da atividade.
+  const focus = own.find((r) => r.type !== "other") || own[0];
+  if (focus) {
+    const pts = [...focus.points, ...(loc ? [[loc.lat, loc.lng]] : [])];
+    map.fitBounds(pts, { padding: [36, 36], maxZoom: activity.zoom || 17, animate: false });
   }
   return map;
 }

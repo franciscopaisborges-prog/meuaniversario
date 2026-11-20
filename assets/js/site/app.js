@@ -106,9 +106,9 @@ function ensureOverviewMap() {
 
 function initOverviewMap() {
   const status = $("#routesStatus");
-  const verifiedRoutes = ROUTES.filter((r) => r.verified === true).length;
-  status.textContent = verifiedRoutes
-    ? `${verifiedRoutes} trajeto(s) confirmado(s) desenhado(s) no mapa. Os restantes estão por definir.`
+  const verified = ROUTES.filter((r) => r.verified === true);
+  status.innerHTML = verified.length
+    ? `${verified.map((r) => `<span class="route-line">${esc(r.label)}</span>`).join("")}<small>Traçados calculados a partir do OpenStreetMap. Sem trajeto: Quinta das Lágrimas → apresentação (local por confirmar).</small>`
     : "Nenhum trajeto está ainda confirmado. O mapa mostra apenas os pontos — os trajetos estão por definir.";
 
   const container = $("#overviewMap");
@@ -163,18 +163,28 @@ function setOriginFromEvent(event) {
   }
 }
 
+function destroyDetailMap() {
+  if (!detailMap) return;
+  try {
+    detailMap.stop();
+    detailMap.off();
+    detailMap.remove();
+  } catch {
+    /* mapa já removido */
+  }
+  detailMap = null;
+}
+
 function mountDetailMap(delay) {
   clearTimeout(mapTimer);
-  if (detailMap) {
-    detailMap.remove();
-    detailMap = null;
-  }
+  destroyDetailMap();
   const build = () => {
     const el = $("#detailMap", detailContent);
     if (!el) return;
     detailMap = createDetailMap(el, PROGRAM[currentIndex]);
     // garantir dimensões corretas depois da transição
-    setTimeout(() => detailMap && detailMap.invalidateSize(), 300);
+    const current = detailMap;
+    setTimeout(() => current && current === detailMap && current.invalidateSize({ animate: false }), 300);
   };
   mapTimer = setTimeout(build, delay);
 }
@@ -229,10 +239,7 @@ function closeDetail() {
   closeTimer = setTimeout(
     () => {
       detail.classList.remove("is-closing");
-      if (detailMap) {
-        detailMap.remove();
-        detailMap = null;
-      }
+      destroyDetailMap();
       detailContent.innerHTML = "";
       currentIndex = -1;
     },
