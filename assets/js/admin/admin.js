@@ -1,7 +1,9 @@
 /**
  * Painel de administração.
- * 1) Autenticação Firebase (email + palavra-passe)
- * 2) Autorização: /admins/{uid} === true  (verificada aqui E nas regras da RTDB)
+ * 1) Autenticação Firebase com Google
+ * 2) Autorização definida nas regras da RTDB (email do organizador verificado
+ *    pelo Google, ou /admins/{uid} === true). O painel confirma-a tentando ler
+ *    /admins, que só administradores podem ler.
  * 3) Leitura em tempo real de /rsvps, indicadores, pesquisa, filtro, ordenação e CSV.
  */
 import { $, $$, esc, normalize } from "../shared/dom.js";
@@ -70,7 +72,14 @@ function authErrorMessage(error) {
     case "auth/user-disabled":
       return "Esta conta foi desativada.";
     case "auth/operation-not-allowed":
-      return "O método Email/Palavra-passe não está ativo no Firebase Authentication.";
+      return "O início de sessão com Google não está ativo no Firebase Authentication.";
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return "A janela de início de sessão foi fechada antes de terminar.";
+    case "auth/unauthorized-domain":
+      return "Este domínio não está autorizado no Firebase Authentication (Settings → Authorized domains).";
+    case "auth/account-exists-with-different-credential":
+      return "Já existe uma conta com este email associada a outro método de início de sessão.";
     default:
       return "Não foi possível iniciar sessão. Tente novamente.";
   }
@@ -278,11 +287,12 @@ function clearData() {
 }
 
 /* ---------------- Autorização ---------------- */
-async function checkAdmin(user) {
+async function checkAdmin() {
+  // /admins só pode ser lido por administradores (ver firebase-rtdb-rules.json).
   const { db, dbModule } = fb;
   try {
-    const snap = await dbModule.get(dbModule.ref(db, `admins/${user.uid}`));
-    return snap.val() === true;
+    await dbModule.get(dbModule.ref(db, "admins"));
+    return true;
   } catch (error) {
     if (isPermissionDenied(error)) return false;
     throw error;
@@ -303,7 +313,7 @@ async function onUser(user) {
 
   let authorized = false;
   try {
-    authorized = await checkAdmin(user);
+    authorized = await checkAdmin();
   } catch (error) {
     console.error("[admin] checkAdmin", error);
     $("#loadErrorText").textContent = "Não foi possível verificar a autorização. Verifique a ligação e recarregue a página.";
@@ -358,28 +368,30 @@ async function boot() {
 
   const { auth, authModule } = fb;
 
-  $("#loginForm").addEventListener("submit", async (event) => {
-    event.preventDefault();
+  $("#loginGoogle").addEventListener("click", async () => {
     const status = $("#loginStatus");
-    const submit = $("#loginSubmit");
-    const email = $("#loginEmail").value.trim();
-    const password = $("#loginPassword").value;
+    const button = $("#loginGoogle");
     status.innerHTML = "";
-    if (!email || !password) {
-      status.innerHTML = `<div class="alert alert--error">Preencha o email e a palavra-passe.</div>`;
-      return;
-    }
-    submit.disabled = true;
-    submit.innerHTML = '<span class="spinner" aria-hidden="true"></span><span class="btn__label">A entrar…</span>';
+    button.disabled = true;
+    const provider = new authModule.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
     try {
-      await authModule.signInWithEmailAndPassword(auth, email, password);
-      $("#loginPassword").value = "";
+      await authModule.signInWithPopup(auth, provider);
     } catch (error) {
+      if (error?.code === "auth/popup-blocked") {
+        // Navegadores que bloqueiam janelas: usar redirecionamento.
+        await authModule.signInWithRedirect(auth, provider);
+        return;
+      }
       status.innerHTML = `<div class="alert alert--error">${esc(authErrorMessage(error))}</div>`;
     } finally {
-      submit.disabled = false;
-      submit.innerHTML = '<span class="btn__label">Entrar</span>';
+      button.disabled = false;
     }
+  });
+
+  // Resultado de um eventual signInWithRedirect.
+  authModule.getRedirectResult(auth).catch((error) => {
+    $("#loginStatus").innerHTML = `<div class="alert alert--error">${esc(authErrorMessage(error))}</div>`;
   });
 
   $("#logoutBtn").addEventListener("click", async () => {

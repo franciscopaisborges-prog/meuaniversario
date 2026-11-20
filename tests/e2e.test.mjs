@@ -69,6 +69,16 @@ async function prepare(context, { config = "emulator", dbPort = 9000 } = {}) {
   });
   await context.route("https://*.tile.openstreetmap.org/**", (r) => r.fulfill({ body: PNG_1x1, contentType: "image/png" }));
   await context.route("https://tile.openstreetmap.org/**", (r) => r.fulfill({ body: PNG_1x1, contentType: "image/png" }));
+  if (config === "placeholder") {
+    await context.route(`${BASE}/firebase-config.js`, (r) =>
+      r.fulfill({
+        contentType: "text/javascript",
+        body: `export const firebaseConfig = { apiKey: "COLOCAR_API_KEY", authDomain: "COLOCAR_PROJECT_ID.firebaseapp.com", databaseURL: "COLOCAR_DATABASE_URL", projectId: "COLOCAR_PROJECT_ID", appId: "COLOCAR_APP_ID" };
+export const appCheckSiteKey = "";
+export const emulators = { enabled: false, host: "127.0.0.1", databasePort: 9000, authPort: 9099 };`,
+      })
+    );
+  }
   if (config === "emulator") {
     await context.route(`${BASE}/firebase-config.js`, (r) =>
       r.fulfill({ body: testConfig(dbPort), contentType: "text/javascript" })
@@ -405,7 +415,7 @@ await test("RSVP: servidor inacessível mostra erro (timeout de ligação)", asy
 
 await test("RSVP: Firebase por configurar mostra erro claro (sem simular gravação)", async () => {
   const context = await browser.newContext();
-  await prepare(context, { config: "real-placeholder" });
+  await prepare(context, { config: "placeholder" });
   const page = await context.newPage();
   await page.goto(`${BASE}/`);
   await page.waitForSelector(".step__link");
@@ -470,12 +480,26 @@ await test("Telemóvel: sem scroll horizontal, roteiro e detalhe utilizáveis", 
 });
 
 /* =========================== ADMINISTRAÇÃO =========================== */
-const ADMIN_EMAIL = `organizador-${Date.now()}@teste.local`;
-const USER_EMAIL = `convidado-${Date.now()}@teste.local`;
-const PASSWORD = "Palavra-passe-de-teste-123";
-const adminUid = await signUp(ADMIN_EMAIL, PASSWORD);
-await signUp(USER_EMAIL, PASSWORD);
-await ownerPut(`admins/${adminUid}`, true);
+const ADMIN_EMAIL = "franciscopaisborges@gmail.com"; // autorizado nas regras
+const USER_EMAIL = `convidado-${Date.now()}@gmail.com`;
+
+/**
+ * Início de sessão Google no emulador: a janela de popup precisa de
+ * apis.google.com (indisponível no ambiente de testes), por isso usamos
+ * signInWithCredential com um id_token do emulador — o mesmo caminho de
+ * autenticação Google do Firebase, sem a janela.
+ */
+async function googleLogin(page, email, verified = true) {
+  await page.evaluate(
+    async ({ email, verified }) => {
+      const { getFirebaseAuth } = await import("/assets/js/shared/firebase.js");
+      const { auth, authModule } = await getFirebaseAuth();
+      const idToken = JSON.stringify({ sub: `google-${email}`, email, email_verified: verified });
+      await authModule.signInWithCredential(auth, authModule.GoogleAuthProvider.credential(idToken));
+    },
+    { email, verified }
+  );
+}
 await anonPush({ name: "Zé Ninguém", attending: "no", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29" });
 await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nAspas "duplas"; ponto-e-vírgula', createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29" });
 
@@ -495,18 +519,14 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
     await page.screenshot({ path: join(OUT, "admin-login.png") });
   });
 
-  await test("Admin: palavra-passe errada mostra erro", async () => {
-    await page.locator("#loginEmail").fill(ADMIN_EMAIL);
-    await page.locator("#loginPassword").fill("errada-123");
-    await page.locator("#loginSubmit").click();
-    await page.waitForSelector("#loginStatus .alert--error");
-    assert.match(await page.locator("#loginStatus").innerText(), /incorretos/);
+  await test("Admin: ecrã de login só com Google (sem palavra-passe)", async () => {
+    assert.equal(await page.locator("#loginGoogle").isVisible(), true);
+    assert.match(await page.locator("#loginGoogle").innerText(), /Entrar com Google/i);
+    assert.equal(await page.locator('#viewLogin input[type="password"]').count(), 0);
   });
 
-  await test("Admin: utilizador autenticado mas não autorizado não vê respostas", async () => {
-    await page.locator("#loginEmail").fill(USER_EMAIL);
-    await page.locator("#loginPassword").fill(PASSWORD);
-    await page.locator("#loginSubmit").click();
+  await test("Admin: conta Google não autorizada não vê respostas", async () => {
+    await googleLogin(page, USER_EMAIL);
     await page.waitForSelector("#viewUnauthorized:not([hidden])");
     assert.equal(await page.locator("#viewDashboard").isHidden(), true);
     assert.equal(await page.locator("#rsvpRows tr").count(), 0);
@@ -529,10 +549,9 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
     await page.waitForSelector("#viewLogin:not([hidden])");
   });
 
-  await test("Admin: administrador vê totais corretos e tabela", async () => {
-    await page.locator("#loginEmail").fill(ADMIN_EMAIL);
-    await page.locator("#loginPassword").fill(PASSWORD);
-    await page.locator("#loginSubmit").click();
+  await test("Admin: franciscopaisborges@gmail.com (Google) vê totais corretos e tabela", async () => {
+    await googleLogin(page, ADMIN_EMAIL);
+    assert.equal(await page.locator("#sessionEmail").innerText(), ADMIN_EMAIL);
     await page.waitForSelector("#viewDashboard:not([hidden])");
     await page.waitForFunction(() => document.querySelectorAll("#rsvpRows tr").length > 0);
     const all = Object.values(await ownerGet("rsvps"));
@@ -603,7 +622,7 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
   });
 
   await test("Admin: sem erros de consola/CSP", async () => {
-    assert.deepEqual(errors.filter((e) => !/auth\/invalid-credential|400 \(Bad Request\)/.test(e)), []);
+    assert.deepEqual(errors, []);
   });
 
   await context.close();
@@ -615,9 +634,7 @@ await test("Admin (telemóvel): painel sem scroll horizontal", async () => {
   const page = await context.newPage();
   await page.goto(`${BASE}/admin.html?emulators=1`);
   await page.waitForSelector("#viewLogin:not([hidden])");
-  await page.locator("#loginEmail").fill(ADMIN_EMAIL);
-  await page.locator("#loginPassword").fill(PASSWORD);
-  await page.locator("#loginSubmit").click();
+  await googleLogin(page, ADMIN_EMAIL);
   await page.waitForSelector("#viewDashboard:not([hidden])");
   await page.waitForFunction(() => document.querySelectorAll("#rsvpRows tr").length > 0);
   const ow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -628,7 +645,7 @@ await test("Admin (telemóvel): painel sem scroll horizontal", async () => {
 
 await test("Admin: Firebase por configurar mostra aviso", async () => {
   const context = await browser.newContext();
-  await prepare(context, { config: "real-placeholder" });
+  await prepare(context, { config: "placeholder" });
   const page = await context.newPage();
   await page.goto(`${BASE}/admin.html`);
   await page.waitForSelector("#viewNotConfigured:not([hidden])");

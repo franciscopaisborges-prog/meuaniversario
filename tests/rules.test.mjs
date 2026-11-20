@@ -54,6 +54,26 @@ async function createUser(email) {
   return { uid: data.localId, token: data.idToken };
 }
 
+async function signInGoogle(email, verified = true) {
+  const idToken = JSON.stringify({ sub: `google-${email}`, email, email_verified: verified });
+  const res = await fetch(
+    `http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=fake-api-key`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requestUri: "http://localhost",
+        postBody: `id_token=${encodeURIComponent(idToken)}&providerId=google.com`,
+        returnSecureToken: true,
+        returnIdpCredential: true,
+      }),
+    }
+  );
+  const data = await res.json();
+  assert.ok(data.idToken, `signInWithIdp falhou: ${JSON.stringify(data)}`);
+  return { uid: data.localId, token: data.idToken };
+}
+
 const results = [];
 async function test(name, fn) {
   try {
@@ -70,6 +90,9 @@ await owner("PUT", "", null);
 const admin = await createUser(`admin-${Date.now()}@teste.local`);
 const user = await createUser(`user-${Date.now()}@teste.local`);
 await owner("PUT", `admins/${admin.uid}`, true);
+const organizer = await signInGoogle("franciscopaisborges@gmail.com");
+const otherGoogle = await signInGoogle(`outro-${Date.now()}@gmail.com`);
+const unverified = await signInGoogle("franciscopaisborges@gmail.com".replace("@", "+x@"), false);
 
 let createdId;
 
@@ -171,6 +194,25 @@ await test("Admin lê /admins", async () => {
 await test("Admin lê o próprio /admins/{uid} (true)", async () => {
   const r = await req("GET", `admins/${admin.uid}`, undefined, admin.token);
   assert.equal(r.json, true);
+});
+
+await test("Organizador (Google, email verificado) lê /rsvps", async () => {
+  const r = await req("GET", "rsvps", undefined, organizer.token);
+  assert.equal(r.status, 200);
+  assert.ok(Object.keys(r.json).length >= 2);
+});
+await test("Organizador (Google) lê /admins (verificação de autorização do painel)", async () => {
+  assert.equal((await req("GET", "admins", undefined, organizer.token)).status, 200);
+});
+await test("Organizador NÃO altera respostas existentes", async () => {
+  assert.equal((await req("PUT", `rsvps/${createdId}`, valid({ name: "Mudado" }), organizer.token)).status, 401);
+});
+await test("Outra conta Google NÃO lê /rsvps nem /admins", async () => {
+  assert.equal((await req("GET", "rsvps", undefined, otherGoogle.token)).status, 401);
+  assert.equal((await req("GET", "admins", undefined, otherGoogle.token)).status, 401);
+});
+await test("Conta Google com email não verificado NÃO é admin", async () => {
+  assert.equal((await req("GET", "rsvps", undefined, unverified.token)).status, 401);
 });
 
 for (const [mark, name, err] of results) console.log(`${mark} ${name}${err ? `\n    → ${err}` : ""}`);

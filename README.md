@@ -45,7 +45,7 @@ Convite digital interativo para o aniversário de Francisco Rodrigues, com progr
 │   └── vendor/leaflet/         Leaflet 1.9.4 (local, sem CDN)
 ├── tests/
 │   ├── server.mjs              Servidor estático local
-│   ├── rules.test.mjs          33 testes das regras RTDB (emulador)
+│   ├── rules.test.mjs          38 testes das regras RTDB (emulador)
 │   └── e2e.test.mjs            31 testes end-to-end (Playwright + emuladores)
 └── tools/
     └── verify-coordinates.mjs  Compara as coordenadas do site com o OpenStreetMap
@@ -62,7 +62,7 @@ Convite digital interativo para o aniversário de Francisco Rodrigues, com progr
 | **Leaflet e fontes alojados localmente** | São mais rápidos, não dependem de CDNs de terceiros e permitem uma CSP restrita. |
 | **Sucesso do RSVP só depois da confirmação do servidor** | O envio começa por confirmar a ligação real (`.info/connected`). Depois faz `push()` + `set()` e espera pelo *ack* da RTDB, com limite de tempo. Sem rede, sem configuração ou com o servidor inacessível, mostra um erro claro. |
 | **CSV com `;`, BOM UTF-8 e CRLF** | Abre diretamente no Excel em português com acentos corretos, e o Google Sheets e o Numbers detetam o `;` automaticamente. Valores começados por `=`, `+`, `-` ou `@` são prefixados com `'` para evitar injeção de fórmulas. |
-| **Sessão de admin limitada ao separador** | `browserSessionPersistence`: fechar o navegador termina a sessão. |
+| **Admin com Google** | Login com `signInWithPopup` (com recurso a redirecionamento se o popup for bloqueado). A sessão fica limitada ao separador (`browserSessionPersistence`), por isso fechar o navegador termina a sessão. |
 
 ---
 
@@ -115,32 +115,22 @@ Abra `http://127.0.0.1:5173/?emulators=1`. O parâmetro `?emulators=1` só tem e
 3. Escolha **Iniciar em modo bloqueado**. As regras corretas são publicadas no passo 3.7.
 4. Copie o URL da base de dados (ex.: `https://aniversario-fr-default-rtdb.europe-west1.firebasedatabase.app`).
 
-### 3.4 Ativar Email/Palavra-passe
-**Build → Authentication → Começar → Sign-in method → Email/Password → Ativar → Guardar.**
-Deixe o “link de email (sem palavra-passe)” desativado.
+### 3.4 Ativar o início de sessão com Google
+**Build → Authentication → Começar → Sign-in method → Google → Ativar → Guardar.**
+O painel usa apenas “Entrar com Google”. Não há palavras-passe no código nem na base de dados.
 
-### 3.5 Criar a conta do administrador
-**Authentication → Users → Adicionar utilizador.** Indique o email e uma palavra-passe forte.
-Copie o **UID do utilizador**, a coluna “User UID”.
+### 3.5 Quem é administrador
+A autorização está nas **regras da RTDB** (`firebase-rtdb-rules.json`). Uma conta é administradora se:
+- o email Google for **`franciscopaisborges@gmail.com`** e estiver verificado pelo Google (`auth.token.email_verified`); **ou**
+- o seu UID constar de `/admins/{uid}: true`. Esta segunda opção serve para acrescentar outros administradores.
 
-> A palavra-passe fica apenas no Firebase Authentication. Não está no código, no HTML nem na base de dados.
+Qualquer outra conta Google consegue iniciar sessão, mas vê “Esta conta não é administradora” e as regras recusam a leitura das respostas.
 
-### 3.6 Adicionar o UID à lista de administradores
-Na **Realtime Database → separador Dados**:
-1. Passe o rato sobre a raiz e clique em **+**.
-2. Nome: `admins` e, dentro dele, um filho com nome `<UID copiado>` e valor `true` (booleano, sem aspas).
+### 3.6 Acrescentar outro administrador (opcional)
+1. A pessoa entra no `admin.html` com a sua conta Google. O painel mostra o caminho exato a criar.
+2. Na **Realtime Database → Dados**, crie `admins` → `<UID>` com o valor `true` (booleano).
 
-O resultado deve ser:
-
-```json
-{
-  "admins": {
-    "AbCdEf123...": true
-  }
-}
-```
-
-Também pode importar um JSON com esta estrutura (⋮ → Importar JSON) ou usar a CLI (ver 3.7). Se iniciar sessão no `admin.html` com uma conta ainda não autorizada, o painel mostra o caminho exato a criar.
+Para mudar o email do organizador, edite-o nas duas ocorrências em `firebase-rtdb-rules.json` e volte a publicar as regras.
 
 ### 3.7 Publicar as regras de segurança
 **Opção A, na consola:** em **Realtime Database → Regras**, cole o conteúdo de `firebase-rtdb-rules.json` e clique em **Publicar**.
@@ -259,7 +249,6 @@ O App Check garante que só o seu site, e não scripts externos, escreve na base
 > O painel de administração usa a mesma inicialização, por isso também passa a enviar o token App Check. A CSP do `firebase.json` já permite os domínios do reCAPTCHA e do App Check.
 
 ### Outras recomendações
-- **Authentication → Settings → User actions:** desative **“Enable create (sign-up)”**. Só o administrador criado na consola deve existir, e o site nunca cria contas.
 - **Authentication → Settings → Authorized domains:** mantenha apenas os domínios reais (remova `localhost` depois de terminar os testes, se quiser).
 - **Proteção contra enumeração de emails:** confirme que está ativa (Authentication → Settings).
 - **Alertas de orçamento** no Google Cloud (Billing → Budgets), para o caso de abuso.
@@ -285,15 +274,17 @@ npm test
 
 `npm test` arranca os emuladores Auth + RTDB, executa os dois conjuntos de testes e encerra os emuladores. Também pode correr cada conjunto em separado com `npm run test:rules` e `npm run test:e2e`. As capturas de ecrã ficam em `tests/output/`.
 
-### Resultados da última execução: 64/64 ✔
+### Resultados da última execução: 69/69 ✔
 
-**Regras RTDB (33/33):**
+**Regras RTDB (38/38):**
 - Anónimo cria resposta válida, com e sem mensagem.
 - Anónimo **não** lê `/rsvps`, nem uma resposta individual, nem a raiz, nem `/admins`.
 - Anónimo **não** altera (PUT/PATCH), **não** apaga, **não** substitui `/rsvps`, **não** escreve em `/admins` nem fora de `/rsvps`.
 - São rejeitados 14 tipos de dados inválidos: sem nome, nome vazio, com 1 carácter, com espaços nas pontas, com mais de 80 caracteres ou não-string; `attending` inválido ou booleano; mensagem com mais de 500 caracteres ou vazia; `createdAt` do cliente; `eventDate` errada ou ausente; campo inesperado.
 - Autenticado **não-admin** não lê `/rsvps` nem `/admins`, lê apenas o próprio `/admins/{uid}` e não se consegue promover.
-- **Admin** lê `/rsvps`, `/admins` e o próprio registo.
+- **Admin** (por UID) lê `/rsvps`, `/admins` e o próprio registo.
+- **Organizador** (Google, `franciscopaisborges@gmail.com` verificado) lê `/rsvps` e `/admins`, mas não altera respostas.
+- Outra conta Google, ou uma conta com email não verificado, não lê nada.
 
 **End-to-end (31/31), Chromium:**
 - **Página inicial:** abre sem erros de consola nem de CSP (com a CSP de produção aplicada).
@@ -310,9 +301,9 @@ npm test
   - mostra erro sem internet, com o servidor inacessível e com o Firebase por configurar, e em nenhum destes casos mostra sucesso.
 - **Telemóvel (390×844):** sem scroll horizontal na página inicial nem nas atividades, alvos de toque com pelo menos 40 px e esquema vertical do Metrobus.
 - **Admin:**
-  - sem sessão não mostra dados e uma palavra-passe errada mostra erro;
-  - um utilizador autenticado mas não autorizado não vê respostas, nem lendo diretamente pelo SDK;
-  - um administrador vê os totais certos, a tabela e as atualizações em tempo real;
+  - sem sessão não mostra dados, e o login é só com Google, sem campos de palavra-passe;
+  - uma conta Google não autorizada não vê respostas, nem lendo diretamente pelo SDK;
+  - `franciscopaisborges@gmail.com` vê os totais certos, a tabela e as atualizações em tempo real;
   - a pesquisa (sem acentos), o filtro, a ordenação e o botão Atualizar funcionam;
   - o CSV sai em UTF-8 com BOM, acentos, aspas e quebras de linha, e com proteção contra fórmulas;
   - o logout limpa os dados, a página não tem erros de consola e não há scroll horizontal no telemóvel.
@@ -340,7 +331,7 @@ npm run verify:coords
 
 ## 8. Limitações e pendentes (dependem de si)
 
-1. **Configuração Firebase:** preencher `firebase-config.js` e `.firebaserc`, criar o administrador, adicionar o UID a `/admins`, publicar as regras e fazer o deploy (secção 3). O projeto **não está ligado** a nenhuma conta.
+1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
 2. **Horários** de todas as atividades: a confirmar.
 3. **La Piccola Cucina Italiana:** reserva e posição exata no mapa a confirmar.
 4. **Praça 8 de Maio** e **campo de golfe:** coordenadas aproximadas, a verificar com `npm run verify:coords`.
