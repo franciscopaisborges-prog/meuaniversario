@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Administração · FR 29.11.2026</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#060606" />
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/admin.css" />
+    <script type="module" src="assets/js/admin/admin.js"></script>
+  </head>
+  <body class="admin">
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="fr-mark" viewBox="0 0 120 120">
+        <g class="mark" stroke-width="2.6">
+          <path d="M86 14.97A52 52 0 1 1 11.14 42.22" />
+          <path d="M37 86V34H71a12 12 0 0 1 0 24H59" />
+          <path d="M37 58H53" />
+          <path d="M59 34V86" />
+          <path d="M67 58L83 86" />
+        </g>
+      </symbol>
+    </svg>
+
+    <a class="skip-link" href="#adminMain">Saltar para o conteúdo</a>
+
+    <header class="a-header">
+      <div class="a-brand">
+        <svg aria-hidden="true"><use href="#fr-mark" /></svg>
+        <div>
+          <p class="a-brand__title">Painel privado</p>
+          <p class="a-brand__sub">Aniversário · 29.11.2026</p>
+        </div>
+      </div>
+      <div class="a-session" id="sessionBox" hidden>
+        <span class="a-session__email" id="sessionEmail"></span>
+        <button class="btn btn--ghost btn--sm" type="button" id="logoutBtn">Terminar sessão</button>
+      </div>
+    </header>
+
+    <main id="adminMain" class="a-main" tabindex="-1">
+      <!-- Estado: a carregar -->
+      <section class="a-state" id="viewLoading" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>A verificar a sessão…</p>
+      </section>
+
+      <!-- Estado: Firebase por configurar -->
+      <section class="a-card a-card--narrow" id="viewNotConfigured" hidden>
+        <p class="eyebrow a-gold">Configuração necessária</p>
+        <h1 class="a-title">Firebase ainda não configurado</h1>
+        <p class="a-text">
+          Preencha <code>firebase-config.js</code> com os dados do seu projeto Firebase (ver README, secção “Configurar o
+          Firebase”). Até lá, não é possível iniciar sessão nem consultar respostas.
+        </p>
+      </section>
+
+      <!-- Estado: erro ao carregar o SDK -->
+      <section class="a-card a-card--narrow" id="viewLoadError" hidden>
+        <p class="eyebrow a-gold">Erro</p>
+        <h1 class="a-title">Não foi possível carregar o painel</h1>
+        <p class="a-text" id="loadErrorText">Verifique a ligação à internet e recarregue a página.</p>
+      </section>
+
+      <!-- Estado: login -->
+      <section class="a-card a-card--narrow" id="viewLogin" hidden aria-labelledby="loginTitle">
+        <p class="eyebrow a-gold">Acesso reservado</p>
+        <h1 class="a-title" id="loginTitle">Iniciar sessão</h1>
+        <p class="a-text">Apenas para o organizador. Utilize a conta de administrador criada no Firebase Authentication.</p>
+        <form class="a-form" id="loginForm" novalidate>
+          <div class="field">
+            <label class="field__label" for="loginEmail">Email</label>
+            <input class="input" id="loginEmail" name="email" type="email" autocomplete="username" required />
+          </div>
+          <div class="field">
+            <label class="field__label" for="loginPassword">Palavra-passe</label>
+            <input class="input" id="loginPassword" name="password" type="password" autocomplete="current-password" required minlength="6" />
+          </div>
+          <div id="loginStatus" role="alert"></div>
+          <button class="btn btn--solid" type="submit" id="loginSubmit"><span class="btn__label">Entrar</span></button>
+        </form>
+      </section>
+
+      <!-- Estado: autenticado mas sem autorização -->
+      <section class="a-card a-card--narrow" id="viewUnauthorized" hidden aria-labelledby="unauthTitle">
+        <p class="eyebrow a-gold">Sem autorização</p>
+        <h1 class="a-title" id="unauthTitle">Esta conta não é administradora</h1>
+        <p class="a-text">
+          A sessão foi iniciada, mas esta conta não consta da lista de administradores da base de dados. Por segurança, nenhuma
+          resposta é apresentada.
+        </p>
+        <p class="a-text">Para autorizar esta conta, adicione na Realtime Database o caminho:</p>
+        <pre class="a-code" id="unauthPath"></pre>
+        <p class="a-text a-muted">Depois de adicionar, recarregue esta página.</p>
+      </section>
+
+      <!-- Estado: painel -->
+      <section id="viewDashboard" hidden aria-labelledby="dashTitle">
+        <div class="a-dash-head">
+          <div>
+            <p class="eyebrow a-gold">Confirmações de presença</p>
+            <h1 class="a-title a-title--xl" id="dashTitle">Respostas</h1>
+          </div>
+          <p class="a-live" id="liveStatus"><span class="a-live__dot" aria-hidden="true"></span> <span id="liveText">A ligar…</span></p>
+        </div>
+
+        <div class="a-stats" role="group" aria-label="Indicadores">
+          <article class="a-stat">
+            <p class="a-stat__label">Total de respostas</p>
+            <p class="a-stat__value" id="statTotal">0</p>
+          </article>
+          <article class="a-stat a-stat--yes">
+            <p class="a-stat__label">Presenças confirmadas</p>
+            <p class="a-stat__value" id="statYes">0</p>
+            <p class="a-stat__hint" id="statYesHint">de 6 convidados previstos</p>
+          </article>
+          <article class="a-stat a-stat--no">
+            <p class="a-stat__label">Não poderão comparecer</p>
+            <p class="a-stat__value" id="statNo">0</p>
+          </article>
+        </div>
+
+        <div class="a-toolbar">
+          <div class="field a-toolbar__search">
+            <label class="field__label" for="searchInput">Pesquisar por nome</label>
+            <input class="input" id="searchInput" type="search" placeholder="Nome…" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="field__label" for="filterSelect">Estado</label>
+            <select class="input" id="filterSelect">
+              <option value="all">Todos</option>
+              <option value="yes">Confirmados</option>
+              <option value="no">Não vão</option>
+            </select>
+          </div>
+          <div class="a-toolbar__actions">
+            <button class="btn btn--ghost" type="button" id="refreshBtn">Atualizar</button>
+            <button class="btn btn--solid" type="button" id="exportBtn">Exportar CSV</button>
+          </div>
+        </div>
+
+        <div id="dataStatus" role="status" aria-live="polite"></div>
+
+        <div class="a-table-wrap">
+          <table class="a-table" id="rsvpTable">
+            <caption class="visually-hidden">Lista de respostas — clique nos cabeçalhos para ordenar</caption>
+            <thead>
+              <tr>
+                <th scope="col" aria-sort="none"><button type="button" data-sort="name">Nome <span aria-hidden="true" class="sort-ind"></span></button></th>
+                <th scope="col" aria-sort="none"><button type="button" data-sort="attending">Estado <span aria-hidden="true" class="sort-ind"></span></button></th>
+                <th scope="col">Mensagem</th>
+                <th scope="col" aria-sort="descending"><button type="button" data-sort="createdAt">Data e hora <span aria-hidden="true" class="sort-ind"></span></button></th>
+              </tr>
+            </thead>
+            <tbody id="rsvpRows"></tbody>
+          </table>
+          <p class="a-empty" id="emptyState" hidden></p>
+        </div>
+        <p class="a-foot" id="tableFoot"></p>
+      </section>
+    </main>
+  </body>
+</html>

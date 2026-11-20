@@ -1,0 +1,20 @@
+{
+  "name": "aniversario-francisco-rodrigues",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Convite digital interativo — aniversário de Francisco Rodrigues, Coimbra, 29.11.2026",
+  "type": "module",
+  "scripts": {
+    "serve": "node tests/server.mjs",
+    "emulators": "firebase emulators:start --only auth,database --project demo-fr-aniversario",
+    "test:rules": "firebase emulators:exec --only auth,database --project demo-fr-aniversario \"node tests/rules.test.mjs\"",
+    "test:e2e": "firebase emulators:exec --only auth,database --project demo-fr-aniversario \"node tests/e2e.test.mjs\"",
+    "test": "firebase emulators:exec --only auth,database --project demo-fr-aniversario \"node tests/rules.test.mjs && node tests/e2e.test.mjs\"",
+    "verify:coords": "node tools/verify-coordinates.mjs",
+    "deploy": "firebase deploy --only hosting,database"
+  },
+  "devDependencies": {
+    "firebase": "12.19.0",
+    "firebase-tools": "^15.37.0"
+  }
+}

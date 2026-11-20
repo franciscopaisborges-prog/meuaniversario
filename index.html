@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Francisco Rodrigues · 29.11.2026 · Coimbra</title>
+    <meta
+      name="description"
+      content="Convite para o aniversário de Francisco Rodrigues — Coimbra, 29 de novembro de 2026. Programa, mapa e confirmação de presença."
+    />
+    <meta name="theme-color" content="#060606" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta property="og:title" content="Francisco Rodrigues · 29.11.2026" />
+    <meta property="og:description" content="Um dia pela cidade de Coimbra, entre amigos." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="assets/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/manrope-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/site.css" />
+    <script>
+      document.documentElement.classList.add("js");
+    </script>
+    <script src="assets/vendor/leaflet/leaflet.js" defer></script>
+    <script type="module" src="assets/js/site/app.js"></script>
+  </head>
+  <body>
+    <!-- Sprite SVG: monograma FR e ícones (vetoriais, sem imagens rasterizadas) -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true" focusable="false">
+      <symbol id="fr-mark" viewBox="0 0 120 120">
+        <g class="mark" stroke-width="2.4">
+          <path d="M86 14.97A52 52 0 1 1 11.14 42.22" />
+          <path d="M37 86V34H71a12 12 0 0 1 0 24H59" />
+          <path d="M37 58H53" />
+          <path d="M59 34V86" />
+          <path d="M67 58L83 86" />
+        </g>
+        <circle cx="86" cy="14.97" r="1.7" fill="currentColor" />
+      </symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path d="M20 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+      </symbol>
+      <symbol id="i-external" viewBox="0 0 24 24">
+        <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+    </svg>
+
+    <a class="skip-link" href="#conteudo">Saltar para o conteúdo</a>
+
+    <div id="home">
+      <header class="site-header" id="siteHeader">
+        <a class="brand" href="#topo" aria-label="Francisco Rodrigues — início">
+          <svg aria-hidden="true"><use href="#fr-mark" /></svg>
+          <span class="brand__text">
+            <span class="brand__name">Francisco Rodrigues</span>
+            <span class="brand__date">29 · 11 · 2026</span>
+          </span>
+        </a>
+        <nav class="site-nav" aria-label="Navegação principal">
+          <a class="site-nav__link" href="#programa">Programa</a>
+          <a class="site-nav__link" href="#mapa">Mapa</a>
+          <button class="btn btn--solid" type="button" data-open-rsvp>Confirmar presença</button>
+        </nav>
+      </header>
+
+      <main id="conteudo" tabindex="-1">
+        <!-- HERO -->
+        <section class="hero" id="topo" aria-labelledby="heroTitle">
+          <svg class="curves curves--draw" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path class="c1" d="M-80 640C180 520 330 760 600 690S980 380 1180 420 1460 620 1540 560" />
+            <path class="c2" d="M-60 300C220 210 380 420 660 360S1040 120 1300 190 1520 330 1560 300" />
+            <path class="c3" d="M120 980C260 760 520 600 760 640S1180 860 1500 700" />
+            <path class="c4" d="M-40 470C300 470 520 520 720 470S1120 300 1480 330" />
+            <line x1="720" y1="0" x2="720" y2="120" />
+          </svg>
+
+          <div class="hero__inner">
+            <svg class="hero__mark" viewBox="0 0 120 120" role="img" aria-label="Monograma FR">
+              <g class="mark" stroke-width="1.6">
+                <path d="M86 14.97A52 52 0 1 1 11.14 42.22" />
+                <path d="M37 86V34H71a12 12 0 0 1 0 24H59" />
+                <path d="M37 58H53" />
+                <path d="M59 34V86" />
+                <path d="M67 58L83 86" />
+              </g>
+              <circle class="mark__dot" cx="86" cy="14.97" r="1.6" fill="currentColor" />
+            </svg>
+
+            <p class="hero__kicker eyebrow">Coimbra · 29.11.2026</p>
+            <h1 class="hero__title" id="heroTitle">
+              Francisco
+              <em class="gold-text">Rodrigues</em>
+            </h1>
+            <p class="hero__lead">
+              Estás convidado para um dia de aniversário pela cidade — do almoço à última conversa, com algumas surpresas pelo
+              caminho.
+            </p>
+            <div class="hero__actions">
+              <button class="btn btn--solid" type="button" data-open-rsvp>
+                Confirmar presença
+                <svg class="btn__arrow" width="16" height="16" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+              </button>
+              <a class="btn btn--ghost" href="#programa">Ver o programa</a>
+            </div>
+
+            <ul class="hero__facts" aria-label="Informação essencial">
+              <li><span class="fact__label">Data</span><span class="fact__value">Dom., 29 Nov</span></li>
+              <li><span class="fact__label">Cidade</span><span class="fact__value">Coimbra</span></li>
+              <li><span class="fact__label">Convidados</span><span class="fact__value">6 pessoas</span></li>
+              <li><span class="fact__label">Contagem</span><span class="fact__value" id="countdown">—</span></li>
+            </ul>
+          </div>
+          <span class="scroll-cue" aria-hidden="true"></span>
+        </section>
+
+        <!-- INTRO -->
+        <section class="section" aria-labelledby="introTitle">
+          <div class="section__inner intro">
+            <h2 class="intro__quote reveal" id="introTitle">
+              Um dia inteiro em Coimbra, <em>a seis</em>, ao ritmo da cidade.
+            </h2>
+            <div class="intro__body reveal" style="--delay: 0.12s">
+              <p>
+                Começamos na estação, sentamo-nos à mesa, perdemo-nos pela Baixa, subimos à Torre de Almedina e descemos até ao
+                rio. Depois, Metrobus, golfe e uma apresentação privada que fica — por agora — em segredo.
+              </p>
+              <p>Explora cada momento do programa, vê tudo no mapa e confirma a tua presença.</p>
+              <p class="intro__note">
+                Horários, reservas e alguns locais ainda estão por confirmar e estão assinalados como <strong>“A confirmar”</strong>.
+                Esta página será atualizada.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROGRAMA -->
+        <section class="section" id="programa" aria-labelledby="programTitle">
+          <svg class="section-curve" style="right: 0; top: 8%; width: 46vw; height: 80%" viewBox="0 0 600 1000" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M600 40C380 120 260 300 360 480S560 760 300 980" stroke-opacity="0.18" />
+            <path d="M600 140C460 220 420 380 500 540S600 820 460 1000" stroke-opacity="0.08" />
+          </svg>
+          <div class="section__inner">
+            <header class="section__head reveal">
+              <div>
+                <p class="section__eyebrow eyebrow">O programa</p>
+                <h2 class="section__title" id="programTitle">Nove momentos, <em>um só dia</em></h2>
+              </div>
+              <p class="section__aside">Toca em cada etapa para abrires a página completa, com detalhes, localização e mapa.</p>
+            </header>
+
+            <ol class="roteiro" id="roteiro" aria-label="Sequência do programa">
+              <!-- Gerado por assets/js/site/app.js a partir de program.js -->
+            </ol>
+            <p class="roteiro-foot reveal">A ordem é a prevista. Horários a confirmar.</p>
+          </div>
+        </section>
+
+        <!-- MAPA -->
+        <section class="section" id="mapa" aria-labelledby="mapTitle">
+          <div class="section__inner">
+            <header class="section__head reveal">
+              <div>
+                <p class="section__eyebrow eyebrow">Mapa interativo</p>
+                <h2 class="section__title" id="mapTitle">Coimbra, <em>ponto a ponto</em></h2>
+              </div>
+              <p class="section__aside">Arrasta, aproxima e toca nos marcadores para ver cada atividade e abrir a respetiva página.</p>
+            </header>
+
+            <div class="map-shell reveal">
+              <div class="map map--dark" id="overviewMap" role="region" aria-label="Mapa de Coimbra com as atividades do programa">
+                <div class="map-fallback" id="overviewMapFallback">A carregar o mapa…</div>
+              </div>
+            </div>
+
+            <ul class="map-chips" id="mapChips" aria-label="Centrar o mapa numa atividade"></ul>
+
+            <div class="map-legend">
+              <div class="legend-group">
+                <h3 class="eyebrow">Marcadores</h3>
+                <ul class="legend-list">
+                  <li><span class="swatch-pin" aria-hidden="true">01</span><span>Localização confirmada<small>Coordenada de fonte publicada</small></span></li>
+                  <li>
+                    <span class="swatch-pin swatch-pin--approx" aria-hidden="true">02</span
+                    ><span>Posição aproximada<small>Ponto de referência ainda por verificar</small></span>
+                  </li>
+                </ul>
+              </div>
+              <div class="legend-group">
+                <h3 class="eyebrow">Percursos</h3>
+                <ul class="legend-list">
+                  <li><span class="swatch-line swatch-line--walk" aria-hidden="true"></span><span>Percurso pedonal</span></li>
+                  <li><span class="swatch-line swatch-line--out" aria-hidden="true"></span><span>Metrobus — ida</span></li>
+                  <li><span class="swatch-line swatch-line--back" aria-hidden="true"></span><span>Metrobus — regresso</span></li>
+                  <li><span class="swatch-line swatch-line--other" aria-hidden="true"></span><span>Outras deslocações</span></li>
+                </ul>
+              </div>
+              <div class="legend-group">
+                <h3 class="eyebrow">Estado dos trajetos</h3>
+                <p class="legend-list" id="routesStatus">Trajetos por definir.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RSVP -->
+        <section class="section rsvp-band" id="presenca" aria-labelledby="rsvpBandTitle">
+          <svg class="curves" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <path class="c2" d="M-40 420C260 300 520 520 760 420S1180 160 1480 260" />
+            <path class="c3" d="M-40 520C300 440 560 600 860 520S1260 380 1480 420" />
+          </svg>
+          <div class="section__inner reveal">
+            <p class="section__eyebrow eyebrow" style="justify-content: center">Confirmação</p>
+            <h2 class="rsvp-band__title" id="rsvpBandTitle">Vais juntar-te <em>a nós?</em></h2>
+            <p>Diz-nos se contamos contigo. Basta o teu nome — não é preciso criar conta.</p>
+            <button class="btn btn--solid" type="button" data-open-rsvp>
+              Confirmar presença
+              <svg class="btn__arrow" width="16" height="16" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </button>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <div class="site-footer__inner">
+          <div class="site-footer__brand">
+            <svg aria-hidden="true"><use href="#fr-mark" /></svg>
+            <span>Francisco Rodrigues · Coimbra · 29.11.2026</span>
+          </div>
+          <span>Mapas © colaboradores do OpenStreetMap</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- PÁGINA DE ATIVIDADE (branco & azul) — preenchida dinamicamente -->
+    <div class="detail" id="detail" role="region" aria-label="Detalhe da atividade" aria-hidden="true" inert>
+      <div class="detail__bar">
+        <button class="detail__back" type="button" data-detail-back>
+          <svg aria-hidden="true"><use href="#i-arrow-left" /></svg>
+          <span>Programa</span>
+        </button>
+        <svg class="detail__brand" aria-hidden="true"><use href="#fr-mark" /></svg>
+        <span class="detail__count" id="detailCount" aria-live="polite"></span>
+      </div>
+      <article class="detail__content" id="detailContent" tabindex="-1"></article>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE PRESENÇA -->
+    <dialog class="modal" id="rsvpModal" aria-labelledby="rsvpTitle">
+      <div class="modal__frame">
+        <svg class="modal__curve" viewBox="0 0 300 260" aria-hidden="true">
+          <path d="M300 20C200 30 120 90 140 170S260 250 300 230" stroke-opacity="0.35" />
+          <path d="M300 70C230 80 190 120 200 170S270 220 300 210" stroke-opacity="0.18" />
+        </svg>
+        <button class="modal__close" type="button" data-close-rsvp aria-label="Fechar">
+          <svg aria-hidden="true"><use href="#i-close" /></svg>
+        </button>
+
+        <div id="rsvpFormView">
+          <p class="modal__eyebrow eyebrow">29 · 11 · 2026 · Coimbra</p>
+          <h2 class="modal__title" id="rsvpTitle">Vais juntar-te a nós?</h2>
+          <p class="modal__intro">Os campos marcados com * são obrigatórios.</p>
+
+          <form class="rsvp-form" id="rsvpForm" novalidate>
+            <div class="field">
+              <label class="field__label" for="rsvpName">Nome do convidado *</label>
+              <input
+                class="input"
+                id="rsvpName"
+                name="name"
+                type="text"
+                autocomplete="name"
+                maxlength="80"
+                required
+                aria-describedby="rsvpNameError"
+                placeholder="O teu nome"
+              />
+              <p class="field__error" id="rsvpNameError" aria-live="polite"></p>
+            </div>
+
+            <fieldset class="choice-group" id="rsvpChoice" aria-describedby="rsvpChoiceError">
+              <legend class="field__label">Resposta *</legend>
+              <label class="choice">
+                <input type="radio" name="attending" value="yes" required />
+                <span class="choice__dot" aria-hidden="true"></span>
+                <span class="choice__text">Sim, vou estar presente!</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="attending" value="no" />
+                <span class="choice__dot" aria-hidden="true"></span>
+                <span class="choice__text">Não vou conseguir ir</span>
+              </label>
+              <p class="field__error" id="rsvpChoiceError" aria-live="polite"></p>
+            </fieldset>
+
+            <div class="field">
+              <label class="field__label" for="rsvpMessage">Mensagem <span style="letter-spacing: 0.1em; text-transform: none">(opcional)</span></label>
+              <textarea class="input" id="rsvpMessage" name="message" maxlength="500" aria-describedby="rsvpCounter rsvpMessageError" placeholder="Uma palavra para o Francisco…"></textarea>
+              <span class="counter" id="rsvpCounter">0 / 500</span>
+              <p class="field__error" id="rsvpMessageError" aria-live="polite"></p>
+            </div>
+
+            <!-- Campo armadilha antispam: deve ficar vazio -->
+            <div class="hp-field" aria-hidden="true">
+              <label for="rsvpWebsite">Website</label>
+              <input id="rsvpWebsite" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+
+            <div class="form-status" id="rsvpStatus" role="alert"></div>
+
+            <button class="btn btn--solid" type="submit" id="rsvpSubmit">
+              <span class="btn__label">Enviar resposta</span>
+            </button>
+          </form>
+        </div>
+
+        <div id="rsvpResultView" class="rsvp-result" hidden tabindex="-1">
+          <svg viewBox="0 0 96 96" aria-hidden="true">
+            <g class="draw" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="48" cy="48" r="44" />
+              <path class="tick" id="rsvpResultIcon" d="M30 49l12 12 25-27" />
+            </g>
+          </svg>
+          <h2 class="rsvp-result__title" id="rsvpResultTitle"></h2>
+          <p class="rsvp-result__text" id="rsvpResultText"></p>
+          <button class="btn btn--ghost" type="button" data-close-rsvp>Fechar</button>
+          <button class="btn btn--ghost" type="button" id="rsvpAnother" style="border: 0">Enviar outra resposta</button>
+        </div>
+      </div>
+    </dialog>
+  </body>
+</html>

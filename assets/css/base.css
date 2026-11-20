@@ -1,0 +1,392 @@
+/* ==========================================================================
+   BASE — tokens, tipografia, reset e utilitários partilhados
+   (index.html e admin.html)
+   ========================================================================== */
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../fonts/instrument-serif-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../fonts/instrument-serif-latin-400-italic.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Manrope";
+  src: url("../fonts/manrope-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Manrope";
+  src: url("../fonts/manrope-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Manrope";
+  src: url("../fonts/manrope-latin-600-normal.woff2") format("woff2");
+  font-weight: 600 800;
+  font-display: swap;
+}
+
+:root {
+  /* Preto & dourado */
+  --ink-0: #060606;
+  --ink-1: #0c0c0c;
+  --ink-2: #131312;
+  --ink-3: #1c1b19;
+  --bone: #efe8d8;
+  --bone-dim: #c9c1b0;
+  --muted: #9b9384;
+  --gold: #c9a961;
+  --gold-light: #e8d39c;
+  --gold-deep: #8f7036;
+  --gold-line: rgba(201, 169, 97, 0.26);
+  --gold-line-soft: rgba(201, 169, 97, 0.12);
+  --gold-metal: linear-gradient(115deg, #a8853f 0%, #e9d49d 38%, #c9a961 55%, #f3e3b6 70%, #a8853f 100%);
+
+  /* Azulejo — apenas as cores */
+  --paper: #fbfaf6;
+  --paper-warm: #f3efe5;
+  --cobalt: #1d3f9e;
+  --cobalt-strong: #163283;
+  --navy: #0b1d47;
+  --navy-soft: #2a3a63;
+  --sky: #9cc0ea;
+  --sky-soft: #dde9f7;
+  --blue-line: rgba(29, 63, 158, 0.22);
+
+  /* Estado */
+  --ok: #7fbf8e;
+  --danger: #e38b7c;
+  --walk: #4f9d69;
+
+  /* Tipografia */
+  --font-display: "Instrument Serif", "Iowan Old Style", "Times New Roman", serif;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Espaçamento e forma */
+  --gutter: clamp(1.25rem, 4vw, 3.5rem);
+  --maxw: 1200px;
+  --radius: 2px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --tap: 48px;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--bone);
+  background: var(--ink-0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  padding: 0.75rem 1rem;
+  background: var(--gold);
+  color: var(--ink-0);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.2s var(--ease);
+}
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--ink-0);
+}
+
+/* --- Rótulos e tipografia utilitária --- */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.serif {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.gold-text {
+  background: var(--gold-metal);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Botões (preto & dourado) --- */
+.btn {
+  --btn-bg: transparent;
+  --btn-fg: var(--gold-light);
+  --btn-bd: var(--gold);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: var(--tap);
+  padding: 0.95rem 1.75rem;
+  border: 1px solid var(--btn-bd);
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  isolation: isolate;
+  transition: color 0.35s var(--ease), background-color 0.35s var(--ease), border-color 0.35s var(--ease),
+    transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 244, 214, 0.45) 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 0.9s var(--ease);
+}
+.btn:hover::after {
+  transform: translateX(120%);
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.btn--solid {
+  --btn-bg: var(--gold);
+  --btn-fg: #0b0905;
+  --btn-bd: var(--gold);
+  background-image: var(--gold-metal);
+  background-size: 200% 100%;
+  background-position: 0% 50%;
+  box-shadow: 0 0 0 0 rgba(201, 169, 97, 0);
+}
+.btn--solid:hover {
+  background-position: 100% 50%;
+  box-shadow: 0 10px 40px -12px rgba(201, 169, 97, 0.55);
+}
+
+.btn--ghost {
+  --btn-bd: var(--gold-line);
+}
+.btn--ghost:hover {
+  --btn-bd: var(--gold);
+}
+
+.btn__arrow {
+  display: inline-block;
+  transition: transform 0.35s var(--ease);
+}
+.btn:hover .btn__arrow {
+  transform: translateX(4px);
+}
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Campos de formulário (escuro) --- */
+.field {
+  display: grid;
+  gap: 0.5rem;
+}
+.field__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--bone-dim);
+}
+.field__hint {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.field__error {
+  font-size: 0.85rem;
+  color: var(--danger);
+  min-height: 0;
+}
+.input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--gold-line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--bone);
+  font-size: 1rem; /* evita zoom no iOS */
+  transition: border-color 0.25s var(--ease), background-color 0.25s var(--ease);
+}
+.input::placeholder {
+  color: #6e685d;
+}
+.input:hover {
+  border-color: rgba(201, 169, 97, 0.45);
+}
+.input:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(201, 169, 97, 0.05);
+  box-shadow: 0 0 0 3px rgba(201, 169, 97, 0.18);
+}
+.input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
+textarea.input {
+  min-height: 7.5rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+/* --- Alertas --- */
+.alert {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.9rem 1rem;
+  border: 1px solid;
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.alert--error {
+  border-color: rgba(227, 139, 124, 0.45);
+  background: rgba(227, 139, 124, 0.08);
+  color: #f2c2b8;
+}
+.alert--info {
+  border-color: var(--gold-line);
+  background: rgba(201, 169, 97, 0.06);
+  color: var(--bone-dim);
+}
+
+/* --- Monograma FR (SVG em linha) --- */
+.mark {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

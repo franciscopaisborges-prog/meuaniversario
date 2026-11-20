@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120" fill="none" stroke="#C9A961" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="t">
+  <title id="t">FR — Francisco Rodrigues</title>
+  <!-- Arco aberto assimétrico -->
+  <path d="M86 14.97A52 52 0 1 1 11.14 42.22"/>
+  <!-- F e R em ligadura: barra superior partilhada -->
+  <path d="M37 86V34H71a12 12 0 0 1 0 24H59"/>
+  <path d="M37 58H53"/>
+  <path d="M59 34V86"/>
+  <path d="M67 58L83 86"/>
+  <circle cx="86" cy="14.97" r="1.6" fill="#C9A961" stroke="none"/>
+</svg>
