@@ -364,7 +364,7 @@ export function createDetailMap(container, activity) {
   }
 
   // Mapas com percursos: enquadrar o percurso principal da atividade.
-  const focus = own.find((r) => r.type !== "other") || own[0];
+  const focus = own.find((r) => r.type !== "other");
   if (focus) {
     const pts = [...focus.points, ...(loc ? [[loc.lat, loc.lng]] : [])];
     map.fitBounds(pts, { padding: [36, 36], maxZoom: activity.zoom || 17, animate: false });

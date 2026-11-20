@@ -188,7 +188,7 @@ const browser = await chromium.launch();
     await page.locator("#mapa").scrollIntoViewIfNeeded();
     await page.waitForSelector("#overviewMap .fr-pin");
     const markers = await page.locator("#overviewMap .fr-pin").count();
-    assert.equal(markers, 7, "7 marcadores (08 e 09 sem local)");
+    assert.equal(markers, 8, "8 marcadores (09 sem local)");
     const paths = await page.locator("#overviewMap .leaflet-overlay-pane path").count();
     assert.ok(paths >= 10 + 3, `percursos (5 linhas + contornos) e 3 paragens desenhados: ${paths}`);
     const arrows = await page.locator("#overviewMap .route-arrow").count();
@@ -230,7 +230,7 @@ const browser = await chromium.launch();
         assert.equal(await gm.getAttribute("target"), "_blank");
       }
       const hasMarker = await page.locator("#detailMap .pin-blue").count();
-      assert.equal(hasMarker, ["08", "09"].includes(id) ? 0 : 1, `marcador em ${id}`);
+      assert.equal(hasMarker, id === "09" ? 0 : 1, `marcador em ${id}`);
       // Não há checkboxes nem estados de conclusão no detalhe
       assert.equal(await page.locator('#detail input[type="checkbox"]').count(), 0);
       await page.locator(".detail__bar [data-detail-back]").click();
@@ -293,7 +293,7 @@ const browser = await chromium.launch();
     assert.match(text, /PRIVATE PROJECT/i);
     assert.match(text, /Uma apresentação especial\. Alguns projetos, algumas ideias e algumas surpresas\./);
     assert.match(text, /Sala Smart/);
-    assert.match(text, /Slay Hotels/);
+    assert.match(text, /Stay Hotel Coimbra Centro/);
     assert.doesNotMatch(text, /Fluxo/);
     await page.waitForTimeout(1000);
     await page.screenshot({ path: join(OUT, "detail-private.png") });

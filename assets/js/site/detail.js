@@ -194,11 +194,9 @@ function mapBlock(a) {
   let meta;
   let note;
   if (!loc) {
-    meta = a.special === "private" ? "Slay Hotels · Coimbra" : "Localização a confirmar";
+    meta = "Localização a confirmar";
     note =
-      a.special === "private"
-        ? "Local: Sala Smart do Slay Hotels, em Coimbra. O ponto exato será assinalado no mapa assim que a morada estiver confirmada; entretanto, use o Google Maps."
-        : "O local ainda não está definido. O mapa mostra Coimbra e será atualizado quando houver confirmação.";
+      "O local ainda não está definido. O mapa mostra Coimbra e será atualizado quando houver confirmação.";
   } else if (loc.precision === "verified") {
     meta = "Localização assinalada";
     note = `Fonte da coordenada: ${esc(loc.source)}.`;

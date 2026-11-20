@@ -318,13 +318,14 @@ npm test
 ## 7. Coordenadas, mapa e percursos
 
 - **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: estação Coimbra-B, restaurante (Terreiro da Erva 20), Praça 8 de Maio, Torre e Arco de Almedina, Largo da Portagem, paragem Portagem do Metrobus e campo de golfe da Quinta das Lágrimas.
-- **Sem marcador:** 08 Sala Smart · Slay Hotels (ainda não consta do OpenStreetMap; o botão do Google Maps pesquisa “Slay Hotels, Coimbra”) e 09 Lanche.
+- **08 Sala Smart · Stay Hotel Coimbra Centro:** Av. Fernão de Magalhães 199, confirmado no OpenStreetMap.
+- **Sem marcador:** 09 Lanche (local por confirmar).
 - **Percursos** (`assets/js/site/routes-data.js`), com geometria real gerada a partir do OpenStreetMap:
   - **Verde (a pé):** Terreiro da Erva → Rua da Sofia → Praça 8 de Maio → Rua Visconde da Luz → Arco de Almedina → Rua Ferreira Borges → Largo da Portagem → paragem do Metrobus. Calculado pelo motor de rotas pedonais do OSM.
   - **Azul cheio (Metrobus, ida):** Portagem → Aeminium → Arnado.
   - **Azul tracejado (Metrobus, regresso):** Arnado → Aeminium → Portagem.
   - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Coimbra-B → restaurante (cerca de 2 km a pé) e Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,5 km).
-  - **Sem traçado:** Quinta das Lágrimas → apresentação, porque o local ainda não está confirmado.
+  - **Dourado ponteado:** Quinta das Lágrimas → Stay Hotel Coimbra Centro (meio de deslocação a confirmar).
 - **Origem do traçado do Metrobus:** linha "MM U1" do OpenStreetMap, nas relações 19653947 e 21409151. Os dois sentidos partilham a via no OSM, por isso no mapa individual do 06 aparecem afastados alguns metros para se distinguirem.
 - **Setas:** todos os percursos têm setas de direção.
 - **Enquadramento do mapa geral:** os botões "Dia completo" e "Baixa" mudam a vista.
@@ -362,7 +363,6 @@ npm run verify:coords
 3. **La Piccola Cucina Italiana:** reserva e posição exata no mapa a confirmar.
 5. **Metrobus:** funcionamento, horários, títulos de transporte e posições das paragens Aeminium e Arnado a confirmar junto da Metro Mondego.
 6. **Golfe:** reserva, disponibilidade de posições cobertas para 6 pessoas, preço e duração a confirmar com o clube (+351 923 312 226).
-7. **Slay Hotels (Sala Smart):** confirmar a morada para assinalar o ponto no mapa da atividade 08 (basta indicar a morada ou as coordenadas em `program.js`).
 8. **Lanche:** local e condições a confirmar.
 9. **Percursos no mapa:** só serão desenhados quando houver trajetos confirmados.
 10. **App Check:** recomendado antes de partilhar o link (secção 5).

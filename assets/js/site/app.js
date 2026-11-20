@@ -119,7 +119,7 @@ function initOverviewMap() {
   const status = $("#routesStatus");
   const verified = ROUTES.filter((r) => r.verified === true);
   status.innerHTML = verified.length
-    ? `${verified.map((r) => `<span class="route-line">${esc(r.label)}</span>`).join("")}<small>Traçados calculados a partir do OpenStreetMap. Sem trajeto: Quinta das Lágrimas → Slay Hotels (morada ainda não assinalada no mapa).</small>`
+    ? `${verified.map((r) => `<span class="route-line">${esc(r.label)}</span>`).join("")}<small>Traçados calculados a partir do OpenStreetMap.</small>`
     : "Nenhum trajeto está ainda confirmado. O mapa mostra apenas os pontos — os trajetos estão por definir.";
 
   const container = $("#overviewMap");
@@ -157,7 +157,7 @@ function renderChips() {
       a.location
         ? `<li><button class="chip" type="button" data-focus="${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)}</button></li>`
         : `<li><a class="chip" href="#/atividade/${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)} · ${esc(
-            a.special === "private" ? "Slay Hotels" : "local a confirmar"
+            "local a confirmar"
           )}</a></li>`
     )
     .join("");
