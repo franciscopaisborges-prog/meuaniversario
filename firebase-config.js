@@ -17,12 +17,11 @@
  *  simular uma gravação.
  */
 export const firebaseConfig = {
-  apiKey: "COLOCAR_API_KEY",
-  authDomain: "COLOCAR_PROJECT_ID.firebaseapp.com",
-  // Exemplo: "https://o-meu-projeto-default-rtdb.europe-west1.firebasedatabase.app"
-  databaseURL: "COLOCAR_DATABASE_URL",
-  projectId: "COLOCAR_PROJECT_ID",
-  appId: "COLOCAR_APP_ID",
+  apiKey: "AIzaSyC_H3S2xGeUA7tDqLW3Jl4JuOTjRNkwHkA",
+  authDomain: "aniversario-francisco.firebaseapp.com",
+  databaseURL: "https://aniversario-francisco-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "aniversario-francisco",
+  appId: "1:412046807097:web:fec57fceccdd84d559fde8",
 };
 
 /**
