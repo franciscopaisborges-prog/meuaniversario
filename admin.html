@@ -93,10 +93,35 @@
 
       <!-- Estado: painel -->
       <section id="viewDashboard" hidden aria-labelledby="dashTitle">
+        <h1 class="visually-hidden" id="dashTitle">Painel de administração</h1>
+        <div class="a-tabs" role="tablist" aria-label="Secções do painel">
+          <button class="a-tab" type="button" role="tab" id="tabRsvps" aria-controls="panelRsvps" aria-selected="true">Respostas</button>
+          <button class="a-tab" type="button" role="tab" id="tabSchedule" aria-controls="panelSchedule" aria-selected="false" tabindex="-1">Horários</button>
+        </div>
+
+        <!-- ===================== HORÁRIOS ===================== -->
+        <div id="panelSchedule" role="tabpanel" aria-labelledby="tabSchedule" hidden>
+          <div class="a-dash-head">
+            <div>
+              <p class="eyebrow a-gold">Programa · 29.11.2026</p>
+              <h2 class="a-title a-title--xl">Horários</h2>
+            </div>
+            <p class="a-live" id="scheduleLive"><span class="a-live__dot" aria-hidden="true"></span> <span id="scheduleLiveText">A ligar…</span></p>
+          </div>
+          <p class="a-text a-schedule-intro">
+            Defina a hora de início e, se quiser, a hora de fim de cada atividade. As alterações aparecem de imediato no site
+            público e a ordem do programa passa a seguir os horários. Deixe em branco (ou use “Remover”) para mostrar
+            <strong>“A confirmar”</strong>.
+          </p>
+          <ol class="a-schedule" id="scheduleList" aria-label="Horários das atividades"></ol>
+        </div>
+
+        <!-- ===================== RESPOSTAS ===================== -->
+        <div id="panelRsvps" role="tabpanel" aria-labelledby="tabRsvps">
         <div class="a-dash-head">
           <div>
             <p class="eyebrow a-gold">Confirmações de presença</p>
-            <h1 class="a-title a-title--xl" id="dashTitle">Respostas</h1>
+            <h2 class="a-title a-title--xl">Respostas</h2>
           </div>
           <p class="a-live" id="liveStatus"><span class="a-live__dot" aria-hidden="true"></span> <span id="liveText">A ligar…</span></p>
         </div>
@@ -154,6 +179,7 @@
           <p class="a-empty" id="emptyState" hidden></p>
         </div>
         <p class="a-foot" id="tableFoot"></p>
+        </div>
       </section>
     </main>
   </body>

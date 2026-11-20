@@ -2,7 +2,8 @@
  * Página de detalhe de cada atividade (identidade branco & azul).
  * Devolve HTML a partir dos dados de program.js; o mapa é montado por app.js.
  */
-import { PROGRAM, googleMapsUrl } from "./program.js";
+import { googleMapsUrl } from "./program.js";
+import { state, num, timeOf, total } from "./state.js";
 import { esc, icon } from "../shared/dom.js";
 
 const PENDING = /a confirmar/i;
@@ -158,7 +159,7 @@ function golfBlock(a) {
   </section>`;
 }
 
-function privateBlock() {
+function privateBlock(a) {
   return `
   <section class="private" aria-labelledby="privateTitle">
     <svg class="private__orbit" viewBox="0 0 600 600" aria-hidden="true" focusable="false">
@@ -172,7 +173,7 @@ function privateBlock() {
       <path d="M300 410A110 110 0 0 1 190 300" stroke-opacity=".45"/>
     </svg>
     <div class="private__inner">
-      <p class="private__label eyebrow">08 — Acesso reservado</p>
+      <p class="private__label eyebrow">${esc(num(a))} — Acesso reservado</p>
       <h2 class="private__title" id="privateTitle" aria-label="Private Project Presentation">
         <span aria-hidden="true">Private Project</span>
         <span aria-hidden="true">Presentation</span>
@@ -193,10 +194,10 @@ function mapBlock(a) {
   let meta;
   let note;
   if (!loc) {
-    meta = "Localização a confirmar";
+    meta = a.special === "private" ? "Slay Hotels · Coimbra" : "Localização a confirmar";
     note =
       a.special === "private"
-        ? "Local previsto: Fluxo Coworking, Coimbra. A utilização do espaço ainda depende de confirmação, por isso o mapa não assinala um ponto."
+        ? "Local: Sala Smart do Slay Hotels, em Coimbra. O ponto exato será assinalado no mapa assim que a morada estiver confirmada; entretanto, use o Google Maps."
         : "O local ainda não está definido. O mapa mostra Coimbra e será atualizado quando houver confirmação.";
   } else if (loc.precision === "verified") {
     meta = "Localização assinalada";
@@ -230,13 +231,14 @@ function mapBlock(a) {
   </section>`;
 }
 
-function pager(index) {
-  const prev = PROGRAM[index - 1];
-  const next = PROGRAM[index + 1];
+function pager(a) {
+  const index = state.order.indexOf(a);
+  const prev = state.order[index - 1];
+  const next = state.order[index + 1];
   const link = (a, dir) => `
     <a class="pager-link pager-link--${dir}" href="#/atividade/${esc(a.slug)}" data-nav="replace" rel="${dir}">
       <span class="pager-link__dir">${
-        dir === "prev" ? `${icon("i-arrow-left", 14)} Anterior · ${esc(a.id)}` : `Seguinte · ${esc(a.id)} ${icon("i-arrow-right", 14)}`
+        dir === "prev" ? `${icon("i-arrow-left", 14)} Anterior · ${esc(num(a))}` : `Seguinte · ${esc(num(a))} ${icon("i-arrow-right", 14)}`
       }</span>
       <span class="pager-link__title">${esc(a.title)}</span>
     </a>`;
@@ -248,11 +250,10 @@ function pager(index) {
   </nav>`;
 }
 
-export function renderDetail(index) {
-  const a = PROGRAM[index];
+export function renderDetail(a) {
   const facts = [
-    ["Etapa", `${a.id} de ${String(PROGRAM.length).padStart(2, "0")}`],
-    ["Horário", value(a.schedule)],
+    ["Etapa", `${num(a)} de ${total()}`],
+    ["Horário", `<span data-schedule="${esc(a.id)}">${value(timeOf(a))}</span>`],
     ["Local", value(a.place)],
     ["Morada", value(a.address)],
   ];
@@ -272,7 +273,7 @@ export function renderDetail(index) {
   return `
     ${curves()}
     <header class="d-hero">
-      <span class="d-num" aria-hidden="true">${esc(a.id)}</span>
+      <span class="d-num" aria-hidden="true">${esc(num(a))}</span>
       <div>
         <p class="d-kicker eyebrow">${esc(a.kicker)}</p>
         <h1 class="d-title" id="detailTitle">${esc(a.title)}</h1>
@@ -280,7 +281,7 @@ export function renderDetail(index) {
       </div>
     </header>
     <div class="d-rule" aria-hidden="true"></div>
-    ${a.special === "private" ? privateBlock() : ""}
+    ${a.special === "private" ? privateBlock(a) : ""}
     <div class="d-grid">
       <dl class="d-facts">
         ${facts.map(([k, v]) => `<div class="d-fact"><dt>${esc(k)}</dt><dd>${v}</dd></div>`).join("")}
@@ -293,7 +294,7 @@ export function renderDetail(index) {
     ${a.special === "metrobus" ? metrobusBlock() : ""}
     ${a.special === "golf" ? golfBlock(a) : ""}
     ${mapBlock(a)}
-    ${pager(index)}
+    ${pager(a)}
     <footer class="d-footer">Francisco Rodrigues · Coimbra · 29.11.2026</footer>
   `;
 }

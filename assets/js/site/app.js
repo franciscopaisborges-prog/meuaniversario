@@ -3,7 +3,9 @@
  * Programa (roteiro), mapa geral, navegação para as páginas de atividade
  * (router por hash, sem recarregar a página) e confirmação de presença.
  */
-import { PROGRAM, ROUTES, EVENT, findBySlug } from "./program.js";
+import { ROUTES, EVENT, findBySlug } from "./program.js";
+import { state, num, timeOf, hasTime, total, onStateChange } from "./state.js";
+import { startLiveSchedule } from "./live.js";
 import { renderDetail } from "./detail.js";
 import { createOverviewMap, createDetailMap } from "./map.js";
 import { initRsvp } from "./rsvp.js";
@@ -18,25 +20,34 @@ const detailContent = $("#detailContent");
 const detailCount = $("#detailCount");
 
 /* ---------------- Roteiro ---------------- */
+let programRendered = false;
+
 function renderProgram() {
   const list = $("#roteiro");
-  list.innerHTML = PROGRAM.map(
-    (a, i) => `
-    <li class="step reveal" style="--delay:${Math.min(i * 0.05, 0.3)}s">
-      <a class="step__link" href="#/atividade/${esc(a.slug)}" data-slug="${esc(a.slug)}" aria-label="${esc(a.id)} — ${esc(a.kicker)}: ${esc(a.title)}. Abrir detalhes.">
-        <span class="step__node" aria-hidden="true"><span class="step__num">${esc(a.id)}</span></span>
+  const focusedSlug = document.activeElement?.closest?.(".step__link")?.dataset.slug;
+  list.innerHTML = state.order
+    .map(
+      (a, i) => `
+    <li class="step reveal${programRendered ? " is-visible" : ""}" style="--delay:${Math.min(i * 0.05, 0.3)}s">
+      <a class="step__link" href="#/atividade/${esc(a.slug)}" data-slug="${esc(a.slug)}" aria-label="${esc(num(a))} — ${esc(a.kicker)}: ${esc(a.title)}. Horário: ${esc(timeOf(a))}. Abrir detalhes.">
+        <span class="step__node" aria-hidden="true"><span class="step__num">${esc(num(a))}</span></span>
         <span class="step__body">
           <span class="step__kicker eyebrow">${esc(a.kicker)}</span>
           <span class="step__title">${esc(a.title)}</span>
           <span class="step__meta">
             <span>${esc(a.place)}</span>
-            <span>Horário: ${esc(a.schedule)}</span>
+            <span class="step__time${hasTime(a) ? " is-set" : ""}">Horário: ${esc(timeOf(a))}</span>
           </span>
         </span>
         <span class="step__go" aria-hidden="true">${icon("i-arrow-right")}</span>
       </a>
     </li>`
-  ).join("");
+    )
+    .join("");
+  if (focusedSlug) $(`.step__link[data-slug="${focusedSlug}"]`)?.focus({ preventScroll: true });
+  if (!programRendered) {
+    programRendered = true;
+  }
 }
 
 /* ---------------- Contagem decrescente ---------------- */
@@ -108,7 +119,7 @@ function initOverviewMap() {
   const status = $("#routesStatus");
   const verified = ROUTES.filter((r) => r.verified === true);
   status.innerHTML = verified.length
-    ? `${verified.map((r) => `<span class="route-line">${esc(r.label)}</span>`).join("")}<small>Traçados calculados a partir do OpenStreetMap. Sem trajeto: Quinta das Lágrimas → apresentação (local por confirmar).</small>`
+    ? `${verified.map((r) => `<span class="route-line">${esc(r.label)}</span>`).join("")}<small>Traçados calculados a partir do OpenStreetMap. Sem trajeto: Quinta das Lágrimas → Slay Hotels (morada ainda não assinalada no mapa).</small>`
     : "Nenhum trajeto está ainda confirmado. O mapa mostra apenas os pontos — os trajetos estão por definir.";
 
   const container = $("#overviewMap");
@@ -128,11 +139,7 @@ function initOverviewMap() {
   }
 
   const chips = $("#mapChips");
-  chips.innerHTML = PROGRAM.map((a) =>
-    a.location
-      ? `<li><button class="chip" type="button" data-focus="${esc(a.slug)}"><b>${esc(a.id)}</b>${esc(a.title)}</button></li>`
-      : `<li><a class="chip" href="#/atividade/${esc(a.slug)}"><b>${esc(a.id)}</b>${esc(a.title)} · local a confirmar</a></li>`
-  ).join("");
+  renderChips();
 
   chips.addEventListener("click", (event) => {
     const btn = event.target.closest("[data-focus]");
@@ -144,8 +151,20 @@ function initOverviewMap() {
   });
 }
 
+function renderChips() {
+  $("#mapChips").innerHTML = state.order
+    .map((a) =>
+      a.location
+        ? `<li><button class="chip" type="button" data-focus="${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)}</button></li>`
+        : `<li><a class="chip" href="#/atividade/${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)} · ${esc(
+            a.special === "private" ? "Slay Hotels" : "local a confirmar"
+          )}</a></li>`
+    )
+    .join("");
+}
+
 /* ---------------- Página de atividade (router) ---------------- */
-let currentIndex = -1;
+let current = null; // atividade aberta
 let detailMap = null;
 let openedFromHome = false;
 let closeTimer = null;
@@ -181,23 +200,26 @@ function mountDetailMap(delay) {
   const build = () => {
     const el = $("#detailMap", detailContent);
     if (!el) return;
-    detailMap = createDetailMap(el, PROGRAM[currentIndex]);
+    detailMap = createDetailMap(el, current);
     // garantir dimensões corretas depois da transição
-    const current = detailMap;
-    setTimeout(() => current && current === detailMap && current.invalidateSize({ animate: false }), 300);
+    const built = detailMap;
+    setTimeout(() => built && built === detailMap && built.invalidateSize({ animate: false }), 300);
   };
   mapTimer = setTimeout(build, delay);
 }
 
-function openDetail(index) {
-  const activity = PROGRAM[index];
+function updateDetailChrome(activity) {
+  detailCount.textContent = `${num(activity)} / ${total()}`;
+  document.title = `${num(activity)} · ${activity.title} — ${EVENT.name}`;
+}
+
+function openDetail(activity) {
   const wasOpen = detail.classList.contains("is-open");
   clearTimeout(closeTimer);
-  currentIndex = index;
+  current = activity;
 
-  detailContent.innerHTML = renderDetail(index);
-  detailCount.textContent = `${activity.id} / ${String(PROGRAM.length).padStart(2, "0")}`;
-  document.title = `${activity.id} · ${activity.title} — ${EVENT.name}`;
+  detailContent.innerHTML = renderDetail(activity);
+  updateDetailChrome(activity);
 
   if (wasOpen) {
     detailContent.classList.remove("is-swapping");
@@ -221,7 +243,7 @@ function openDetail(index) {
 
 function closeDetail() {
   if (!detail.classList.contains("is-open")) return;
-  const slug = PROGRAM[currentIndex]?.slug;
+  const slug = current?.slug;
   detail.classList.remove("is-open");
   detail.classList.add("is-closing");
   home.inert = false;
@@ -241,7 +263,7 @@ function closeDetail() {
       detail.classList.remove("is-closing");
       destroyDetailMap();
       detailContent.innerHTML = "";
-      currentIndex = -1;
+      current = null;
     },
     prefersReducedMotion() ? 0 : 720
   );
@@ -259,9 +281,9 @@ function backToProgram() {
 function handleRoute() {
   const match = location.hash.match(ROUTE_RE);
   if (match) {
-    const index = findBySlug(match[1]);
-    if (index >= 0) {
-      openDetail(index);
+    const activity = findBySlug(match[1]);
+    if (activity) {
+      openDetail(activity);
       return;
     }
     history.replaceState(null, "", `${location.pathname}${location.search}`);
@@ -308,6 +330,29 @@ function initRouter() {
   handleRoute();
 }
 
+/* ---------------- Horários em tempo real ---------------- */
+/** Volta a desenhar a página aberta mantendo o mesmo mapa (sem o recriar). */
+function refreshOpenDetail() {
+  if (!current || !detail.classList.contains("is-open")) return;
+  const mapNode = $("#detailMap", detailContent);
+  const scroll = detail.scrollTop;
+  detailContent.innerHTML = renderDetail(current);
+  const placeholder = $("#detailMap", detailContent);
+  if (mapNode && placeholder) placeholder.replaceWith(mapNode);
+  detail.scrollTop = scroll;
+  updateDetailChrome(current);
+  detailMap?.invalidateSize({ animate: false });
+  const pin = $("#detailMap .pin-blue", detailContent);
+  if (pin) pin.textContent = num(current);
+}
+
+onStateChange(() => {
+  renderProgram();
+  renderChips();
+  overview?.refresh();
+  refreshOpenDetail();
+});
+
 /* ---------------- Arranque ---------------- */
 renderProgram();
 renderCountdown();
@@ -317,3 +362,4 @@ initReveal();
 initOverviewMap();
 initRsvp();
 initRouter();
+startLiveSchedule();

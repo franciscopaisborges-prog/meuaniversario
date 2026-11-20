@@ -11,7 +11,8 @@
  *                               para comparar com o OpenStreetMap e atualize aqui.
  *  - location: null           → localização não confirmada: não há marcador.
  *
- * Horários: nenhum horário está confirmado. Quando estiver, preencha `schedule`.
+ * Horários: NÃO estão aqui. São definidos no painel (admin.html → Horários),
+ * guardados em /schedule na Realtime Database e mostrados automaticamente.
  */
 
 export const EVENT = {
@@ -34,13 +35,12 @@ export const PROGRAM = [
     title: "Estação Coimbra-B",
     place: "Estação Coimbra-B",
     address: "Rua do Padrão, Eiras, Coimbra",
-    schedule: "A confirmar",
     summary: "O ponto de partida do dia e o local de encontro de todos os convidados.",
     description: [
       "Será o ponto inicial do aniversário e o local de encontro dos convidados.",
       "É aqui que o dia começa. A hora exata de encontro será comunicada assim que estiver fechada.",
     ],
-    notes: ["Hora de encontro a confirmar."],
+    notes: [],
     location: {
       lat: 40.2247283,
       lng: -8.4404774,
@@ -57,13 +57,12 @@ export const PROGRAM = [
     title: "La Piccola Cucina Italiana",
     place: "La Piccola Cucina Italiana",
     address: "Terreiro da Erva 20, Coimbra",
-    schedule: "A confirmar",
     summary: "Momento de almoço e convívio entre os convidados.",
     description: [
       "Momento de almoço e convívio entre os convidados.",
       "Uma mesa para seis, conversa sem pressa e o primeiro brinde do dia.",
     ],
-    notes: ["Hora a confirmar."],
+    notes: [],
     location: {
       lat: 40.2123868,
       lng: -8.4309365,
@@ -80,13 +79,12 @@ export const PROGRAM = [
     title: "Passeio pela Baixa de Coimbra",
     place: "Praça 8 de Maio e Baixa histórica",
     address: "Praça 8 de Maio, Coimbra",
-    schedule: "A confirmar",
     summary: "Passeio a pé pelas ruas históricas da cidade, com passagem pela Praça 8 de Maio.",
     description: [
       "Passeio a pé pelas ruas históricas da Baixa de Coimbra.",
       "O percurso inclui a Praça 8 de Maio, em frente ao Mosteiro de Santa Cruz, e segue pelas ruas comerciais da zona histórica.",
     ],
-    notes: ["Percurso a pé assinalado no mapa (Rua da Sofia, Praça 8 de Maio, Rua Visconde da Luz).", "Hora a confirmar."],
+    notes: ["Percurso a pé assinalado no mapa (Rua da Sofia, Praça 8 de Maio, Rua Visconde da Luz)."],
     location: {
       lat: 40.2110645,
       lng: -8.4291833,
@@ -103,13 +101,12 @@ export const PROGRAM = [
     title: "Torre de Almedina",
     place: "Torre e Arco de Almedina",
     address: "Rua Ferreira Borges, Coimbra",
-    schedule: "A confirmar",
     summary: "Paragem num dos elementos históricos mais emblemáticos da cidade.",
     description: [
       "Paragem para conhecer e apreciar um dos elementos históricos mais emblemáticos da cidade: a antiga porta da muralha medieval de Coimbra.",
       "A paragem é feita no exterior. A visita ao interior da torre não está incluída no programa.",
     ],
-    notes: ["Visita ao interior não incluída.", "Hora a confirmar."],
+    notes: ["Visita ao interior não incluída."],
     location: {
       lat: 40.2088402,
       lng: -8.4287341,
@@ -126,13 +123,12 @@ export const PROGRAM = [
     title: "Largo da Portagem",
     place: "Largo da Portagem",
     address: "Largo da Portagem, Coimbra",
-    schedule: "A confirmar",
     summary: "Vista sobre o rio Mondego e a Ponte de Santa Clara.",
     description: [
       "Paragem para apreciar a vista sobre o rio Mondego e a Ponte de Santa Clara.",
       "A antiga entrada nobre da cidade, aberta para o rio — um bom momento para abrandar antes da viagem de Metrobus.",
     ],
-    notes: ["Hora a confirmar."],
+    notes: [],
     location: {
       lat: 40.207449,
       lng: -8.429593,
@@ -149,7 +145,6 @@ export const PROGRAM = [
     title: "Portagem → Arnado → Portagem",
     place: "Paragens Portagem, Aeminium e Arnado",
     address: "Metrobus de Coimbra (Metro Mondego)",
-    schedule: "A confirmar",
     summary: "Ida até Arnado, mudança de sentido e regresso à Portagem.",
     description: [
       "Uma curta viagem no Metrobus de Coimbra. Na ida: Portagem → Aeminium → Arnado.",
@@ -177,7 +172,6 @@ export const PROGRAM = [
     title: "Quinta das Lágrimas Clube de Golfe",
     place: "Quinta das Lágrimas Clube de Golfe",
     address: "Rua António Augusto Gonçalves, Santa Clara, Coimbra",
-    schedule: "A confirmar",
     summary: "Primeiras tacadas e princípios básicos do golfe, com foco no Driving Range.",
     description: [
       "Uma experiência recreativa de golfe, onde os convidados poderão experimentar algumas tacadas e aprender os princípios básicos da modalidade.",
@@ -209,18 +203,15 @@ export const PROGRAM = [
     slug: "apresentacao-privada",
     kicker: "Private Project Presentation",
     title: "Apresentação privada de projetos",
-    place: "Fluxo Coworking (previsto)",
-    address: "Coimbra — morada a confirmar",
-    schedule: "A confirmar",
+    place: "Sala Smart · Slay Hotels",
+    address: "Slay Hotels, Coimbra",
     summary: "Uma apresentação especial. Alguns projetos, algumas ideias e algumas surpresas.",
     description: ["Uma apresentação especial. Alguns projetos, algumas ideias e algumas surpresas."],
-    notes: [
-      "Local previsto: Fluxo Coworking, Coimbra.",
-      "A utilização do espaço ainda depende de confirmação.",
-    ],
+    notes: ["Local: Sala Smart do Slay Hotels."],
+    // Coordenadas por acrescentar: o Slay Hotels ainda não consta do OpenStreetMap.
     location: null,
     zoom: 14,
-    mapsQuery: "Fluxo Coworking, Coimbra",
+    mapsQuery: "Slay Hotels, Coimbra",
     special: "private",
   },
   {
@@ -229,14 +220,13 @@ export const PROGRAM = [
     kicker: "Final do dia",
     title: "Lanche e momento de convívio",
     place: "Local a confirmar",
-    address: "Preferencialmente associado ao espaço da apresentação",
-    schedule: "A confirmar",
+    address: "Preferencialmente junto ao espaço da apresentação (Slay Hotels)",
     summary: "Momento final para comer, conversar e celebrar o aniversário.",
     description: [
       "Momento final para comer, conversar e celebrar o aniversário.",
-      "O local será, preferencialmente, associado ao espaço da apresentação. Os detalhes serão partilhados assim que estiverem confirmados.",
+      "O local será, preferencialmente, junto ao espaço da apresentação, no Slay Hotels. Os detalhes serão partilhados assim que estiverem confirmados.",
     ],
-    notes: ["Local a confirmar.", "Hora a confirmar."],
+    notes: ["Local exato a confirmar."],
     location: null,
     zoom: 14,
     mapsQuery: null,
@@ -251,5 +241,9 @@ export function googleMapsUrl(activity) {
 }
 
 export function findBySlug(slug) {
+  return PROGRAM.find((a) => a.slug === slug) || null;
+}
+
+export function findIndexBySlug(slug) {
   return PROGRAM.findIndex((a) => a.slug === slug);
 }

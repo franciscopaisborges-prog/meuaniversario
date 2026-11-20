@@ -7,6 +7,7 @@
  * 3) Leitura em tempo real de /rsvps, indicadores, pesquisa, filtro, ordenação e CSV.
  */
 import { $, $$, esc, normalize } from "../shared/dom.js";
+import { createScheduleAdmin } from "./schedule-admin.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 const EXPECTED_GUESTS = 6;
@@ -25,6 +26,30 @@ const state = {
 };
 
 let fb = null; // { db, auth, authModule, dbModule }
+let scheduleAdmin = null;
+
+/* ---------------- Separadores (Respostas / Horários) ---------------- */
+function selectTab(tab) {
+  $$(".a-tab").forEach((t) => {
+    const on = t === tab;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+    $(`#${t.getAttribute("aria-controls")}`).hidden = !on;
+  });
+}
+
+function initTabs() {
+  const tabs = $$(".a-tab");
+  tabs.forEach((tab, i) => {
+    tab.addEventListener("click", () => selectTab(tab));
+    tab.addEventListener("keydown", (event) => {
+      if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+      const next = tabs[(i + (event.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      selectTab(next);
+      next.focus();
+    });
+  });
+}
 
 function show(id) {
   views.forEach((v) => {
@@ -278,6 +303,7 @@ async function manualRefresh() {
 
 function clearData() {
   stopListening();
+  scheduleAdmin?.stop();
   state.records = [];
   state.knownIds = new Set();
   state.firstLoad = true;
@@ -333,6 +359,7 @@ async function onUser(user) {
   show("viewDashboard");
   render();
   startListening();
+  scheduleAdmin.start();
 }
 
 /* ---------------- Arranque ---------------- */
@@ -367,6 +394,8 @@ async function boot() {
   }
 
   const { auth, authModule } = fb;
+  scheduleAdmin = createScheduleAdmin(fb);
+  initTabs();
 
   $("#loginGoogle").addEventListener("click", async () => {
     const status = $("#loginStatus");

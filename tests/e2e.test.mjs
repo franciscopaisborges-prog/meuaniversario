@@ -292,7 +292,9 @@ const browser = await chromium.launch();
     const text = await page.locator("#detailContent").innerText();
     assert.match(text, /PRIVATE PROJECT/i);
     assert.match(text, /Uma apresentação especial\. Alguns projetos, algumas ideias e algumas surpresas\./);
-    assert.match(text, /depende de confirmação/);
+    assert.match(text, /Sala Smart/);
+    assert.match(text, /Slay Hotels/);
+    assert.doesNotMatch(text, /Fluxo/);
     await page.waitForTimeout(1000);
     await page.screenshot({ path: join(OUT, "detail-private.png") });
   });
@@ -659,6 +661,149 @@ await test("Admin: Firebase por configurar mostra aviso", async () => {
   await page.waitForSelector("#viewNotConfigured:not([hidden])");
   await context.close();
 });
+
+/* ============================= HORÁRIOS ============================= */
+await ownerPut("schedule", null);
+{
+  const admCtx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  await prepare(admCtx);
+  const adm = await admCtx.newPage();
+  const admErrors = watchErrors(adm);
+  const pubCtx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await prepare(pubCtx);
+  const pub = await pubCtx.newPage();
+  const pubErrors = watchErrors(pub);
+
+  const stepOrder = () => pub.$$eval(".step__link", (els) => els.map((e) => e.dataset.slug));
+  const stepTime = (slug) => pub.locator(`.step__link[data-slug="${slug}"] .step__time`).innerText();
+  const saveRow = async (id, start, end) => {
+    const row = adm.locator(`.a-srow[data-id="${id}"]`);
+    await row.locator('[name="start"]').fill(start);
+    await row.locator('[name="end"]').fill(end);
+    await row.locator('[data-action="save"]').click();
+  };
+
+  await test("Horários: sem horário o site mostra “A confirmar” (sem valores fictícios)", async () => {
+    await pub.goto(`${BASE}/?emulators=1`);
+    await pub.waitForSelector(".step__link");
+    const times = await pub.$$eval(".step__time", (els) => els.map((e) => e.textContent.trim()));
+    assert.equal(times.length, 9);
+    assert.ok(times.every((t) => t === "Horário: A confirmar"), times.join(" | "));
+  });
+
+  await test("Horários: separador no painel com as 9 atividades", async () => {
+    await adm.goto(`${BASE}/admin.html?emulators=1`);
+    await adm.waitForSelector("#viewLogin:not([hidden])");
+    await googleLogin(adm, ADMIN_EMAIL);
+    await adm.waitForSelector("#viewDashboard:not([hidden])");
+    await adm.locator("#tabSchedule").click();
+    await adm.waitForSelector("#panelSchedule:not([hidden]) .a-srow");
+    assert.equal(await adm.locator(".a-srow").count(), 9);
+    assert.equal(await adm.locator("#panelRsvps").isHidden(), true);
+  });
+
+  await test("Horários: guardar início e fim atualiza o site em tempo real", async () => {
+    await saveRow("01", "10:00", "10:45");
+    await adm.waitForSelector('.a-srow[data-id="01"] .a-srow__msg.is-ok');
+    const stored = await ownerGet("schedule/01");
+    assert.equal(stored.start, "10:00");
+    assert.equal(stored.end, "10:45");
+    assert.equal(typeof stored.updatedAt, "number");
+    await pub.waitForFunction(
+      () => document.querySelector('.step__link[data-slug="ponto-de-encontro"] .step__time')?.textContent === "Horário: 10:00 – 10:45"
+    );
+  });
+
+  await test("Horários: só hora de início também é válido", async () => {
+    await saveRow("07", "16:00", "");
+    await pub.waitForFunction(() => document.querySelector('.step__link[data-slug="golfe"] .step__time')?.textContent === "Horário: 16:00");
+    assert.equal("end" in (await ownerGet("schedule/07")), false);
+  });
+
+  await test("Horários: ordem cronológica atualiza-se sozinha", async () => {
+    await saveRow("02", "09:00", "09:40"); // almoço antes do encontro → passa para primeiro
+    await pub.waitForFunction(() => document.querySelector(".step__link")?.dataset.slug === "almoco");
+    const order = await stepOrder();
+    assert.deepEqual(order.slice(0, 2), ["almoco", "ponto-de-encontro"]);
+    // numeração acompanha a ordem
+    assert.equal(await pub.locator(".step__link").first().locator(".step__num").innerText(), "01");
+    // atividades sem horário mantêm a sua posição
+    assert.equal(order[2], "passeio-baixa");
+    // o painel também mostra a nova ordem
+    assert.equal(await adm.locator(".a-srow").first().getAttribute("data-id"), "02");
+    await pub.screenshot({ path: join(OUT, "schedule-public.png") });
+    await adm.screenshot({ path: join(OUT, "admin-schedule.png"), fullPage: true });
+  });
+
+  await test("Horários: fim antes do início é recusado e não grava", async () => {
+    await saveRow("03", "15:00", "14:00");
+    await adm.waitForSelector('.a-srow[data-id="03"] .a-srow__msg.is-error');
+    assert.match(await adm.locator('.a-srow[data-id="03"] .a-srow__msg').innerText(), /posterior/);
+    assert.equal(await ownerGet("schedule/03"), null);
+  });
+
+  await test("Horários: só hora de fim é recusado", async () => {
+    await saveRow("04", "", "11:00");
+    await adm.waitForSelector('.a-srow[data-id="04"] .a-srow__msg.is-error');
+    assert.equal(await ownerGet("schedule/04"), null);
+  });
+
+  await test("Horários: página da atividade aberta atualiza o horário sem recarregar", async () => {
+    await pub.locator('.step__link[data-slug="golfe"]').click();
+    await pub.waitForSelector("#detail.is-open #detailMap.leaflet-container");
+    assert.equal(await pub.locator('[data-schedule="07"]').innerText(), "16:00");
+    await saveRow("07", "16:30", "18:00");
+    await pub.waitForFunction(() => document.querySelector('[data-schedule="07"]')?.textContent === "16:30 – 18:00");
+    assert.equal(await pub.locator("#detailMap.leaflet-container").count(), 1, "mapa mantém-se");
+    await pub.keyboard.press("Escape");
+    await pub.waitForFunction(() => !document.querySelector("#detail").classList.contains("is-open"));
+  });
+
+  await test("Horários: remover volta a “A confirmar” e repõe a ordem", async () => {
+    await adm.locator('.a-srow[data-id="02"] [data-action="clear"]').click();
+    await adm.waitForSelector('.a-srow[data-id="02"] .a-srow__msg.is-ok');
+    assert.equal(await ownerGet("schedule/02"), null);
+    await pub.waitForFunction(() => document.querySelector(".step__link")?.dataset.slug === "ponto-de-encontro");
+    assert.equal(await stepTime("almoco"), "Horário: A confirmar");
+  });
+
+  await test("Horários: visitante sem ligação ao Firebase vê “A confirmar”", async () => {
+    const ctx = await browser.newContext();
+    await prepare(ctx, { config: "placeholder" });
+    const p = await ctx.newPage();
+    await p.goto(`${BASE}/`);
+    await p.waitForSelector(".step__link");
+    const times = await p.$$eval(".step__time", (els) => els.map((e) => e.textContent.trim()));
+    assert.ok(times.every((t) => t === "Horário: A confirmar"));
+    await ctx.close();
+  });
+
+  await test("Horários: sem erros de consola", async () => {
+    assert.deepEqual([...admErrors, ...pubErrors], []);
+  });
+
+  await admCtx.close();
+  await pubCtx.close();
+}
+
+await test("Horários (telemóvel): painel utilizável e sem scroll horizontal", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/admin.html?emulators=1`);
+  await page.waitForSelector("#viewLogin:not([hidden])");
+  await googleLogin(page, ADMIN_EMAIL);
+  await page.waitForSelector("#viewDashboard:not([hidden])");
+  await page.locator("#tabSchedule").tap();
+  await page.waitForSelector("#panelSchedule:not([hidden]) .a-srow");
+  const ow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  assert.ok(ow <= 0, `overflow ${ow}`);
+  const small = await page.$$eval(".a-srow input, .a-srow button", (els) => els.filter((e) => e.getBoundingClientRect().height < 40).length);
+  assert.equal(small, 0);
+  await page.screenshot({ path: join(OUT, "admin-schedule-mobile.png"), fullPage: true });
+  await ctx.close();
+});
+await ownerPut("schedule", null);
 
 await browser.close();
 server.close();

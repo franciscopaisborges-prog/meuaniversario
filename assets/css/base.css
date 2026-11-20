@@ -164,7 +164,7 @@ p {
   transform: translateY(-160%);
   transition: transform 0.2s var(--ease);
 }
-.skip-link:focus {
+.skip-link:focus-visible {
   transform: translateY(0);
 }
 

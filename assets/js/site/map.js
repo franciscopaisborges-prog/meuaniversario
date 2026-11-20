@@ -4,6 +4,7 @@
  *  - createDetailMap:   mapa individual (branco & azul) em cada atividade.
  */
 import { PROGRAM, ROUTES, METRO_STOPS, COIMBRA_CENTER } from "./program.js";
+import { num, timeOf } from "./state.js";
 import { esc } from "../shared/dom.js";
 
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -51,7 +52,7 @@ function popupHtml(group) {
     .map(
       (a) => `
       <div class="popup__item">
-        <p class="popup__num">${esc(a.id)} · ${esc(a.kicker)}</p>
+        <p class="popup__num">${esc(num(a))} · ${esc(a.kicker)} · ${esc(timeOf(a))}</p>
         <p class="popup__title">${esc(a.title)}</p>
         <p class="popup__text">${esc(a.summary)}</p>
         ${
@@ -206,30 +207,50 @@ export function createOverviewMap(container) {
   const markersBySlug = new Map();
   const bounds = [];
 
+  const groups = [];
+  const pinIcon = (group) => {
+    const approx = group.some((a) => a.location.precision !== "verified");
+    const label = group.map((a) => num(a)).join("·");
+    const width = label.length > 2 ? 46 : 28;
+    return L.divIcon({
+      className: "",
+      iconSize: [width, 28],
+      iconAnchor: [width / 2, 14],
+      popupAnchor: [0, -14],
+      html: `<span class="fr-pin${approx ? " fr-pin--approx" : ""}" style="width:${width}px;border-radius:${
+        width > 28 ? "14px" : "50%"
+      }">${esc(label)}</span>`,
+    });
+  };
+  const pinTitle = (group) => group.map((a) => `${num(a)} — ${a.title}`).join(" / ");
+
   for (const group of groupByLocation(PROGRAM)) {
     const { lat, lng } = group[0].location;
-    const approx = group.some((a) => a.location.precision !== "verified");
-    const label = group.map((a) => a.id).join("·");
-    const width = label.length > 2 ? 46 : 28;
     const marker = L.marker([lat, lng], {
-      title: group.map((a) => `${a.id} — ${a.title}`).join(" / "),
-      alt: group.map((a) => `${a.id} — ${a.title}`).join(" / "),
+      title: pinTitle(group),
+      alt: pinTitle(group),
       riseOnHover: true,
-      icon: L.divIcon({
-        className: "",
-        iconSize: [width, 28],
-        iconAnchor: [width / 2, 14],
-        popupAnchor: [0, -14],
-        html: `<span class="fr-pin${approx ? " fr-pin--approx" : ""}" style="width:${width}px;border-radius:${
-          width > 28 ? "14px" : "50%"
-        }">${esc(label)}</span>`,
-      }),
+      icon: pinIcon(group),
     })
       .addTo(map)
       .bindPopup(popupHtml(group), { maxWidth: 280, autoPanPadding: [24, 24] });
 
+    groups.push({ group, marker });
     group.forEach((a) => markersBySlug.set(a.slug, marker));
     bounds.push([lat, lng]);
+  }
+
+  /** Atualiza números e horários dos marcadores quando os horários mudam. */
+  function refresh() {
+    for (const { group, marker } of groups) {
+      marker.setIcon(pinIcon(group));
+      marker.setPopupContent(popupHtml(group));
+      const el = marker.getElement();
+      if (el) {
+        el.title = pinTitle(group);
+        el.setAttribute("alt", pinTitle(group));
+      }
+    }
   }
 
   const BAIXA = PROGRAM.filter((a) => ["02", "03", "04", "05", "06"].includes(a.id) && a.location).map((a) => [
@@ -285,7 +306,7 @@ export function createOverviewMap(container) {
     new ResizeObserver(() => map.invalidateSize()).observe(container);
   }
 
-  return { map, focusActivity, routeCount, markerCount: markersBySlug.size };
+  return { map, focusActivity, refresh, routeCount, markerCount: markersBySlug.size };
 }
 
 /** Mapa individual de uma atividade (tema claro/azul). */
@@ -331,7 +352,7 @@ export function createDetailMap(container, activity) {
         iconSize: [40, 40],
         iconAnchor: [20, 20],
         popupAnchor: [0, -18],
-        html: `<span class="pin-blue${approx ? " pin-blue--approx" : ""}">${esc(activity.id)}</span>`,
+        html: `<span class="pin-blue${approx ? " pin-blue--approx" : ""}">${esc(num(activity))}</span>`,
       }),
     })
       .addTo(map)

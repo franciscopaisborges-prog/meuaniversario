@@ -539,6 +539,9 @@
   height: 1px;
   background: var(--gold-line);
 }
+.step__time.is-set {
+  color: var(--gold-light);
+}
 .step__go {
   position: relative;
   display: grid;

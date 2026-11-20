@@ -215,6 +215,53 @@ await test("Conta Google com email não verificado NÃO é admin", async () => {
   assert.equal((await req("GET", "rsvps", undefined, unverified.token)).status, 401);
 });
 
+/* ---------- Horários (/schedule) ---------- */
+const TS = { ".sv": "timestamp" };
+await test("Anónimo lê /schedule (público)", async () => {
+  assert.equal((await req("GET", "schedule")).status, 200);
+});
+await test("Anónimo NÃO escreve horários", async () => {
+  assert.equal((await req("PUT", "schedule/01", { start: "10:00", updatedAt: TS })).status, 401);
+});
+await test("Autenticado não-admin NÃO escreve horários", async () => {
+  assert.equal((await req("PUT", "schedule/01", { start: "10:00", updatedAt: TS }, otherGoogle.token)).status, 401);
+});
+await test("Organizador define início e fim", async () => {
+  const r = await req("PUT", "schedule/01", { start: "10:00", end: "10:30", updatedAt: TS }, organizer.token);
+  assert.equal(r.status, 200, JSON.stringify(r.json));
+});
+await test("Organizador define só início (fim opcional)", async () => {
+  assert.equal((await req("PUT", "schedule/02", { start: "12:30", updatedAt: TS }, organizer.token)).status, 200);
+});
+await test("Admin por UID também define horários", async () => {
+  assert.equal((await req("PUT", "schedule/03", { start: "14:00", end: "15:00", updatedAt: TS }, admin.token)).status, 200);
+});
+await test("Organizador remove horário (fica sem horário)", async () => {
+  assert.equal((await req("DELETE", "schedule/03", undefined, organizer.token)).status, 200);
+  assert.equal(await owner("GET", "schedule/03"), null);
+});
+await test("Anónimo NÃO apaga horários", async () => {
+  assert.equal((await req("DELETE", "schedule/01")).status, 401);
+});
+const badSchedules = [
+  ["fim anterior ao início", "04", { start: "15:00", end: "14:00" }],
+  ["fim igual ao início", "04", { start: "15:00", end: "15:00" }],
+  ["hora inválida 24:00", "04", { start: "24:00" }],
+  ["formato sem zero", "04", { start: "9:00" }],
+  ["sem início", "04", { end: "10:00" }],
+  ["atividade inexistente", "10", { start: "10:00" }],
+  ["campo inesperado", "04", { start: "10:00", nota: "x" }],
+];
+for (const [label, id, body] of badSchedules) {
+  await test(`Rejeita horário inválido: ${label}`, async () => {
+    const r = await req("PUT", `schedule/${id}`, { ...body, updatedAt: TS }, organizer.token);
+    assert.equal(r.status, 401, `esperado 401, recebido ${r.status}`);
+  });
+}
+await test("Rejeita updatedAt definido pelo cliente", async () => {
+  assert.equal((await req("PUT", "schedule/05", { start: "10:00", updatedAt: 1 }, organizer.token)).status, 401);
+});
+
 for (const [mark, name, err] of results) console.log(`${mark} ${name}${err ? `\n    → ${err}` : ""}`);
 const failed = results.filter((r) => r[0] === "✘").length;
 console.log(`\nRegras RTDB: ${results.length - failed}/${results.length} testes passaram.`);
