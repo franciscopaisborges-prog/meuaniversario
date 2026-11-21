@@ -356,6 +356,18 @@ npm run verify:coords
   - a numeração (01–09), os botões Anterior/Seguinte, o mapa e o próprio painel seguem a nova ordem.
 - **Validação:** hora no formato HH:MM, fim posterior ao início e nenhum campo extra. É verificada no painel **e** nas regras da RTDB, onde `/schedule` tem leitura pública e escrita só para administradores.
 
+## 7B. Atualização forçada das páginas abertas
+
+- As páginas abertas, tanto o site como o painel, escutam `/meta/version` na base de dados. Quando esse valor muda, cada página recarrega-se sozinha com a versão publicada mais recente.
+- `npm run deploy` publica o site e as regras e, no fim, atualiza essa versão. Para forçar o recarregamento sem publicar nada, use:
+
+```bash
+npm run force-refresh
+```
+
+- `/meta` tem leitura pública e não pode ser escrito a partir do site. Só a CLI com acesso de dono do projeto o altera.
+- **Administrador removido:** se for retirado de `/admins` enquanto tem o painel aberto, as regras recusam logo a leitura e o painel apaga os dados do ecrã e mostra “sem autorização”.
+
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
@@ -380,5 +392,7 @@ npm run verify:coords
 | Mudar o texto do convite | `index.html` |
 | Mudar os limites do formulário | `assets/js/site/rsvp.js` **e** `firebase-rtdb-rules.json` (manter coerentes) |
 | Adicionar um administrador | RTDB: `/admins/<UID>: true` |
+| Remover um administrador | Apagar `/admins/<UID>` (o acesso termina de imediato) |
+| Obrigar as páginas abertas a atualizar | `npm run force-refresh` |
 
 Créditos: mapas © colaboradores do [OpenStreetMap](https://www.openstreetmap.org/copyright), [Leaflet](https://leafletjs.com) (BSD-2), fontes Instrument Serif e Manrope (SIL Open Font License, em `assets/fonts/`).

@@ -30,8 +30,13 @@ export async function startLiveSchedule() {
   const cached = readCache();
   if (cached) setSchedule(cached);
   try {
-    const [{ getFirebase }, dbModule] = await Promise.all([import("../shared/firebase.js"), import(DB_CDN)]);
+    const [{ getFirebase }, dbModule, { watchVersion }] = await Promise.all([
+      import("../shared/firebase.js"),
+      import(DB_CDN),
+      import("../shared/version-watch.js"),
+    ]);
     const { db } = await getFirebase();
+    watchVersion(db, dbModule);
     dbModule.onValue(
       dbModule.ref(db, "schedule"),
       (snapshot) => {

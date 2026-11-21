@@ -243,6 +243,14 @@ function exportCsv() {
 }
 
 /* ---------------- Ligação em tempo real ---------------- */
+/** Remove os dados do ecrã e mostra "sem autorização" (acesso retirado). */
+function revokeAccess() {
+  const user = fb?.auth?.currentUser;
+  clearData();
+  $("#unauthPath").textContent = user ? `/admins/${user.uid}: true` : "";
+  show("viewUnauthorized");
+}
+
 function startListening() {
   stopListening();
   const { db, dbModule } = fb;
@@ -259,6 +267,11 @@ function startListening() {
     },
     (error) => {
       console.error("[admin] onValue", error);
+      if (isPermissionDenied(error)) {
+        // Acesso retirado enquanto o painel estava aberto: apagar os dados do ecrã.
+        revokeAccess();
+        return;
+      }
       setLive("error", "Ligação interrompida");
       setDataStatus(
         isPermissionDenied(error)
@@ -396,6 +409,8 @@ async function boot() {
   const { auth, authModule } = fb;
   scheduleAdmin = createScheduleAdmin(fb);
   initTabs();
+  const { watchVersion } = await import("../shared/version-watch.js");
+  watchVersion(fb.db, fb.dbModule, { onBeforeReload: clearData });
 
   $("#loginGoogle").addEventListener("click", async () => {
     const status = $("#loginStatus");

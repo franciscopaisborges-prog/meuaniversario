@@ -805,6 +805,53 @@ await test("Horários (telemóvel): painel utilizável e sem scroll horizontal",
 });
 await ownerPut("schedule", null);
 
+/* ===================== ATUALIZAÇÃO FORÇADA / REVOGAÇÃO ===================== */
+await test("Atualização forçada: páginas abertas recarregam quando /meta/version muda", async () => {
+  await ownerPut("meta/version", "v1");
+  const ctx = await browser.newContext();
+  await prepare(ctx);
+  const pub = await ctx.newPage();
+  const adm = await ctx.newPage();
+  await pub.goto(`${BASE}/?emulators=1`);
+  await pub.waitForSelector(".step__link");
+  await adm.goto(`${BASE}/admin.html?emulators=1`);
+  await adm.waitForSelector("#viewLogin:not([hidden])");
+  await pub.waitForTimeout(1500); // ligação estabelecida e versão inicial lida
+  const marks = await Promise.all([pub, adm].map((p) => p.evaluate(() => (window.__mark = Math.random()))));
+  const reloads = [pub, adm].map((p) => p.waitForEvent("load", { timeout: 15000 }));
+  await ownerPut("meta/version", "v2");
+  await Promise.all(reloads);
+  const after = await Promise.all([pub, adm].map((p) => p.evaluate(() => window.__mark)));
+  assert.deepEqual(after, [undefined, undefined], `marcas antes: ${marks}`);
+  await ctx.close();
+});
+
+await test("Revogação: administrador removido de /admins perde os dados de imediato", async () => {
+  const ctx = await browser.newContext();
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/admin.html?emulators=1`);
+  await page.waitForSelector("#viewLogin:not([hidden])");
+  const email = `temporario-${Date.now()}@gmail.com`;
+  await googleLogin(page, email);
+  await page.waitForSelector("#viewUnauthorized:not([hidden])");
+  const uid = await page.evaluate(async () => {
+    const { getFirebaseAuth } = await import("/assets/js/shared/firebase.js");
+    return (await getFirebaseAuth()).auth.currentUser.uid;
+  });
+  await ownerPut(`admins/${uid}`, true);
+  await page.reload();
+  await page.waitForSelector("#viewLogin:not([hidden]), #viewDashboard:not([hidden])");
+  if (await page.locator("#viewLogin").isVisible()) await googleLogin(page, email);
+  await page.waitForSelector("#viewDashboard:not([hidden])");
+  await page.waitForFunction(() => document.querySelectorAll("#rsvpRows tr").length > 0);
+  await ownerPut(`admins/${uid}`, null);
+  await page.waitForSelector("#viewUnauthorized:not([hidden])", { timeout: 10000 });
+  assert.equal(await page.locator("#rsvpRows tr").count(), 0);
+  assert.equal(await page.locator("#viewDashboard").isHidden(), true);
+  await ctx.close();
+});
+
 await browser.close();
 server.close();
 

@@ -11,7 +11,8 @@
     "test:e2e": "firebase emulators:exec --only auth,database --project demo-fr-aniversario \"node tests/e2e.test.mjs\"",
     "test": "firebase emulators:exec --only auth,database --project demo-fr-aniversario \"node tests/rules.test.mjs && node tests/e2e.test.mjs\"",
     "verify:coords": "node tools/verify-coordinates.mjs",
-    "deploy": "firebase deploy --only hosting,database"
+    "deploy": "firebase deploy --only hosting,database && node tools/force-refresh.mjs",
+    "force-refresh": "node tools/force-refresh.mjs"
   },
   "devDependencies": {
     "firebase": "12.19.0",

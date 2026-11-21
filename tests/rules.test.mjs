@@ -262,6 +262,15 @@ await test("Rejeita updatedAt definido pelo cliente", async () => {
   assert.equal((await req("PUT", "schedule/05", { start: "10:00", updatedAt: 1 }, organizer.token)).status, 401);
 });
 
+/* ---------- Versão (/meta) ---------- */
+await test("Anónimo lê /meta/version", async () => {
+  assert.equal((await req("GET", "meta/version")).status, 200);
+});
+await test("Ninguém escreve /meta pelo cliente (nem admin)", async () => {
+  assert.equal((await req("PUT", "meta/version", "x")).status, 401);
+  assert.equal((await req("PUT", "meta/version", "x", organizer.token)).status, 401);
+});
+
 for (const [mark, name, err] of results) console.log(`${mark} ${name}${err ? `\n    → ${err}` : ""}`);
 const failed = results.filter((r) => r[0] === "✘").length;
 console.log(`\nRegras RTDB: ${results.length - failed}/${results.length} testes passaram.`);

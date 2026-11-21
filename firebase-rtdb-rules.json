@@ -56,6 +56,10 @@
           ".validate": false
         }
       }
+    },
+    "meta": {
+      ".read": true,
+      ".write": false
     }
   }
 }
