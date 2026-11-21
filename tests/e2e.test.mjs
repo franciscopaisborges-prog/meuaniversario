@@ -883,13 +883,36 @@ await test("Painel fictício: conta em /decoys vê só André e Maria e nenhum b
   await page.locator("#refreshBtn").click();
   await page.locator('[data-sort="name"]').click();
   await page.locator("#tabSchedule").click();
-  await page.locator("#logoutBtn").click();
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(500);
   assert.equal(downloaded, false, "CSV não descarregado");
   assert.equal(await page.locator("#panelSchedule").isHidden(), true, "separador não muda");
-  assert.equal(await page.locator("#viewDashboard").isVisible(), true, "sessão não termina");
   assert.equal(await page.locator('th:has([data-sort="name"])').getAttribute("aria-sort"), "none");
   await page.screenshot({ path: join(OUT, "admin-decoy.png") });
+
+  // "Terminar sessão" abre o jogo da cobrinha em vez de terminar a sessão
+  await page.locator("#logoutBtn").click();
+  await page.waitForSelector("#snakeDialog[open]");
+  assert.match(await page.locator("#snakeTitle").innerText(), /50 pontos/);
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: join(OUT, "admin-decoy-snake.png") });
+  await page.locator("#snakeStart").click();
+  // sem mudar de direção, a cobra bate na parede → fim de jogo, sessão continua
+  await page.waitForFunction(() => /Fim de jogo/.test(document.querySelector("#snakeMsg")?.textContent || ""), null, { timeout: 8000 });
+  assert.equal(await page.locator("#snakeStart").innerText(), "TENTAR OUTRA VEZ");
+  await page.screenshot({ path: join(OUT, "admin-decoy-snake-over.png") });
+  // controlos funcionam (os botões do jogo não são bloqueados)
+  await page.locator("#snakeStart").click();
+  await page.keyboard.press("ArrowDown");
+  await page.waitForTimeout(300);
+  assert.equal(await page.locator("#snakeOverlay").isHidden(), true);
+  await page.locator('[data-snake="close"]').click();
+  await page.waitForFunction(() => !document.querySelector("#snakeDialog").open);
+  assert.equal(await page.locator("#viewDashboard").isVisible(), true, "sessão não termina sem 50 pontos");
+  const signedIn = await page.evaluate(async () => {
+    const { getFirebaseAuth } = await import("/assets/js/shared/firebase.js");
+    return Boolean((await getFirebaseAuth()).auth.currentUser);
+  });
+  assert.equal(signedIn, true);
   assert.deepEqual(errors, []);
   await ownerPut(`decoys/${uid}`, null);
   await ctx.close();

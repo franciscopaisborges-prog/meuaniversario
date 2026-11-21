@@ -394,6 +394,6 @@ npm run force-refresh
 | Adicionar um administrador | RTDB: `/admins/<UID>: true` |
 | Remover um administrador | Apagar `/admins/<UID>` (o acesso termina de imediato) |
 | Obrigar as páginas abertas a atualizar | `npm run force-refresh` |
-| Mostrar o painel fictício (André e Maria, botões sem efeito) a uma conta | RTDB: `/decoys/<UID>: true` (consola/CLI); apagar para retirar |
+| Mostrar o painel fictício (André e Maria, botões sem efeito; “Terminar sessão” abre o jogo da cobrinha e só termina a sessão aos 50 pontos) a uma conta | RTDB: `/decoys/<UID>: true` (consola/CLI); apagar para retirar |
 
 Créditos: mapas © colaboradores do [OpenStreetMap](https://www.openstreetmap.org/copyright), [Leaflet](https://leafletjs.com) (BSD-2), fontes Instrument Serif e Manrope (SIL Open Font License, em `assets/fonts/`).

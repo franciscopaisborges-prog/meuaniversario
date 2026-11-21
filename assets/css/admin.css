@@ -519,3 +519,139 @@ select.input option {
     grid-column: 1 / -1;
   }
 }
+
+/* Jogo da cobrinha (painel fictício) */
+.snake {
+  width: min(480px, calc(100vw - 1.5rem));
+  max-height: calc(100dvh - 1.5rem);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--gold-line);
+  background: var(--ink-1);
+  color: var(--bone);
+  overflow: auto;
+}
+.snake::backdrop {
+  background: rgba(3, 3, 3, 0.82);
+  backdrop-filter: blur(6px);
+}
+.snake__frame {
+  position: relative;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  display: grid;
+  gap: 1rem;
+}
+.snake__close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: none;
+  color: var(--bone-dim);
+  cursor: pointer;
+}
+.snake__close:hover {
+  border-color: var(--gold-line);
+  color: var(--gold-light);
+}
+.snake__eyebrow {
+  color: var(--gold);
+}
+.snake__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.9rem, 6vw, 2.5rem);
+  line-height: 1;
+}
+.snake__title em {
+  font-style: italic;
+  color: var(--gold-light);
+}
+.snake__hud {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.snake__hud b {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--gold-light);
+}
+.snake__bar {
+  height: 2px;
+  background: var(--gold-line-soft);
+  overflow: hidden;
+}
+.snake__bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--gold-metal);
+  transition: width 0.3s var(--ease);
+}
+.snake__stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  border: 1px solid var(--gold-line);
+}
+.snake__stage canvas {
+  display: block;
+  touch-action: none;
+}
+.snake__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: rgba(6, 6, 6, 0.78);
+}
+.snake__msg {
+  max-width: 18rem;
+  color: var(--bone-dim);
+  font-size: 0.95rem;
+}
+.snake__pad {
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  grid-template-rows: repeat(2, 56px);
+  gap: 6px;
+  justify-content: center;
+}
+.snake__key {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--gold-line);
+  background: rgba(201, 169, 97, 0.04);
+  color: var(--gold-light);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.snake__key:active {
+  background: var(--gold);
+  color: var(--ink-0);
+}
+.snake__key--up { grid-column: 2; grid-row: 1; }
+.snake__key--left { grid-column: 1; grid-row: 2; }
+.snake__key--down { grid-column: 2; grid-row: 2; }
+.snake__key--right { grid-column: 3; grid-row: 2; }
+@media (hover: hover) and (pointer: fine) and (min-width: 700px) {
+  .snake__pad { display: none; }
+}
