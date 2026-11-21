@@ -202,11 +202,12 @@ export function openSnake({ onWin }) {
     if (dialog.open) dialog.close();
   }
 
+  // Setas do teclado propositadamente invertidas.
   const KEYS = {
-    ArrowUp: "up",
-    ArrowDown: "down",
-    ArrowLeft: "left",
-    ArrowRight: "right",
+    ArrowUp: "down",
+    ArrowDown: "up",
+    ArrowLeft: "right",
+    ArrowRight: "left",
     w: "up",
     s: "down",
     a: "left",
