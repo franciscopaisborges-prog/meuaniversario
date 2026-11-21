@@ -23,23 +23,7 @@ const state = {
   filter: "all",
   unsubscribe: null,
   lastUpdated: null,
-  decoy: false,
 };
-
-// Painel fictício: nenhum botão tem efeito (intercetado antes de qualquer outro handler).
-for (const type of ["click", "submit", "keydown"]) {
-  document.addEventListener(
-    type,
-    (event) => {
-      if (!state.decoy) return;
-      if (type === "submit" || (type === "click" && event.target.closest("button")) || (type === "keydown" && event.target.closest(".a-tab"))) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    },
-    true
-  );
-}
 
 let fb = null; // { db, auth, authModule, dbModule }
 let scheduleAdmin = null;
@@ -330,50 +314,7 @@ async function manualRefresh() {
   }
 }
 
-/* ---------------- Painel fictício (contas em /decoys) ----------------
- * Contas listadas em /decoys/{uid} veem um painel de demonstração com dados
- * fictícios. Nada é lido de /rsvps (as regras recusariam) e nenhum botão
- * tem efeito. A lista só pode ser alterada na consola/CLI e cada conta só
- * consegue ler a sua própria entrada.
- */
-const DECOY_RECORDS = [
-  {
-    id: "demo-andre",
-    name: "André",
-    attending: "yes",
-    message: "Conta comigo! Até dia 29.",
-    createdAt: Date.UTC(2026, 10, 18, 19, 42),
-  },
-  {
-    id: "demo-maria",
-    name: "Maria",
-    attending: "yes",
-    message: "Lá estarei. Parabéns!",
-    createdAt: Date.UTC(2026, 10, 19, 10, 15),
-  },
-];
-
-async function isDecoy(user) {
-  const { db, dbModule } = fb;
-  try {
-    const snap = await dbModule.get(dbModule.ref(db, `decoys/${user.uid}`));
-    return snap.val() === true;
-  } catch {
-    return false;
-  }
-}
-
-function showDecoy() {
-  state.decoy = true;
-  state.records = DECOY_RECORDS.map((r) => ({ ...r }));
-  state.lastUpdated = new Date();
-  show("viewDashboard");
-  setLive("live", "Em tempo real");
-  render();
-}
-
 function clearData() {
-  state.decoy = false;
   stopListening();
   scheduleAdmin?.stop();
   state.records = [];
@@ -423,11 +364,6 @@ async function onUser(user) {
   if (fb.auth.currentUser?.uid !== user.uid) return;
 
   if (!authorized) {
-    if (await isDecoy(user)) {
-      if (fb.auth.currentUser?.uid !== user.uid) return;
-      showDecoy();
-      return;
-    }
     $("#unauthPath").textContent = `/admins/${user.uid}: true`;
     show("viewUnauthorized");
     return;
