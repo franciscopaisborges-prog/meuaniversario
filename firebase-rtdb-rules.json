@@ -60,6 +60,13 @@
     "meta": {
       ".read": true,
       ".write": false
+    },
+    "decoys": {
+      ".read": false,
+      ".write": false,
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
     }
   }
 }

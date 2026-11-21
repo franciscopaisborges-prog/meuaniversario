@@ -262,6 +262,25 @@ await test("Rejeita updatedAt definido pelo cliente", async () => {
   assert.equal((await req("PUT", "schedule/05", { start: "10:00", updatedAt: 1 }, organizer.token)).status, 401);
 });
 
+/* ---------- Painel fictício (/decoys) ---------- */
+await owner("PUT", `decoys/${otherGoogle.uid}`, true);
+await test("Conta fictícia lê só a sua entrada em /decoys", async () => {
+  const r = await req("GET", `decoys/${otherGoogle.uid}`, undefined, otherGoogle.token);
+  assert.equal(r.status, 200);
+  assert.equal(r.json, true);
+});
+await test("Ninguém lista /decoys (nem admin) nem lê a entrada de outra conta", async () => {
+  assert.equal((await req("GET", "decoys", undefined, organizer.token)).status, 401);
+  assert.equal((await req("GET", `decoys/${otherGoogle.uid}`)).status, 401);
+  assert.equal((await req("GET", `decoys/${otherGoogle.uid}`, undefined, user.token)).status, 401);
+});
+await test("Ninguém escreve /decoys pelo cliente", async () => {
+  assert.equal((await req("PUT", `decoys/${user.uid}`, true, user.token)).status, 401);
+});
+await test("Conta fictícia continua sem ler /rsvps", async () => {
+  assert.equal((await req("GET", "rsvps", undefined, otherGoogle.token)).status, 401);
+});
+
 /* ---------- Versão (/meta) ---------- */
 await test("Anónimo lê /meta/version", async () => {
   assert.equal((await req("GET", "meta/version")).status, 200);

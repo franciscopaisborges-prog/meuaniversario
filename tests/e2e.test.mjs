@@ -852,6 +852,49 @@ await test("Revogação: administrador removido de /admins perde os dados de ime
   await ctx.close();
 });
 
+await test("Painel fictício: conta em /decoys vê só André e Maria e nenhum botão funciona", async () => {
+  const ctx = await browser.newContext({ acceptDownloads: true });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  const errors = watchErrors(page);
+  await page.goto(`${BASE}/admin.html?emulators=1`);
+  await page.waitForSelector("#viewLogin:not([hidden])");
+  const email = `ficticio-${Date.now()}@gmail.com`;
+  await googleLogin(page, email);
+  await page.waitForSelector("#viewUnauthorized:not([hidden])");
+  const uid = await page.evaluate(async () => {
+    const { getFirebaseAuth } = await import("/assets/js/shared/firebase.js");
+    return (await getFirebaseAuth()).auth.currentUser.uid;
+  });
+  await ownerPut(`decoys/${uid}`, true);
+  await page.reload();
+  await page.waitForSelector("#viewLogin:not([hidden]), #viewDashboard:not([hidden])");
+  if (await page.locator("#viewLogin").isVisible()) await googleLogin(page, email);
+  await page.waitForSelector("#viewDashboard:not([hidden])");
+  const names = await page.$$eval("#rsvpRows td.a-name", (els) => els.map((e) => e.textContent).sort());
+  assert.deepEqual(names, ["André", "Maria"]);
+  assert.equal(await page.locator("#statTotal").innerText(), "2");
+  // nenhum dado real no ecrã
+  assert.equal((await page.content()).includes("Gonçalves"), false);
+  // botões sem efeito
+  let downloaded = false;
+  page.on("download", () => (downloaded = true));
+  await page.locator("#exportBtn").click();
+  await page.locator("#refreshBtn").click();
+  await page.locator('[data-sort="name"]').click();
+  await page.locator("#tabSchedule").click();
+  await page.locator("#logoutBtn").click();
+  await page.waitForTimeout(800);
+  assert.equal(downloaded, false, "CSV não descarregado");
+  assert.equal(await page.locator("#panelSchedule").isHidden(), true, "separador não muda");
+  assert.equal(await page.locator("#viewDashboard").isVisible(), true, "sessão não termina");
+  assert.equal(await page.locator('th:has([data-sort="name"])').getAttribute("aria-sort"), "none");
+  await page.screenshot({ path: join(OUT, "admin-decoy.png") });
+  assert.deepEqual(errors, []);
+  await ownerPut(`decoys/${uid}`, null);
+  await ctx.close();
+});
+
 await browser.close();
 server.close();
 
