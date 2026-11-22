@@ -210,7 +210,7 @@ O ficheiro `firebase-rtdb-rules.json` garante o seguinte:
 | `noticesRead` | Booleano obrigatório; tem de ser `true` quando `attending` é `"yes"` (só quem confirma presença tem de abrir os AVISOS). |
 | `noTransportCard` | Obrigatório, booleano: `true` = não tem cartão Move C (levar valor do bilhete). |
 | `allergies` | Opcional, 1 a 300 caracteres. |
-| `schedule` | Leitura pública; escrita só para administradores. `start` (HH:MM) obrigatório, `end` opcional e posterior a `start`, `updatedAt` = hora do servidor. Só as atividades 01–08 são aceites. |
+| `schedule` | Leitura pública; escrita só para administradores. `start` (HH:MM) obrigatório, `end` opcional e posterior a `start`, `updatedAt` = hora do servidor. Só as atividades 01–09 são aceites. |
 | `attending` | Só `"yes"` ou `"no"`. |
 | `message` | Opcional, com 1 a 500 caracteres (se vazia, o site não a envia). |
 | `createdAt` | Tem de ser `now`, o `serverTimestamp()`. O cliente não consegue falsificar a data. |
@@ -294,11 +294,11 @@ npm test
 
 **End-to-end (31/31), Chromium:**
 - **Página inicial:** abre sem erros de consola nem de CSP (com a CSP de produção aplicada).
-- **Programa:** as 8 atividades aparecem pela ordem correta e o roteiro não tem checkboxes, botões de conclusão nem barras de progresso.
+- **Programa:** as 9 atividades aparecem pela ordem correta e o roteiro não tem checkboxes, botões de conclusão nem barras de progresso.
 - **Mapa geral:** carrega 6 marcadores (05 e 06 partilham a Portagem; 08 e 09 não têm local confirmado). O marcador abre o popup e o popup abre a página da atividade. Os botões de foco também funcionam.
 - **Páginas de atividade:** as 9 abrem com título, contador e mapa individual. O marcador aparece só onde existe localização, e “Abrir no Google Maps” só onde há um local definido.
 - **Navegação:** Anterior/Seguinte percorrem 01→09 e voltam, e “Voltar ao programa” funciona. Ligação direta, Anterior/Seguinte do navegador e a tecla Escape também funcionam, e o foco regressa ao cartão.
-- **Atividade 02:** mostra o Metrobus Portagem → República com as paragens intermédias. **06** mostra os contactos do golfe e os avisos. **07** não revela projetos.
+- **Atividade 02:** mostra o Metrobus Portagem → República com as paragens intermédias. **06** é o regresso ao Largo da Portagem. **07** mostra os contactos do golfe e os avisos. **08** não revela projetos.
 - **RSVP:**
   - não envia sem nome e exige resposta;
   - grava na RTDB com o nome normalizado, `serverTimestamp` e `eventDate`;
@@ -355,7 +355,7 @@ npm run verify:coords
 - **Ordem cronológica:**
   - as atividades com horário ordenam-se pela hora de início;
   - as que não têm horário mantêm a posição prevista;
-  - a numeração (01–08), os botões Anterior/Seguinte, o mapa e o próprio painel seguem a nova ordem.
+  - a numeração (01–09), os botões Anterior/Seguinte, o mapa e o próprio painel seguem a nova ordem.
 - **Validação:** hora no formato HH:MM, fim posterior ao início e nenhum campo extra. É verificada no painel **e** nas regras da RTDB, onde `/schedule` tem leitura pública e escrita só para administradores.
 
 ## 7B. Atualização forçada das páginas abertas

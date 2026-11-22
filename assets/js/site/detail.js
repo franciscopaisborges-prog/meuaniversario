@@ -175,7 +175,7 @@ function mapBlock(a) {
   }
   if (a.special === "metrobus") {
     note += " O mapa mostra o traçado real da linha U2 (OpenStreetMap) e as paragens Portagem, Loja do Cidadão, Câmara, Mercado e República.";
-  } else if (["01", "03", "04", "05"].includes(a.id)) {
+  } else if (["03", "04", "05", "06"].includes(a.id)) {
     note += " A linha verde mostra o percurso a pé pela Baixa, que termina no Largo da Portagem.";
   }
   return `

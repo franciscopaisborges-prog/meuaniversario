@@ -253,7 +253,7 @@ export function createOverviewMap(container) {
     }
   }
 
-  const BAIXA = PROGRAM.filter((a) => ["01", "02", "03", "04", "05"].includes(a.id) && a.location).map((a) => [
+  const BAIXA = PROGRAM.filter((a) => ["01", "02", "03", "04", "05", "06"].includes(a.id) && a.location).map((a) => [
     a.location.lat,
     a.location.lng,
   ]);

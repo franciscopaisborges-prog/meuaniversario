@@ -142,9 +142,10 @@ const EXPECTED = [
   ["03", "Mr. Pizza"],
   ["04", "Passeio pela Baixa de Coimbra"],
   ["05", "Torre de Almedina"],
-  ["06", "Quinta das Lágrimas Clube de Golfe"],
-  ["07", "Apresentação privada de projetos"],
-  ["08", "Lanche e momento de convívio"],
+  ["06", "Regresso à Portagem"],
+  ["07", "Quinta das Lágrimas Clube de Golfe"],
+  ["08", "Apresentação privada de projetos"],
+  ["09", "Lanche e momento de convívio"],
 ];
 
 await ownerPut("", null);
@@ -166,7 +167,7 @@ const browser = await chromium.launch();
     assert.deepEqual(errors, []);
   });
 
-  await test("Oito atividades pela ordem correta", async () => {
+  await test("Nove atividades pela ordem correta", async () => {
     const items = await page.$$eval(".step__link", (els) =>
       els.map((el) => [el.querySelector(".step__num").textContent.trim(), el.querySelector(".step__title").textContent.trim()])
     );
@@ -180,14 +181,14 @@ const browser = await chromium.launch();
       pressed: document.querySelectorAll("#roteiro [aria-pressed], #roteiro [aria-checked], #roteiro button").length,
       links: document.querySelectorAll("#roteiro a.step__link").length,
     }));
-    assert.deepEqual(counts, { checkbox: 0, progress: 0, pressed: 0, links: 8 });
+    assert.deepEqual(counts, { checkbox: 0, progress: 0, pressed: 0, links: 9 });
   });
 
   await test("Mapa geral carrega com marcadores clicáveis", async () => {
     await page.locator("#mapa").scrollIntoViewIfNeeded();
     await page.waitForSelector("#overviewMap .fr-pin");
     const markers = await page.locator("#overviewMap .fr-pin").count();
-    assert.equal(markers, 7, "7 marcadores (08 sem local)");
+    assert.equal(markers, 7, "7 marcadores (01 e 06 partilham o Largo da Portagem; 09 sem local)");
     const paths = await page.locator("#overviewMap .leaflet-overlay-pane path").count();
     assert.ok(paths >= 10 + 3, `percursos (5 linhas + contornos) e 3 paragens desenhados: ${paths}`);
     const arrows = await page.locator("#overviewMap .route-arrow").count();
@@ -218,10 +219,10 @@ const browser = await chromium.launch();
       await page.locator(".step__link").nth(i).click();
       await page.waitForSelector("#detail.is-open");
       assert.equal(await page.locator("#detailTitle").innerText(), title);
-      assert.equal(await page.locator("#detailCount").innerText(), `${id} / 08`);
+      assert.equal(await page.locator("#detailCount").innerText(), `${id} / 09`);
       await page.waitForSelector("#detailMap.leaflet-container", { timeout: 4000 });
       const gm = page.locator('#detailContent a:has-text("Abrir no Google Maps")');
-      if (id === "08") {
+      if (id === "09") {
         assert.equal(await gm.count(), 0, "09 não tem local definido");
       } else {
         const href = await gm.getAttribute("href");
@@ -229,7 +230,7 @@ const browser = await chromium.launch();
         assert.equal(await gm.getAttribute("target"), "_blank");
       }
       const hasMarker = await page.locator("#detailMap .pin-blue").count();
-      assert.equal(hasMarker, id === "08" ? 0 : 1, `marcador em ${id}`);
+      assert.equal(hasMarker, id === "09" ? 0 : 1, `marcador em ${id}`);
       // Não há checkboxes nem estados de conclusão no detalhe
       assert.equal(await page.locator('#detail input[type="checkbox"]').count(), 0);
       await page.locator(".detail__bar [data-detail-back]").click();
@@ -248,7 +249,7 @@ const browser = await chromium.launch();
     }
     assert.equal(await page.locator('.pager-link[rel="next"]').count(), 0);
     await page.locator('.pager-link[rel="prev"]').click();
-    await page.waitForFunction((t) => document.querySelector("#detailTitle")?.textContent === t, EXPECTED[6][1]);
+    await page.waitForFunction((t) => document.querySelector("#detailTitle")?.textContent === t, EXPECTED[7][1]);
     // "Voltar ao programa" depois de navegar com Seguinte/Anterior fecha o detalhe
     await page.locator(".d-pager__home").click();
     await page.waitForFunction(() => !document.querySelector("#detail").classList.contains("is-open"));
@@ -257,7 +258,7 @@ const browser = await chromium.launch();
   await test("Ligação direta, histórico do navegador e tecla Escape", async () => {
     await page.goto(`${BASE}/?emulators=1`);
     await page.waitForSelector(".step__link");
-    await page.locator(".step__link").nth(5).click();
+    await page.locator(".step__link").nth(6).click();
     await page.waitForSelector("#detail.is-open");
     await page.goBack();
     await page.waitForFunction(() => !document.querySelector("#detail").classList.contains("is-open"));
@@ -735,7 +736,7 @@ await ownerPut("schedule", null);
     await pub.goto(`${BASE}/?emulators=1`);
     await pub.waitForSelector(".step__link");
     const times = await pub.$$eval(".step__time", (els) => els.map((e) => e.textContent.trim()));
-    assert.equal(times.length, 8);
+    assert.equal(times.length, 9);
     assert.ok(times.every((t) => t === "Horário: A confirmar"), times.join(" | "));
   });
 
@@ -746,7 +747,7 @@ await ownerPut("schedule", null);
     await adm.waitForSelector("#viewDashboard:not([hidden])");
     await adm.locator("#tabSchedule").click();
     await adm.waitForSelector("#panelSchedule:not([hidden]) .a-srow");
-    assert.equal(await adm.locator(".a-srow").count(), 8);
+    assert.equal(await adm.locator(".a-srow").count(), 9);
     assert.equal(await adm.locator("#panelRsvps").isHidden(), true);
   });
 
@@ -763,9 +764,9 @@ await ownerPut("schedule", null);
   });
 
   await test("Horários: só hora de início também é válido", async () => {
-    await saveRow("06", "16:00", "");
+    await saveRow("07", "16:00", "");
     await pub.waitForFunction(() => document.querySelector('.step__link[data-slug="golfe"] .step__time')?.textContent === "Horário: 16:00");
-    assert.equal("end" in (await ownerGet("schedule/06")), false);
+    assert.equal("end" in (await ownerGet("schedule/07")), false);
   });
 
   await test("Horários: ordem cronológica atualiza-se sozinha", async () => {
@@ -799,9 +800,9 @@ await ownerPut("schedule", null);
   await test("Horários: página da atividade aberta atualiza o horário sem recarregar", async () => {
     await pub.locator('.step__link[data-slug="golfe"]').click();
     await pub.waitForSelector("#detail.is-open #detailMap.leaflet-container");
-    assert.equal(await pub.locator('[data-schedule="06"]').innerText(), "16:00");
-    await saveRow("06", "16:30", "18:00");
-    await pub.waitForFunction(() => document.querySelector('[data-schedule="06"]')?.textContent === "16:30 – 18:00");
+    assert.equal(await pub.locator('[data-schedule="07"]').innerText(), "16:00");
+    await saveRow("07", "16:30", "18:00");
+    await pub.waitForFunction(() => document.querySelector('[data-schedule="07"]')?.textContent === "16:30 – 18:00");
     assert.equal(await pub.locator("#detailMap.leaflet-container").count(), 1, "mapa mantém-se");
     await pub.keyboard.press("Escape");
     await pub.waitForFunction(() => !document.querySelector("#detail").classList.contains("is-open"));

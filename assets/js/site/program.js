@@ -124,14 +124,14 @@ export const PROGRAM = [
   {
     id: "05",
     slug: "torre-de-almedina",
-    kicker: "Paragem · regresso à Portagem",
+    kicker: "Paragem",
     title: "Torre de Almedina",
     place: "Torre e Arco de Almedina",
     address: "Rua Ferreira Borges, Coimbra",
     summary: "Paragem num dos elementos históricos mais emblemáticos da cidade, antes de regressarmos ao Largo da Portagem.",
     description: [
       "Paragem para conhecer e apreciar um dos elementos históricos mais emblemáticos da cidade: a antiga porta da muralha medieval de Coimbra.",
-      "A paragem é feita no exterior. Daqui descemos a Rua Ferreira Borges até ao Largo da Portagem, onde o passeio termina — no mesmo ponto onde o dia começou.",
+      "A paragem é feita no exterior. Daqui descemos a Rua Ferreira Borges de regresso ao Largo da Portagem.",
     ],
     notes: ["Visita ao interior não incluída."],
     location: {
@@ -145,6 +145,28 @@ export const PROGRAM = [
   },
   {
     id: "06",
+    slug: "regresso-portagem",
+    kicker: "Regresso · fim do passeio",
+    title: "Regresso à Portagem",
+    place: "Largo da Portagem",
+    address: "Largo da Portagem, Coimbra",
+    summary: "Fim do passeio pela Baixa: voltamos ao Largo da Portagem, o ponto onde o dia começou.",
+    description: [
+      "Descemos a Rua Ferreira Borges e regressamos ao Largo da Portagem, junto ao rio Mondego e à Ponte de Santa Clara.",
+      "O passeio pela Baixa termina aqui, no mesmo ponto onde nos encontrámos. Daqui seguimos para o golfe, do outro lado do rio.",
+    ],
+    notes: [],
+    location: {
+      lat: 40.207449,
+      lng: -8.429593,
+      precision: "verified",
+      source: "Câmara Municipal de Coimbra — roteiro turístico oficial (confirmado no OpenStreetMap)",
+    },
+    zoom: 17,
+    mapsQuery: "Largo da Portagem, Coimbra",
+  },
+  {
+    id: "07",
     slug: "golfe",
     kicker: "Golfe · Driving Range",
     title: "Quinta das Lágrimas Clube de Golfe",
@@ -177,7 +199,7 @@ export const PROGRAM = [
     },
   },
   {
-    id: "07",
+    id: "08",
     slug: "apresentacao-privada",
     kicker: "Private Project Presentation",
     title: "Apresentação privada de projetos",
@@ -197,7 +219,7 @@ export const PROGRAM = [
     special: "private",
   },
   {
-    id: "08",
+    id: "09",
     slug: "lanche",
     kicker: "Final do dia",
     title: "Lanche e momento de convívio",

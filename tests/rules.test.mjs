@@ -269,7 +269,6 @@ const badSchedules = [
   ["formato sem zero", "04", { start: "9:00" }],
   ["sem início", "04", { end: "10:00" }],
   ["atividade inexistente", "10", { start: "10:00" }],
-  ["atividade 09 (já não existe)", "09", { start: "10:00" }],
   ["campo inesperado", "04", { start: "10:00", nota: "x" }],
 ];
 for (const [label, id, body] of badSchedules) {
