@@ -161,6 +161,9 @@ function snapshotToRecords(snapshot) {
       attending: v.attending === "yes" || v.attending === "no" ? v.attending : "",
       message: typeof v.message === "string" ? v.message : "",
       createdAt: typeof v.createdAt === "number" ? v.createdAt : null,
+      noticesRead: v.noticesRead === true,
+      noTransportCard: v.noTransportCard === true,
+      allergies: typeof v.allergies === "string" ? v.allergies : "",
     });
   });
   return list;
@@ -169,7 +172,9 @@ function snapshotToRecords(snapshot) {
 export function computeStats(records) {
   const yes = records.filter((r) => r.attending === "yes").length;
   const no = records.filter((r) => r.attending === "no").length;
-  return { total: records.length, yes, no };
+  const noCard = records.filter((r) => r.noTransportCard).length;
+  const allergies = records.filter((r) => r.allergies).length;
+  return { total: records.length, yes, no, noCard, allergies };
 }
 
 function visibleRecords() {
@@ -194,6 +199,8 @@ function render() {
   $("#statTotal").textContent = stats.total;
   $("#statYes").textContent = stats.yes;
   $("#statNo").textContent = stats.no;
+  $("#statNoCard").textContent = stats.noCard;
+  $("#statAllergies").textContent = stats.allergies;
   $("#statYesHint").textContent = `de ${EXPECTED_GUESTS} convidados previstos`;
 
   const rows = visibleRecords();
@@ -204,6 +211,14 @@ function render() {
         <td class="a-name">${esc(r.name)}</td>
         <td><span class="badge badge--${r.attending === "yes" ? "yes" : "no"}">${esc(statusLabel(r.attending))}</span></td>
         <td class="a-msg">${r.message ? esc(r.message) : '<span class="a-muted">—</span>'}</td>
+        <td>${
+          r.noTransportCard
+            ? '<span class="badge badge--warn">Sem cartão · levar bilhete</span>'
+            : r.noticesRead
+              ? '<span class="a-muted">Tem cartão</span>'
+              : '<span class="a-muted">—</span>'
+        }</td>
+        <td class="a-msg">${r.allergies ? `<span class="a-allergy">${esc(r.allergies)}</span>` : '<span class="a-muted">—</span>'}</td>
         <td class="a-date">${esc(formatDate(r.createdAt))}</td>
       </tr>`
     )
@@ -255,8 +270,19 @@ function csvCell(value) {
 }
 
 export function buildCsv(records) {
-  const header = ["Nome", "Estado", "Mensagem", "Data e hora"];
-  const lines = [header, ...records.map((r) => [r.name, statusLabel(r.attending), r.message, formatDate(r.createdAt)])];
+  const header = ["Nome", "Estado", "Mensagem", "Sem cartão Move C (levar bilhete)", "Alergias", "Avisos lidos", "Data e hora"];
+  const lines = [
+    header,
+    ...records.map((r) => [
+      r.name,
+      statusLabel(r.attending),
+      r.message,
+      r.noTransportCard ? "Sim" : "Não",
+      r.allergies,
+      r.noticesRead ? "Sim" : "Não",
+      formatDate(r.createdAt),
+    ]),
+  ];
   // BOM UTF-8 + separador ";" (abre corretamente no Excel em português) + CRLF.
   return "﻿" + lines.map((cols) => cols.map(csvCell).join(";")).join("\r\n") + "\r\n";
 }
@@ -363,6 +389,9 @@ const DECOY_RECORDS = [
     attending: "yes",
     message: "Conta comigo! Até dia 29.",
     createdAt: Date.UTC(2026, 10, 18, 19, 42),
+    noticesRead: true,
+    noTransportCard: false,
+    allergies: "",
   },
   {
     id: "demo-maria",
@@ -370,6 +399,9 @@ const DECOY_RECORDS = [
     attending: "yes",
     message: "Lá estarei. Parabéns!",
     createdAt: Date.UTC(2026, 10, 19, 10, 15),
+    noticesRead: true,
+    noTransportCard: true,
+    allergies: "Frutos secos",
   },
 ];
 
@@ -401,7 +433,7 @@ function clearData() {
   state.firstLoad = true;
   state.lastUpdated = null;
   $("#rsvpRows").innerHTML = "";
-  ["#statTotal", "#statYes", "#statNo"].forEach((s) => ($(s).textContent = "0"));
+  ["#statTotal", "#statYes", "#statNo", "#statNoCard", "#statAllergies"].forEach((s) => ($(s).textContent = "0"));
 }
 
 /* ---------------- Autorização ---------------- */

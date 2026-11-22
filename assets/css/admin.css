@@ -655,3 +655,24 @@ select.input option {
 @media (hover: hover) and (pointer: fine) and (min-width: 700px) {
   .snake__pad { display: none; }
 }
+
+.a-stats--small {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: -1rem;
+}
+.a-stats--small .a-stat__value {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+}
+.badge--warn {
+  color: #f2c2b8;
+  border-color: rgba(227, 139, 124, 0.5);
+  background: rgba(227, 139, 124, 0.08);
+}
+.a-allergy {
+  color: #f2c2b8;
+}
+@media (max-width: 640px) {
+  .a-stats--small {
+    grid-template-columns: 1fr;
+  }
+}

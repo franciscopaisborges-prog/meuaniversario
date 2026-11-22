@@ -307,6 +307,48 @@
               <p class="field__error" id="rsvpMessageError" aria-live="polite"></p>
             </div>
 
+            <!-- Avisos: abrir é obrigatório antes de enviar -->
+            <div class="notices" id="rsvpNotices">
+              <button class="notices__toggle" type="button" id="noticesToggle" aria-expanded="false" aria-controls="noticesPanel" aria-describedby="noticesError">
+                <span>Avisos</span>
+                <svg class="notices__arrow" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                  <path d="M12 4v15M5 12l7 7 7-7" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <p class="field__error notices__error" id="noticesError" aria-live="assertive"></p>
+              <div class="notices__panel" id="noticesPanel" role="region" aria-labelledby="noticesToggle" hidden>
+                <ol class="notices__list">
+                  <li class="notice">
+                    <span class="notice__num" aria-hidden="true">01</span>
+                    <div>
+                      <p class="notice__q">Calçado</p>
+                      <p class="notice__a">Certifique-se de que traz calçado adequado para caminhadas.</p>
+                    </div>
+                  </li>
+                  <li class="notice">
+                    <span class="notice__num" aria-hidden="true">02</span>
+                    <div>
+                      <p class="notice__q">Cartão de transportes</p>
+                      <p class="notice__a">Traga o cartão de transportes Move C. Caso não o tenha, marque esta caixa para levarmos o valor do bilhete.</p>
+                      <label class="check">
+                        <input type="checkbox" name="noTransportCard" id="rsvpNoCard" />
+                        <span class="check__box" aria-hidden="true"></span>
+                        <span>Não tenho cartão Move C — levem o valor do bilhete para mim</span>
+                      </label>
+                    </div>
+                  </li>
+                  <li class="notice">
+                    <span class="notice__num" aria-hidden="true">03</span>
+                    <div>
+                      <p class="notice__q"><label for="rsvpAllergies">Alergias</label></p>
+                      <p class="notice__a" id="allergiesHint">Escreva aqui as suas alergias, para as termos em consideração ao fazermos o bolo.</p>
+                      <textarea class="input notice__input" id="rsvpAllergies" name="allergies" maxlength="300" aria-describedby="allergiesHint" placeholder="Ex.: frutos secos, lactose… (deixe em branco se não tiver)"></textarea>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
             <!-- Campo armadilha antispam: deve ficar vazio -->
             <div class="hp-field" aria-hidden="true">
               <label for="rsvpWebsite">Website</label>

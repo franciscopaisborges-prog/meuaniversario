@@ -17,7 +17,7 @@ async function loadDatabase() {
   return { db, dbModule };
 }
 
-export const LIMITS = { nameMin: 2, nameMax: 80, messageMax: 500 };
+export const LIMITS = { nameMin: 2, nameMax: 80, messageMax: 500, allergiesMax: 300 };
 const CONNECT_TIMEOUT_MS = 10000;
 const WRITE_TIMEOUT_MS = 15000;
 
@@ -40,10 +40,11 @@ class RsvpError extends Error {
 }
 
 /** Valida e normaliza os dados do formulário. Exportado para testes. */
-export function validateRsvp({ name, attending, message, website }) {
+export function validateRsvp({ name, attending, message, website, noticesRead, noTransportCard, allergies }) {
   const errors = {};
   const cleanName = String(name ?? "").replace(/\s+/g, " ").trim();
   const cleanMessage = String(message ?? "").replace(/\r\n/g, "\n").trim();
+  const cleanAllergies = String(allergies ?? "").replace(/\r\n/g, "\n").trim();
 
   if (!cleanName) errors.name = "Escreve o teu nome.";
   else if (cleanName.length < LIMITS.nameMin) errors.name = `O nome deve ter pelo menos ${LIMITS.nameMin} caracteres.`;
@@ -54,12 +55,22 @@ export function validateRsvp({ name, attending, message, website }) {
 
   if (cleanMessage.length > LIMITS.messageMax) errors.message = `A mensagem pode ter no máximo ${LIMITS.messageMax} caracteres.`;
 
+  if (!noticesRead) errors.notices = "Tens de abrir e ler os AVISOS antes de enviar. Sem isso a resposta não é registada.";
+
+  if (cleanAllergies.length > LIMITS.allergiesMax) errors.allergies = `As alergias podem ter no máximo ${LIMITS.allergiesMax} caracteres.`;
+
   if (website) errors.bot = "Não foi possível validar o envio.";
 
   return {
     valid: Object.keys(errors).length === 0,
     errors,
-    data: { name: cleanName, attending, message: cleanMessage },
+    data: {
+      name: cleanName,
+      attending,
+      message: cleanMessage,
+      noTransportCard: Boolean(noTransportCard),
+      allergies: cleanAllergies,
+    },
   };
 }
 
@@ -134,6 +145,36 @@ export function initRsvp() {
   const resultView = $("#rsvpResultView");
   let sending = false;
   let lastOpener = null;
+  let noticesRead = false;
+
+  // Avisos: só depois de abertos é que a resposta pode ser registada.
+  const notices = $("#rsvpNotices");
+  const noticesToggle = $("#noticesToggle");
+  const noticesPanel = $("#noticesPanel");
+  const noticesError = $("#noticesError");
+
+  function setNoticesError(message) {
+    noticesError.textContent = message || "";
+    notices.classList.toggle("is-invalid", Boolean(message));
+    if (message) {
+      // reiniciar a animação de "abanar"
+      void noticesToggle.offsetWidth;
+    }
+  }
+
+  function setNoticesOpen(open) {
+    noticesToggle.setAttribute("aria-expanded", String(open));
+    noticesPanel.hidden = !open;
+  }
+
+  noticesToggle.addEventListener("click", () => {
+    const open = noticesToggle.getAttribute("aria-expanded") !== "true";
+    setNoticesOpen(open);
+    if (open) {
+      noticesRead = true;
+      setNoticesError("");
+    }
+  });
 
   const errorEls = {
     name: $("#rsvpNameError"),
@@ -216,6 +257,9 @@ export function initRsvp() {
 
   function resetForm() {
     form.reset();
+    noticesRead = false;
+    setNoticesOpen(false);
+    setNoticesError("");
     counter.textContent = `0 / ${LIMITS.messageMax}`;
     Object.keys(errorEls).forEach((f) => setFieldError(f, ""));
     setStatus("");
@@ -245,17 +289,25 @@ export function initRsvp() {
       attending: formData.get("attending"),
       message: formData.get("message"),
       website: formData.get("website"),
+      noticesRead,
+      noTransportCard: formData.get("noTransportCard") === "on",
+      allergies: formData.get("allergies"),
     });
 
     setFieldError("name", errors.name);
     setFieldError("attending", errors.attending);
     setFieldError("message", errors.message);
+    setNoticesError(errors.notices || errors.allergies);
 
     if (!valid) {
       if (errors.bot) setStatus(friendlyError({ code: "bot" }));
       if (errors.name) nameInput.focus();
       else if (errors.attending) choiceGroup.querySelector("input").focus();
       else if (errors.message) messageInput.focus();
+      else if (errors.notices) {
+        noticesToggle.scrollIntoView({ block: "center", behavior: "smooth" });
+        noticesToggle.focus({ preventScroll: true });
+      } else if (errors.allergies) $("#rsvpAllergies").focus();
       return;
     }
 
@@ -272,6 +324,9 @@ export function initRsvp() {
         eventDate: EVENT.dateISO,
       };
       if (data.message) payload.message = data.message;
+      payload.noticesRead = true;
+      payload.noTransportCard = data.noTransportCard;
+      if (data.allergies) payload.allergies = data.allergies;
 
       // push() só resolve quando o servidor confirma a escrita.
       const writeRef = dbModule.push(dbModule.ref(db, "rsvps"));

@@ -18,6 +18,8 @@ const valid = (extra = {}) => ({
   message: "Até já! Coração ❤ e acentuação: ção, ã, é.",
   createdAt: SERVER_TS,
   eventDate: "2026-11-29",
+  noticesRead: true,
+  noTransportCard: false,
   ...extra,
 });
 
@@ -111,6 +113,11 @@ await test("Anónimo cria resposta sem mensagem (opcional)", async () => {
   assert.equal(r.status, 200, JSON.stringify(r.json));
 });
 
+await test("Anónimo cria resposta com cartão em falta e alergias", async () => {
+  const r = await req("POST", "rsvps", valid({ noTransportCard: true, allergies: "Frutos secos" }));
+  assert.equal(r.status, 200, JSON.stringify(r.json));
+});
+
 await test("Anónimo NÃO lê /rsvps", async () => {
   assert.equal((await req("GET", "rsvps")).status, 401);
 });
@@ -157,6 +164,12 @@ const invalidCases = [
   ["eventDate errada", { eventDate: "2026-11-30" }],
   ["sem eventDate", { eventDate: undefined }],
   ["campo inesperado", { email: "x@y.z" }],
+  ["sem avisos lidos", { noticesRead: undefined }],
+  ["avisos não lidos (false)", { noticesRead: false }],
+  ["sem campo do cartão", { noTransportCard: undefined }],
+  ["cartão não-booleano", { noTransportCard: "sim" }],
+  ["alergias vazias", { allergies: "" }],
+  ["alergias > 300", { allergies: "x".repeat(301) }],
 ];
 for (const [label, patch] of invalidCases) {
   await test(`Rejeita resposta inválida: ${label}`, async () => {

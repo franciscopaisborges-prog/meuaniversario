@@ -336,10 +336,42 @@ const browser = await chromium.launch();
     await page.screenshot({ path: join(OUT, "rsvp-validation.png") });
   });
 
-  await test("RSVP: resposta positiva grava na RTDB e só depois mostra sucesso", async () => {
+  await test("RSVP: sem abrir os AVISOS a resposta não é registada e aparece aviso", async () => {
     await page.locator("#rsvpName").fill("  João   Gonçalves  ");
     await page.locator('label.choice:has-text("Sim, vou estar presente!")').click();
     await page.locator("#rsvpMessage").fill("Parabéns! Lá estarei — com muita alegria.");
+    assert.equal(await page.locator("#noticesToggle").innerText(), "AVISOS");
+    assert.equal(await page.locator("#noticesPanel").isHidden(), true);
+    await page.locator("#rsvpSubmit").click();
+    assert.match(await page.locator("#noticesError").innerText(), /AVISOS/);
+    await page.waitForTimeout(600);
+    assert.equal(await ownerGet("rsvps"), null, "nada foi gravado");
+    const style = await page.locator("#noticesToggle").evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { color: cs.color, width: el.getBoundingClientRect().width, formWidth: el.closest("form").getBoundingClientRect().width };
+    });
+    assert.equal(style.color, "rgb(158, 27, 27)", "letras vermelhas");
+    assert.ok(Math.abs(style.width - style.formWidth) < 2, "ocupa toda a largura");
+    await page.screenshot({ path: join(OUT, "rsvp-notices-blocked.png") });
+  });
+
+  await test("RSVP: abrir AVISOS mostra calçado, cartão Move C e alergias", async () => {
+    await page.locator("#noticesToggle").click();
+    assert.equal(await page.locator("#noticesToggle").getAttribute("aria-expanded"), "true");
+    const text = await page.locator("#noticesPanel").innerText();
+    assert.match(text, /calçado adequado para caminhadas/);
+    assert.match(text, /cartão de transportes Move C/);
+    assert.match(text, /alergias/i);
+    assert.equal(await page.locator("#noticesError").innerText(), "");
+    await page.locator("label.check").click();
+    assert.equal(await page.locator("#rsvpNoCard").isChecked(), true);
+    await page.locator("#rsvpAllergies").fill("Frutos secos e lactose");
+    await page.locator("#rsvpModal").evaluate((d) => (d.scrollTop = 0));
+    await page.locator("#noticesToggle").scrollIntoViewIfNeeded();
+    await page.screenshot({ path: join(OUT, "rsvp-notices-open.png") });
+  });
+
+  await test("RSVP: resposta positiva grava na RTDB e só depois mostra sucesso", async () => {
     const disabledDuringSend = await page.evaluate(() => {
       document.querySelector("#rsvpForm").requestSubmit();
       return document.querySelector("#rsvpSubmit").disabled;
@@ -357,6 +389,9 @@ const browser = await chromium.launch();
     assert.equal(data[0].message, "Parabéns! Lá estarei — com muita alegria.");
     assert.equal(data[0].eventDate, "2026-11-29");
     assert.equal(typeof data[0].createdAt, "number");
+    assert.equal(data[0].noticesRead, true);
+    assert.equal(data[0].noTransportCard, true);
+    assert.equal(data[0].allergies, "Frutos secos e lactose");
     await page.screenshot({ path: join(OUT, "rsvp-success.png") });
   });
 
@@ -364,6 +399,8 @@ const browser = await chromium.launch();
     await page.locator("#rsvpAnother").click();
     await page.locator("#rsvpName").fill("Inês Antunes");
     await page.locator('label.choice:has-text("Não vou conseguir ir")').click();
+    assert.equal(await page.locator("#noticesPanel").isHidden(), true, "avisos fechados após reiniciar");
+    await page.locator("#noticesToggle").click();
     await page.locator("#rsvpSubmit").click();
     await page.waitForSelector("#rsvpResultView:not([hidden])");
     assert.equal(
@@ -375,6 +412,8 @@ const browser = await chromium.launch();
     assert.ok(ines);
     assert.equal(ines.attending, "no");
     assert.equal("message" in ines, false);
+    assert.equal(ines.noTransportCard, false);
+    assert.equal("allergies" in ines, false);
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("#rsvpModal").open);
   });
@@ -397,6 +436,7 @@ await test("RSVP: sem internet mostra erro e não mostra sucesso", async () => {
   await page.locator(".hero__actions [data-open-rsvp]").click();
   await page.locator("#rsvpName").fill("Pedro Offline");
   await page.locator('label.choice:has-text("Sim")').click();
+  await page.locator("#noticesToggle").click();
   await page.locator("#rsvpSubmit").click();
   await page.waitForSelector("#rsvpStatus .alert--error");
   assert.match(await page.locator("#rsvpStatus").innerText(), /sem ligação/i);
@@ -417,6 +457,7 @@ await test("RSVP: servidor inacessível mostra erro (timeout de ligação)", asy
   await page.locator(".hero__actions [data-open-rsvp]").click();
   await page.locator("#rsvpName").fill("Servidor Em Baixo");
   await page.locator('label.choice:has-text("Sim")').click();
+  await page.locator("#noticesToggle").click();
   await page.locator("#rsvpSubmit").click();
   await page.waitForSelector("#rsvpStatus .alert--error", { timeout: 20000 });
   assert.equal(await page.locator("#rsvpResultView").isHidden(), true);
@@ -432,6 +473,7 @@ await test("RSVP: Firebase por configurar mostra erro claro (sem simular gravaç
   await page.locator(".hero__actions [data-open-rsvp]").click();
   await page.locator("#rsvpName").fill("Teste Config");
   await page.locator('label.choice:has-text("Sim")').click();
+  await page.locator("#noticesToggle").click();
   await page.locator("#rsvpSubmit").click();
   await page.waitForSelector("#rsvpStatus .alert--error");
   assert.match(await page.locator("#rsvpStatus").innerText(), /configuração do Firebase em falta/);
@@ -510,8 +552,8 @@ async function googleLogin(page, email, verified = true) {
     { email, verified }
   );
 }
-await anonPush({ name: "Zé Ninguém", attending: "no", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29" });
-await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nAspas "duplas"; ponto-e-vírgula', createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29" });
+await anonPush({ name: "Zé Ninguém", attending: "no", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29", noticesRead: true, noTransportCard: false });
+await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nAspas "duplas"; ponto-e-vírgula', createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29", noticesRead: true, noTransportCard: false });
 
 {
   const context = await browser.newContext({ viewport: { width: 1360, height: 900 }, acceptDownloads: true });
@@ -570,13 +612,18 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
     assert.equal(await page.locator("#statTotal").innerText(), String(all.length));
     assert.equal(await page.locator("#statYes").innerText(), String(yes));
     assert.equal(await page.locator("#statNo").innerText(), String(no));
+    assert.equal(await page.locator("#statNoCard").innerText(), String(all.filter((r) => r.noTransportCard).length));
+    assert.equal(await page.locator("#statAllergies").innerText(), String(all.filter((r) => r.allergies).length));
+    const joao = page.locator("#rsvpRows tr", { hasText: "João Gonçalves" });
+    assert.match(await joao.innerText(), /Sem cartão · levar bilhete/);
+    assert.match(await joao.innerText(), /Frutos secos e lactose/);
     assert.equal(await page.locator("#rsvpRows tr").count(), all.length);
     assert.match(await page.locator("#liveText").innerText(), /tempo real/);
   });
 
   await test("Admin: atualização em tempo real", async () => {
     const before = Number(await page.locator("#statTotal").innerText());
-    await anonPush({ name: "Chegou Agora", attending: "yes", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29" });
+    await anonPush({ name: "Chegou Agora", attending: "yes", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29", noticesRead: true, noTransportCard: false });
     await page.waitForFunction((n) => Number(document.querySelector("#statTotal").textContent) === n + 1, before);
     assert.equal(await page.locator("#rsvpRows tr").first().locator("td").first().innerText(), "Chegou Agora");
     await page.waitForTimeout(400);
@@ -615,9 +662,9 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
     const buf = await readFile(path);
     assert.deepEqual([...buf.subarray(0, 3)], [0xef, 0xbb, 0xbf], "BOM UTF-8");
     const text = buf.toString("utf8").slice(1);
-    assert.ok(text.startsWith('"Nome";"Estado";"Mensagem";"Data e hora"'));
-    assert.ok(text.includes('"João Gonçalves";"Confirmado";"Parabéns! Lá estarei — com muita alegria."'));
-    assert.ok(text.includes('"Inês Antunes";"Não vai";""'));
+    assert.ok(text.startsWith('"Nome";"Estado";"Mensagem";"Sem cartão Move C (levar bilhete)";"Alergias";"Avisos lidos";"Data e hora"'));
+    assert.ok(text.includes('"João Gonçalves";"Confirmado";"Parabéns! Lá estarei — com muita alegria.";"Sim";"Frutos secos e lactose";"Sim"'));
+    assert.ok(text.includes('"Inês Antunes";"Não vai";"";"Não";"";"Sim"'));
     assert.ok(text.includes(`"'=HYPERLINK(""x"")"`), "proteção contra fórmulas e aspas escapadas");
     assert.ok(text.includes('"Linha 1\nAspas ""duplas""; ponto-e-vírgula"'));
   });

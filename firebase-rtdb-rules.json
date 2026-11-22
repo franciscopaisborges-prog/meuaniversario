@@ -17,7 +17,7 @@
       ],
       "$rsvpId": {
         ".write": "!data.exists() && newData.exists()",
-        ".validate": "newData.hasChildren(['name', 'attending', 'createdAt', 'eventDate'])",
+        ".validate": "newData.hasChildren(['name', 'attending', 'createdAt', 'eventDate', 'noticesRead', 'noTransportCard'])",
         "name": {
           ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 80 && newData.val().matches(/^[^ ].*[^ ]$/)"
         },
@@ -32,6 +32,15 @@
         },
         "eventDate": {
           ".validate": "newData.isString() && newData.val() === '2026-11-29'"
+        },
+        "noticesRead": {
+          ".validate": "newData.val() === true"
+        },
+        "noTransportCard": {
+          ".validate": "newData.isBoolean()"
+        },
+        "allergies": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300"
         },
         "$other": {
           ".validate": false
