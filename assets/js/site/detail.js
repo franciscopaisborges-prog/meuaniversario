@@ -21,88 +21,59 @@ function curves() {
   </svg>`;
 }
 
+const METRO_LINE = ["Portagem", "Loja do Cidadão", "Câmara", "Mercado", "República"];
+
 function metrobusHorizontal() {
-  const stops = [110, 340, 570];
-  const names = ["Portagem", "Aeminium", "Arnado"];
-  const chevronR = (x, y) => `<path d="M${x - 6} ${y - 8}l9 8-9 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  const chevronL = (x, y) => `<path d="M${x + 6} ${y - 8}l-9 8 9 8" fill="none" stroke="#0b1d47" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const x0 = 70;
+  const x1 = 640;
+  const step = (x1 - x0) / (METRO_LINE.length - 1);
+  const xs = METRO_LINE.map((_, i) => x0 + i * step);
+  const chevron = (x) => `<path d="M${x - 5} 102l8 8-8 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   return `
-  <svg class="metro-h" viewBox="0 0 680 300" role="img" aria-labelledby="metroHTitle">
-    <title id="metroHTitle">Esquema da viagem de Metrobus: ida de Portagem a Arnado, mudança de sentido em Arnado e regresso a Portagem.</title>
-    <text x="40" y="115" font-size="11" font-weight="600" letter-spacing="2.5" fill="#1d3f9e" text-anchor="end" transform="rotate(-90 40 115)">IDA</text>
-    <text x="40" y="205" font-size="11" font-weight="600" letter-spacing="2.5" fill="#0b1d47" text-anchor="end" transform="rotate(-90 40 205)">REGRESSO</text>
-
-    <path d="M110 110H570" stroke="#1d3f9e" stroke-width="12" stroke-linecap="round"/>
-    <path d="M570 200H110" stroke="#0b1d47" stroke-width="5" stroke-dasharray="12 9" stroke-linecap="round"/>
-    <path d="M570 110C660 110 660 200 570 200" fill="none" stroke="#9cc0ea" stroke-width="3" stroke-dasharray="4 6" stroke-linecap="round"/>
-    <path d="M637 150l-7 9-7-9" fill="none" stroke="#1d3f9e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-    ${chevronR(225, 110)}${chevronR(455, 110)}
-    <rect x="212" y="190" width="26" height="20" fill="#fff"/>${chevronL(225, 200)}
-    <rect x="442" y="190" width="26" height="20" fill="#fff"/>${chevronL(455, 200)}
-
-    ${stops
-      .map(
-        (x, i) => `
-      <circle cx="${x}" cy="110" r="10" fill="#fff" stroke="#1d3f9e" stroke-width="3"/>
-      <circle cx="${x}" cy="200" r="10" fill="#fff" stroke="#0b1d47" stroke-width="3"/>
-      <text x="${x}" y="160" font-size="16" font-weight="600" fill="#0b1d47" text-anchor="middle">${names[i]}</text>
-      <text x="${x}" y="178" font-size="10" letter-spacing="1.5" fill="#2a3a63" text-anchor="middle">PARAGEM</text>`
-      )
+  <svg class="metro-h" viewBox="0 0 710 230" role="img" aria-labelledby="metroHTitle">
+    <title id="metroHTitle">Esquema da viagem de Metrobus: de Portagem a República, passando por Loja do Cidadão, Câmara e Mercado.</title>
+    <path d="M${x0} 110H${x1}" stroke="#1d3f9e" stroke-width="12" stroke-linecap="round"/>
+    ${xs.slice(0, -1).map((x) => chevron(x + step / 2)).join("")}
+    ${xs
+      .map((x, i) => {
+        const end = i === 0 || i === xs.length - 1;
+        return `
+      <circle cx="${x}" cy="110" r="${end ? 13 : 10}" fill="#fff" stroke="#1d3f9e" stroke-width="${end ? 4 : 3}"/>
+      <text x="${x}" y="${i % 2 ? 158 : 160}" font-size="${end ? 17 : 14}" font-weight="${end ? 700 : 600}" fill="#0b1d47" text-anchor="middle">${METRO_LINE[i]}</text>`;
+      })
       .join("")}
-
-    <text x="110" y="78" font-size="11" font-weight="600" letter-spacing="1.8" fill="#1d3f9e" text-anchor="middle">PARTIDA</text>
-    <path d="M110 84v12" stroke="#1d3f9e" stroke-width="1.5"/>
-    <text x="110" y="244" font-size="11" font-weight="600" letter-spacing="1.8" fill="#0b1d47" text-anchor="middle">CHEGADA</text>
-    <path d="M110 214v14" stroke="#0b1d47" stroke-width="1.5"/>
-
-    <rect x="470" y="40" width="200" height="40" fill="#1d3f9e"/>
-    <text x="570" y="58" font-size="11" font-weight="600" letter-spacing="1.6" fill="#fff" text-anchor="middle">EM ARNADO</text>
-    <text x="570" y="73" font-size="11" fill="#dde9f7" text-anchor="middle">mudar de sentido</text>
-    <path d="M570 80v16" stroke="#1d3f9e" stroke-width="1.5"/>
-    <text x="570" y="244" font-size="11" fill="#2a3a63" text-anchor="middle">plataforma do sentido contrário</text>
+    <text x="${x0}" y="72" font-size="11" font-weight="600" letter-spacing="1.8" fill="#1d3f9e" text-anchor="middle">PARTIDA</text>
+    <path d="M${x0} 78v14" stroke="#1d3f9e" stroke-width="1.5"/>
+    <text x="${x1}" y="72" font-size="11" font-weight="600" letter-spacing="1.8" fill="#1d3f9e" text-anchor="middle">CHEGADA</text>
+    <path d="M${x1} 78v14" stroke="#1d3f9e" stroke-width="1.5"/>
+    <text x="${x0}" y="182" font-size="10" letter-spacing="1.4" fill="#2a3a63" text-anchor="middle">LARGO DA PORTAGEM</text>
+    <text x="${x1}" y="182" font-size="10" letter-spacing="1.4" fill="#2a3a63" text-anchor="middle">ALMOÇO · MR. PIZZA</text>
   </svg>`;
 }
 
 function metrobusVertical() {
-  const ys = [120, 270, 420];
-  const names = ["Portagem", "Aeminium", "Arnado"];
+  const y0 = 70;
+  const step = 95;
   return `
-  <svg class="metro-v" viewBox="0 0 340 560" role="img" aria-labelledby="metroVTitle">
-    <title id="metroVTitle">Esquema da viagem de Metrobus: ida de Portagem a Arnado, mudança de sentido em Arnado e regresso a Portagem.</title>
-    <text x="70" y="62" font-size="12" font-weight="600" letter-spacing="2" fill="#1d3f9e" text-anchor="middle">IDA</text>
-    <text x="70" y="78" font-size="16" fill="#1d3f9e" text-anchor="middle">↓</text>
-    <text x="160" y="62" font-size="12" font-weight="600" letter-spacing="2" fill="#0b1d47" text-anchor="middle">REGRESSO</text>
-    <text x="160" y="78" font-size="16" fill="#0b1d47" text-anchor="middle">↑</text>
-
-    <path d="M70 120V420" stroke="#1d3f9e" stroke-width="12" stroke-linecap="round"/>
-    <path d="M160 420V120" stroke="#0b1d47" stroke-width="5" stroke-dasharray="12 9" stroke-linecap="round"/>
-    <path d="M70 420C70 510 160 510 160 420" fill="none" stroke="#9cc0ea" stroke-width="3" stroke-dasharray="4 6" stroke-linecap="round"/>
-    <path d="M106 486l9 -7-9 -7" fill="none" stroke="#1d3f9e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-
-    ${[195, 345]
-      .map(
-        (y) => `
-      <path d="M62 ${y - 5}l8 9 8-9" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <rect x="150" y="${y - 12}" width="20" height="24" fill="#fff"/>
-      <path d="M152 ${y + 4}l8-9 8 9" fill="none" stroke="#0b1d47" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`
-      )
+  <svg class="metro-v" viewBox="0 0 320 ${y0 + step * (METRO_LINE.length - 1) + 60}" role="img" aria-labelledby="metroVTitle">
+    <title id="metroVTitle">Esquema da viagem de Metrobus: de Portagem a República, passando por Loja do Cidadão, Câmara e Mercado.</title>
+    <path d="M70 ${y0}V${y0 + step * (METRO_LINE.length - 1)}" stroke="#1d3f9e" stroke-width="12" stroke-linecap="round"/>
+    ${METRO_LINE.slice(0, -1)
+      .map((_, i) => {
+        const y = y0 + i * step + step / 2;
+        return `<path d="M62 ${y - 5}l8 9 8-9" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+      })
       .join("")}
-
-    ${ys
-      .map(
-        (y, i) => `
-      <circle cx="70" cy="${y}" r="10" fill="#fff" stroke="#1d3f9e" stroke-width="3"/>
-      <circle cx="160" cy="${y}" r="10" fill="#fff" stroke="#0b1d47" stroke-width="3"/>
-      <path d="M176 ${y}H192" stroke="#9cc0ea" stroke-width="1.5"/>
-      <text x="200" y="${y + 5}" font-size="17" font-weight="600" fill="#0b1d47">${names[i]}</text>`
-      )
-      .join("")}
-
-    <text x="200" y="${ys[0] + 24}" font-size="10" letter-spacing="1.4" fill="#2a3a63">PARTIDA E CHEGADA</text>
-    <rect x="186" y="472" width="150" height="44" fill="#1d3f9e"/>
-    <text x="261" y="491" font-size="11" font-weight="600" letter-spacing="1.4" fill="#fff" text-anchor="middle">EM ARNADO</text>
-    <text x="261" y="507" font-size="11" fill="#dde9f7" text-anchor="middle">mudar de sentido</text>
+    ${METRO_LINE.map((name, i) => {
+      const y = y0 + i * step;
+      const end = i === 0 || i === METRO_LINE.length - 1;
+      return `
+      <circle cx="70" cy="${y}" r="${end ? 13 : 10}" fill="#fff" stroke="#1d3f9e" stroke-width="${end ? 4 : 3}"/>
+      <path d="M90 ${y}H106" stroke="#9cc0ea" stroke-width="1.5"/>
+      <text x="114" y="${y + 6}" font-size="${end ? 19 : 16}" font-weight="${end ? 700 : 600}" fill="#0b1d47">${name}</text>
+      ${i === 0 ? `<text x="114" y="${y + 26}" font-size="10" letter-spacing="1.4" fill="#2a3a63">PARTIDA</text>` : ""}
+      ${end && i > 0 ? `<text x="114" y="${y + 26}" font-size="10" letter-spacing="1.4" fill="#2a3a63">CHEGADA · ALMOÇO</text>` : ""}`;
+    }).join("")}
   </svg>`;
 }
 
@@ -117,15 +88,13 @@ function metrobusBlock() {
       <figure class="metro__figure">
         ${metrobusHorizontal()}
         ${metrobusVertical()}
-        <figcaption>Linha cheia: ida. Linha tracejada: regresso. Em Arnado inverte-se o sentido da viagem.</figcaption>
+        <figcaption>Linha U2 do Metrobus, no sentido República. A viagem é só de ida: o regresso ao Largo da Portagem é feito a pé, pelo passeio na Baixa.</figcaption>
       </figure>
       <ol class="metro__steps" aria-label="Passos da viagem">
-        <li><span>Embarque na paragem <strong>Portagem</strong>, no sentido de Arnado.</span></li>
-        <li><span>Passagem pela paragem <strong>Aeminium</strong>.</span></li>
-        <li><span>Saída na paragem <strong>Arnado</strong>.</span></li>
-        <li class="is-turn"><span><strong>Mudança de sentido:</strong> mudar para a plataforma do sentido contrário, em direção a Portagem.</span></li>
-        <li><span>Regresso com passagem por <strong>Aeminium</strong>.</span></li>
-        <li><span>Chegada a <strong>Portagem</strong>.</span></li>
+        <li><span>Do Largo da Portagem até à paragem <strong>Portagem</strong> (cerca de 120 m a pé).</span></li>
+        <li><span>Embarque no Metrobus, no sentido <strong>República</strong>.</span></li>
+        <li><span>Passagem por <strong>Loja do Cidadão</strong>, <strong>Câmara</strong> e <strong>Mercado</strong>.</span></li>
+        <li class="is-turn"><span>Saída na paragem <strong>República</strong> — o almoço é na Mr. Pizza, na própria praça.</span></li>
       </ol>
     </div>
   </section>`;
@@ -205,9 +174,9 @@ function mapBlock(a) {
     note = "O marcador tracejado indica uma posição aproximada, ainda por verificar. Usa o Google Maps para a morada exata.";
   }
   if (a.special === "metrobus") {
-    note += " O mapa mostra o traçado real da linha (OpenStreetMap): ida em linha cheia, regresso a tracejado (afastados alguns metros para se distinguirem) e as paragens Portagem, Aeminium e Arnado.";
-  } else if (a.id === "03" || a.id === "02" || a.id === "04" || a.id === "05") {
-    note += " A linha verde mostra o percurso a pé pela Baixa.";
+    note += " O mapa mostra o traçado real da linha U2 (OpenStreetMap) e as paragens Portagem, Loja do Cidadão, Câmara, Mercado e República.";
+  } else if (["01", "03", "04", "05"].includes(a.id)) {
+    note += " A linha verde mostra o percurso a pé pela Baixa, que termina no Largo da Portagem.";
   }
   return `
   <section class="d-block" aria-labelledby="mapBlockTitle">

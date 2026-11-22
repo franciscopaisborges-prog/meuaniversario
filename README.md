@@ -210,7 +210,7 @@ O ficheiro `firebase-rtdb-rules.json` garante o seguinte:
 | `noticesRead` | Booleano obrigatório; tem de ser `true` quando `attending` é `"yes"` (só quem confirma presença tem de abrir os AVISOS). |
 | `noTransportCard` | Obrigatório, booleano: `true` = não tem cartão Move C (levar valor do bilhete). |
 | `allergies` | Opcional, 1 a 300 caracteres. |
-| `schedule` | Leitura pública; escrita só para administradores. `start` (HH:MM) obrigatório, `end` opcional e posterior a `start`, `updatedAt` = hora do servidor. Só as atividades 01–09 são aceites. |
+| `schedule` | Leitura pública; escrita só para administradores. `start` (HH:MM) obrigatório, `end` opcional e posterior a `start`, `updatedAt` = hora do servidor. Só as atividades 01–08 são aceites. |
 | `attending` | Só `"yes"` ou `"no"`. |
 | `message` | Opcional, com 1 a 500 caracteres (se vazia, o site não a envia). |
 | `createdAt` | Tem de ser `now`, o `serverTimestamp()`. O cliente não consegue falsificar a data. |
@@ -294,11 +294,11 @@ npm test
 
 **End-to-end (31/31), Chromium:**
 - **Página inicial:** abre sem erros de consola nem de CSP (com a CSP de produção aplicada).
-- **Programa:** as 9 atividades aparecem pela ordem correta e o roteiro não tem checkboxes, botões de conclusão nem barras de progresso.
+- **Programa:** as 8 atividades aparecem pela ordem correta e o roteiro não tem checkboxes, botões de conclusão nem barras de progresso.
 - **Mapa geral:** carrega 6 marcadores (05 e 06 partilham a Portagem; 08 e 09 não têm local confirmado). O marcador abre o popup e o popup abre a página da atividade. Os botões de foco também funcionam.
 - **Páginas de atividade:** as 9 abrem com título, contador e mapa individual. O marcador aparece só onde existe localização, e “Abrir no Google Maps” só onde há um local definido.
 - **Navegação:** Anterior/Seguinte percorrem 01→09 e voltam, e “Voltar ao programa” funciona. Ligação direta, Anterior/Seguinte do navegador e a tecla Escape também funcionam, e o foco regressa ao cartão.
-- **Atividade 06:** explica a inversão de sentido em Arnado. **07** mostra os contactos e os avisos. **08** não revela projetos.
+- **Atividade 02:** mostra o Metrobus Portagem → República com as paragens intermédias. **06** mostra os contactos do golfe e os avisos. **07** não revela projetos.
 - **RSVP:**
   - não envia sem nome e exige resposta;
   - grava na RTDB com o nome normalizado, `serverTimestamp` e `eventDate`;
@@ -320,16 +320,15 @@ npm test
 
 ## 7. Coordenadas, mapa e percursos
 
-- **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: estação Coimbra-B, restaurante (Terreiro da Erva 20), Praça 8 de Maio, Torre e Arco de Almedina, Largo da Portagem, paragem Portagem do Metrobus e campo de golfe da Quinta das Lágrimas.
+- **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: Largo da Portagem (ponto de encontro), paragem Portagem do Metrobus, Mr. Pizza (Praça da República 38), Praça 8 de Maio, Torre e Arco de Almedina, campo de golfe da Quinta das Lágrimas e Stay Hotel Coimbra Centro.
 - **08 Sala Smart · Stay Hotel Coimbra Centro:** Av. Fernão de Magalhães 199, confirmado no OpenStreetMap.
 - **Sem marcador:** 09 Lanche (local por confirmar).
 - **Percursos** (`assets/js/site/routes-data.js`), com geometria real gerada a partir do OpenStreetMap:
-  - **Verde (a pé):** Terreiro da Erva → Rua da Sofia → Praça 8 de Maio → Rua Visconde da Luz → Arco de Almedina → Rua Ferreira Borges → Largo da Portagem → paragem do Metrobus. Calculado pelo motor de rotas pedonais do OSM.
-  - **Azul cheio (Metrobus, ida):** Portagem → Aeminium → Arnado.
-  - **Azul tracejado (Metrobus, regresso):** Arnado → Aeminium → Portagem.
-  - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Coimbra-B → restaurante (cerca de 2 km a pé) e Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,5 km).
+  - **Verde (a pé):** Largo da Portagem → paragem do Metrobus; e o passeio Mr. Pizza (Praça da República) → Av. Sá da Bandeira → Rua da Fonte Nova → Praça 8 de Maio → Rua Visconde da Luz → Arco de Almedina → Rua Ferreira Borges → Largo da Portagem (cerca de 1,5 km). Calculado pelo motor de rotas pedonais do OSM.
+  - **Azul (Metrobus, só ida):** Portagem → Loja do Cidadão → Câmara → Mercado → República (cerca de 1,6 km).
+  - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Largo da Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,4 km) e Quinta das Lágrimas → Stay Hotel (cerca de 2,1 km).
   - **Dourado ponteado:** Quinta das Lágrimas → Stay Hotel Coimbra Centro (meio de deslocação a confirmar).
-- **Origem do traçado do Metrobus:** linha "MM U1" do OpenStreetMap, nas relações 19653947 e 21409151. Os dois sentidos partilham a via no OSM, por isso no mapa individual do 06 aparecem afastados alguns metros para se distinguirem.
+- **Origem do traçado do Metrobus:** linha "MM U2: Vale das Flores → República" do OpenStreetMap (relação 21409406), entre as paragens Portagem e República.
 - **Setas:** todos os percursos têm setas de direção.
 - **Enquadramento do mapa geral:** os botões "Dia completo" e "Baixa" mudam a vista.
 - **Acrescentar ou alterar percursos:** edite `ROUTES` em `routes-data.js`, com `verified: true` e uma lista de pontos que siga as ruas.
@@ -356,7 +355,7 @@ npm run verify:coords
 - **Ordem cronológica:**
   - as atividades com horário ordenam-se pela hora de início;
   - as que não têm horário mantêm a posição prevista;
-  - a numeração (01–09), os botões Anterior/Seguinte, o mapa e o próprio painel seguem a nova ordem.
+  - a numeração (01–08), os botões Anterior/Seguinte, o mapa e o próprio painel seguem a nova ordem.
 - **Validação:** hora no formato HH:MM, fim posterior ao início e nenhum campo extra. É verificada no painel **e** nas regras da RTDB, onde `/schedule` tem leitura pública e escrita só para administradores.
 
 ## 7B. Atualização forçada das páginas abertas
@@ -375,8 +374,8 @@ npm run force-refresh
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
 2. **Horários:** definir no painel → separador **Horários** (secção 7A).
-3. **La Piccola Cucina Italiana:** reserva e posição exata no mapa a confirmar.
-5. **Metrobus:** funcionamento, horários, títulos de transporte e posições das paragens Aeminium e Arnado a confirmar junto da Metro Mondego.
+3. **Mr. Pizza (Praça da República):** reserva a confirmar.
+5. **Metrobus (linha U2, Portagem → República):** funcionamento e horários a confirmar junto da Metro Mondego.
 6. **Golfe:** reserva, disponibilidade de posições cobertas para 6 pessoas, preço e duração a confirmar com o clube (+351 923 312 226).
 8. **Lanche:** local e condições a confirmar.
 9. **Percursos no mapa:** só serão desenhados quando houver trajetos confirmados.
