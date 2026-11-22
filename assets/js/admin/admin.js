@@ -212,11 +212,11 @@ function render() {
         <td><span class="badge badge--${r.attending === "yes" ? "yes" : "no"}">${esc(statusLabel(r.attending))}</span></td>
         <td class="a-msg">${r.message ? esc(r.message) : '<span class="a-muted">—</span>'}</td>
         <td>${
-          r.noTransportCard
-            ? '<span class="badge badge--warn">Sem cartão · levar bilhete</span>'
-            : r.noticesRead
-              ? '<span class="a-muted">Tem cartão</span>'
-              : '<span class="a-muted">—</span>'
+          r.attending !== "yes"
+            ? '<span class="a-muted">—</span>'
+            : r.noTransportCard
+              ? '<span class="badge badge--warn">Sem cartão · levar bilhete</span>'
+              : '<span class="a-muted">Tem cartão</span>'
         }</td>
         <td class="a-msg">${r.allergies ? `<span class="a-allergy">${esc(r.allergies)}</span>` : '<span class="a-muted">—</span>'}</td>
         <td class="a-date">${esc(formatDate(r.createdAt))}</td>
@@ -277,7 +277,7 @@ export function buildCsv(records) {
       r.name,
       statusLabel(r.attending),
       r.message,
-      r.noTransportCard ? "Sim" : "Não",
+      r.attending === "yes" ? (r.noTransportCard ? "Sim" : "Não") : "",
       r.allergies,
       r.noticesRead ? "Sim" : "Não",
       formatDate(r.createdAt),

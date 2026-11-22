@@ -118,6 +118,11 @@ await test("Anónimo cria resposta com cartão em falta e alergias", async () =>
   assert.equal(r.status, 200, JSON.stringify(r.json));
 });
 
+await test("Quem não vai pode responder sem abrir os avisos", async () => {
+  const r = await req("POST", "rsvps", valid({ attending: "no", noticesRead: false }));
+  assert.equal(r.status, 200, JSON.stringify(r.json));
+});
+
 await test("Anónimo NÃO lê /rsvps", async () => {
   assert.equal((await req("GET", "rsvps")).status, 401);
 });
@@ -165,7 +170,8 @@ const invalidCases = [
   ["sem eventDate", { eventDate: undefined }],
   ["campo inesperado", { email: "x@y.z" }],
   ["sem avisos lidos", { noticesRead: undefined }],
-  ["avisos não lidos (false)", { noticesRead: false }],
+  ["confirma presença sem avisos lidos (false)", { noticesRead: false }],
+  ["avisos não-booleano", { noticesRead: "sim" }],
   ["sem campo do cartão", { noTransportCard: undefined }],
   ["cartão não-booleano", { noTransportCard: "sim" }],
   ["alergias vazias", { allergies: "" }],

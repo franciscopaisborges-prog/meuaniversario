@@ -55,7 +55,9 @@ export function validateRsvp({ name, attending, message, website, noticesRead, n
 
   if (cleanMessage.length > LIMITS.messageMax) errors.message = `A mensagem pode ter no máximo ${LIMITS.messageMax} caracteres.`;
 
-  if (!noticesRead) errors.notices = "Tens de abrir e ler os AVISOS antes de enviar. Sem isso a resposta não é registada.";
+  // Os AVISOS só são obrigatórios para quem confirma presença.
+  if (attending === "yes" && !noticesRead)
+    errors.notices = "Tens de abrir e ler os AVISOS antes de confirmar. Sem isso a presença não é registada.";
 
   if (cleanAllergies.length > LIMITS.allergiesMax) errors.allergies = `As alergias podem ter no máximo ${LIMITS.allergiesMax} caracteres.`;
 
@@ -68,8 +70,9 @@ export function validateRsvp({ name, attending, message, website, noticesRead, n
       name: cleanName,
       attending,
       message: cleanMessage,
-      noTransportCard: Boolean(noTransportCard),
-      allergies: cleanAllergies,
+      noticesRead: Boolean(noticesRead),
+      noTransportCard: attending === "yes" && Boolean(noTransportCard),
+      allergies: attending === "yes" ? cleanAllergies : "",
     },
   };
 }
@@ -229,7 +232,10 @@ export function initRsvp() {
   });
   nameInput.addEventListener("input", () => setFieldError("name", ""));
   form.addEventListener("change", (event) => {
-    if (event.target.name === "attending") setFieldError("attending", "");
+    if (event.target.name === "attending") {
+      setFieldError("attending", "");
+      if (event.target.value === "no") setNoticesError("");
+    }
   });
 
   function setFieldError(field, message) {
@@ -324,7 +330,7 @@ export function initRsvp() {
         eventDate: EVENT.dateISO,
       };
       if (data.message) payload.message = data.message;
-      payload.noticesRead = true;
+      payload.noticesRead = data.noticesRead;
       payload.noTransportCard = data.noTransportCard;
       if (data.allergies) payload.allergies = data.allergies;
 

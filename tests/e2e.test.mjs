@@ -400,7 +400,7 @@ const browser = await chromium.launch();
     await page.locator("#rsvpName").fill("Inês Antunes");
     await page.locator('label.choice:has-text("Não vou conseguir ir")').click();
     assert.equal(await page.locator("#noticesPanel").isHidden(), true, "avisos fechados após reiniciar");
-    await page.locator("#noticesToggle").click();
+    // quem não vai não precisa de abrir os AVISOS
     await page.locator("#rsvpSubmit").click();
     await page.waitForSelector("#rsvpResultView:not([hidden])");
     assert.equal(
@@ -413,6 +413,7 @@ const browser = await chromium.launch();
     assert.equal(ines.attending, "no");
     assert.equal("message" in ines, false);
     assert.equal(ines.noTransportCard, false);
+    assert.equal(ines.noticesRead, false);
     assert.equal("allergies" in ines, false);
     await page.keyboard.press("Escape");
     await page.waitForFunction(() => !document.querySelector("#rsvpModal").open);
@@ -664,7 +665,7 @@ await anonPush({ name: '=HYPERLINK("x")', attending: "yes", message: 'Linha 1\nA
     const text = buf.toString("utf8").slice(1);
     assert.ok(text.startsWith('"Nome";"Estado";"Mensagem";"Sem cartão Move C (levar bilhete)";"Alergias";"Avisos lidos";"Data e hora"'));
     assert.ok(text.includes('"João Gonçalves";"Confirmado";"Parabéns! Lá estarei — com muita alegria.";"Sim";"Frutos secos e lactose";"Sim"'));
-    assert.ok(text.includes('"Inês Antunes";"Não vai";"";"Não";"";"Sim"'));
+    assert.ok(text.includes('"Inês Antunes";"Não vai";"";"";"";"Não"'));
     assert.ok(text.includes(`"'=HYPERLINK(""x"")"`), "proteção contra fórmulas e aspas escapadas");
     assert.ok(text.includes('"Linha 1\nAspas ""duplas""; ponto-e-vírgula"'));
   });

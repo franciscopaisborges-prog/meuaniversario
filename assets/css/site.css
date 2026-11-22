@@ -1998,15 +1998,15 @@ body.detail-open {
   justify-content: center;
   gap: 0.75rem;
   width: 100%;
-  min-height: 60px;
-  padding: 0.9rem 1.25rem;
+  min-height: 54px;
+  padding: 0.85rem 1.25rem;
   border: 1px solid var(--gold);
   border-radius: var(--radius);
   background: var(--gold-metal);
   background-size: 200% 100%;
   color: #9e1b1b;
-  font: 800 1rem/1 var(--font-sans);
-  letter-spacing: 0.32em;
+  font: 600 0.8rem/1 var(--font-sans);
+  letter-spacing: 0.42em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background-position 0.5s var(--ease), box-shadow 0.35s var(--ease);
@@ -2028,8 +2028,8 @@ body.detail-open {
   transform: rotate(180deg);
 }
 @keyframes nudge {
-  0%, 100% { transform: translateY(-2px); }
-  50% { transform: translateY(3px); }
+  0%, 100% { transform: translateY(-1px); }
+  50% { transform: translateY(2px); }
 }
 .notices.is-invalid .notices__toggle {
   box-shadow: 0 0 0 3px rgba(227, 139, 124, 0.55);

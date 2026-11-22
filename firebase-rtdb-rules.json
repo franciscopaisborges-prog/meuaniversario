@@ -34,7 +34,7 @@
           ".validate": "newData.isString() && newData.val() === '2026-11-29'"
         },
         "noticesRead": {
-          ".validate": "newData.val() === true"
+          ".validate": "newData.isBoolean() && (newData.val() === true || newData.parent().child('attending').val() === 'no')"
         },
         "noTransportCard": {
           ".validate": "newData.isBoolean()"

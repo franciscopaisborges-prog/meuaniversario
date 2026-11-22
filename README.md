@@ -207,7 +207,7 @@ O ficheiro `firebase-rtdb-rules.json` garante o seguinte:
 | `rsvps/.read` → só se `admins/{auth.uid} === true` | Anónimos e utilizadores autenticados não autorizados **não leem** respostas. |
 | `rsvps/$id/.write` → `!data.exists() && newData.exists()` | Qualquer pessoa pode **criar** uma resposta nova, mas ninguém pode **alterar nem apagar** respostas existentes (nem substituir `/rsvps` inteiro). |
 | `name` | Texto obrigatório de 2 a 80 caracteres, sem espaços nas pontas. |
-| `noticesRead` | Obrigatório e `true`: o convidado tem de abrir os AVISOS no formulário. |
+| `noticesRead` | Booleano obrigatório; tem de ser `true` quando `attending` é `"yes"` (só quem confirma presença tem de abrir os AVISOS). |
 | `noTransportCard` | Obrigatório, booleano: `true` = não tem cartão Move C (levar valor do bilhete). |
 | `allergies` | Opcional, 1 a 300 caracteres. |
 | `schedule` | Leitura pública; escrita só para administradores. `start` (HH:MM) obrigatório, `end` opcional e posterior a `start`, `updatedAt` = hora do servidor. Só as atividades 01–09 são aceites. |
