@@ -321,7 +321,7 @@ npm test
 
 ## 7. Coordenadas, mapa e percursos
 
-- **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: Largo da Portagem (ponto de encontro), paragem Portagem do Metrobus, Mr. Pizza (Praça da República 38), Praça 8 de Maio, Torre e Arco de Almedina, campo de golfe da Quinta das Lágrimas e Stay Hotel Coimbra Centro.
+- **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: Largo da Portagem (ponto de encontro), paragem Portagem do Metrobus, Mr. Pizza (Praça da República 38), Praça 8 de Maio, Torre e Arco de Almedina e campo de golfe da Quinta das Lágrimas.
 - **08 Apresentação privada:** “Localização: indefinida entre o espaço e o tempo”. Não tem morada nem Google Maps; no mapa, o pino salta para um ponto aleatório de Coimbra a cada segundo. No fim da página há o botão **Código PROMAX2.0**, que abre `promax.html` (página azul e vermelha com lasers, pedestal com diamante e “EM BREVE”).
 - **Sem marcador:** 09 Lanche (local por confirmar).
 - **Percursos** (`assets/js/site/routes-data.js`), com geometria real gerada a partir do OpenStreetMap:
