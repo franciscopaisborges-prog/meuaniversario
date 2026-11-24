@@ -157,7 +157,7 @@ function renderChips() {
       a.location
         ? `<li><button class="chip" type="button" data-focus="${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)}</button></li>`
         : `<li><a class="chip" href="#/atividade/${esc(a.slug)}"><b>${esc(num(a))}</b>${esc(a.title)} · ${esc(
-            "local a confirmar"
+            a.special === "private" ? "local indefinido" : "local a confirmar"
           )}</a></li>`
     )
     .join("");

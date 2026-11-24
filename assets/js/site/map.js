@@ -56,7 +56,7 @@ function popupHtml(group) {
         <p class="popup__title">${esc(a.title)}</p>
         <p class="popup__text">${esc(a.summary)}</p>
         ${
-          a.location.precision !== "verified"
+          a.location && a.location.precision !== "verified"
             ? '<p class="popup__warn">Posição aproximada — a confirmar.</p>'
             : ""
         }
@@ -159,6 +159,44 @@ function drawRoutes(L, map, routes, { casing = "#050505", spacing = 160, arrowSi
   return layers;
 }
 
+/**
+ * Pino "indefinido entre o espaço e o tempo": salta para um ponto aleatório
+ * dentro de `area` (L.LatLngBounds ou função que a devolve) a cada segundo.
+ * O intervalo termina quando o mapa é removido.
+ */
+const WANDER_AREA = [
+  [40.196, -8.445],
+  [40.224, -8.408],
+];
+
+function randomPoint(bounds) {
+  const sw = bounds.getSouthWest();
+  const ne = bounds.getNorthEast();
+  return [sw.lat + Math.random() * (ne.lat - sw.lat), sw.lng + Math.random() * (ne.lng - sw.lng)];
+}
+
+function addWanderingMarker(L, map, { icon, area, title, popup }) {
+  const L_ = L;
+  const getArea = typeof area === "function" ? area : () => L_.latLngBounds(area);
+  const marker = L.marker(randomPoint(getArea()), { title, alt: title, icon, keyboard: true }).addTo(map);
+  if (popup) marker.bindPopup(popup, { maxWidth: 280, autoPan: false });
+  const timer = setInterval(() => {
+    // Parar quando o mapa ou o marcador deixam de existir (o mapa pode ser
+    // removido com map.off() + map.remove(), sem evento "unload").
+    if (!map._loaded || !marker._map || !map._container?.isConnected) {
+      clearInterval(timer);
+      return;
+    }
+    try {
+      marker.setLatLng(randomPoint(getArea()));
+    } catch {
+      clearInterval(timer);
+    }
+  }, 1000);
+  map.on("unload", () => clearInterval(timer));
+  return marker;
+}
+
 /** Paragens do Metrobus como pequenos marcadores. */
 function drawMetroStops(L, map, { fill = "#3d7be0", stroke = "#050505", labels = false } = {}) {
   for (const stop of METRO_STOPS) {
@@ -209,7 +247,7 @@ export function createOverviewMap(container) {
 
   const groups = [];
   const pinIcon = (group) => {
-    const approx = group.some((a) => a.location.precision !== "verified");
+    const approx = group.some((a) => !a.location || a.location.precision !== "verified");
     const label = group.map((a) => num(a)).join("·");
     const width = label.length > 2 ? 46 : 28;
     return L.divIcon({
@@ -239,6 +277,19 @@ export function createOverviewMap(container) {
     group.forEach((a) => markersBySlug.set(a.slug, marker));
     bounds.push([lat, lng]);
   }
+
+  // Atividades com localização indefinida: pino que muda de lugar a cada segundo.
+  const wanderers = PROGRAM.filter((a) => a.special === "private" && !a.location).map((a) => {
+    const marker = addWanderingMarker(L, map, {
+      icon: pinIcon([a]),
+      area: WANDER_AREA,
+      title: `${num(a)} — ${a.title} (localização indefinida)`,
+      popup: popupHtml([a]),
+    });
+    markersBySlug.set(a.slug, marker);
+    return { group: [a], marker };
+  });
+  groups.push(...wanderers);
 
   /** Atualiza números e horários dos marcadores quando os horários mudam. */
   function refresh() {
@@ -340,6 +391,19 @@ export function createDetailMap(container, activity) {
     if (activity.special === "metrobus") {
       drawMetroStops(L, map, { fill: "#ffffff", stroke: "#0b1d47", labels: true });
     }
+  }
+
+  if (!loc && activity.special === "private") {
+    addWanderingMarker(L, map, {
+      icon: L.divIcon({
+        className: "",
+        iconSize: [40, 40],
+        iconAnchor: [20, 20],
+        html: `<span class="pin-blue pin-blue--approx">${esc(num(activity))}</span>`,
+      }),
+      area: () => map.getBounds().pad(-0.15),
+      title: `${activity.title} — localização indefinida entre o espaço e o tempo`,
+    });
   }
 
   if (loc) {

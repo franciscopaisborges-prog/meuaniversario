@@ -16,6 +16,7 @@ Convite digital interativo para o aniversário de Francisco Rodrigues, com progr
 /
 ├── index.html                  Site do convite (página única com router por hash)
 ├── admin.html                  Painel privado de administração
+├── promax.html                 Página “Código PROMAX2.0” (ligada a partir da atividade 08)
 ├── firebase-config.js          ← CONFIGURAÇÃO DO FIREBASE (partilhada pelos dois documentos)
 ├── firebase-rtdb-rules.json    Regras de segurança da Realtime Database
 ├── firebase.json               Hosting, cabeçalhos de segurança (CSP), regras e emuladores
@@ -321,13 +322,12 @@ npm test
 ## 7. Coordenadas, mapa e percursos
 
 - **Coordenadas:** estão em `assets/js/site/program.js` e foram todas confirmadas no OpenStreetMap a 20/11/2026: Largo da Portagem (ponto de encontro), paragem Portagem do Metrobus, Mr. Pizza (Praça da República 38), Praça 8 de Maio, Torre e Arco de Almedina, campo de golfe da Quinta das Lágrimas e Stay Hotel Coimbra Centro.
-- **08 Sala Smart · Stay Hotel Coimbra Centro:** Av. Fernão de Magalhães 199, confirmado no OpenStreetMap.
+- **08 Apresentação privada:** “Localização: indefinida entre o espaço e o tempo”. Não tem morada nem Google Maps; no mapa, o pino salta para um ponto aleatório de Coimbra a cada segundo. No fim da página há o botão **Código PROMAX2.0**, que abre `promax.html` (página azul e vermelha com lasers, pedestal com diamante e “EM BREVE”).
 - **Sem marcador:** 09 Lanche (local por confirmar).
 - **Percursos** (`assets/js/site/routes-data.js`), com geometria real gerada a partir do OpenStreetMap:
   - **Verde (a pé):** Largo da Portagem → paragem do Metrobus; e o passeio Mr. Pizza (Praça da República) → Av. Sá da Bandeira → Rua da Fonte Nova → Praça 8 de Maio → Rua Visconde da Luz → Arco de Almedina → Rua Ferreira Borges → Largo da Portagem (cerca de 1,5 km). Calculado pelo motor de rotas pedonais do OSM.
   - **Azul (Metrobus, só ida):** Portagem → Loja do Cidadão → Câmara → Mercado → República (cerca de 1,6 km).
-  - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Largo da Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,4 km) e Quinta das Lágrimas → Stay Hotel (cerca de 2,1 km).
-  - **Dourado ponteado:** Quinta das Lágrimas → Stay Hotel Coimbra Centro (meio de deslocação a confirmar).
+  - **Dourado ponteado (outras deslocações, com o meio a confirmar):** Largo da Portagem → Quinta das Lágrimas pela Ponte de Santa Clara (cerca de 1,4 km).
 - **Origem do traçado do Metrobus:** linha "MM U2: Vale das Flores → República" do OpenStreetMap (relação 21409406), entre as paragens Portagem e República.
 - **Setas:** todos os percursos têm setas de direção.
 - **Enquadramento do mapa geral:** os botões "Dia completo" e "Baixa" mudam a vista.

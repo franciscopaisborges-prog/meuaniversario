@@ -188,7 +188,7 @@ const browser = await chromium.launch();
     await page.locator("#mapa").scrollIntoViewIfNeeded();
     await page.waitForSelector("#overviewMap .fr-pin");
     const markers = await page.locator("#overviewMap .fr-pin").count();
-    assert.equal(markers, 7, "7 marcadores (01 e 06 partilham o Largo da Portagem; 09 sem local)");
+    assert.equal(markers, 7, "7 marcadores (01 e 06 partilham o Largo da Portagem; 08 salta de lugar; 09 sem local)");
     const paths = await page.locator("#overviewMap .leaflet-overlay-pane path").count();
     assert.ok(paths >= 10 + 3, `percursos (5 linhas + contornos) e 3 paragens desenhados: ${paths}`);
     const arrows = await page.locator("#overviewMap .route-arrow").count();
@@ -222,8 +222,8 @@ const browser = await chromium.launch();
       assert.equal(await page.locator("#detailCount").innerText(), `${id} / 09`);
       await page.waitForSelector("#detailMap.leaflet-container", { timeout: 4000 });
       const gm = page.locator('#detailContent a:has-text("Abrir no Google Maps")');
-      if (id === "09") {
-        assert.equal(await gm.count(), 0, "09 não tem local definido");
+      if (id === "08" || id === "09") {
+        assert.equal(await gm.count(), 0, `${id} não tem local definido`);
       } else {
         const href = await gm.getAttribute("href");
         assert.ok(href.startsWith("https://www.google.com/maps/search/?api=1&query="), href);
@@ -293,8 +293,21 @@ const browser = await chromium.launch();
     const text = await page.locator("#detailContent").innerText();
     assert.match(text, /PRIVATE PROJECT/i);
     assert.match(text, /Uma apresentação especial\. Alguns projetos, algumas ideias e algumas surpresas\./);
-    assert.match(text, /Sala Smart/);
-    assert.match(text, /Stay Hotel Coimbra Centro/);
+    assert.match(text, /indefinida entre o espaço e o tempo/);
+    assert.doesNotMatch(text, /Sala Smart|Stay Hotel|Slay/);
+    // pino que muda de lugar a cada segundo
+    await page.waitForSelector("#detailMap .pin-blue");
+    const pos = () => page.locator("#detailMap .leaflet-marker-icon:has(.pin-blue)").evaluate((el) => el.style.transform);
+    const p1 = await pos();
+    await page.waitForTimeout(1300);
+    const p2 = await pos();
+    await page.waitForTimeout(1100);
+    const p3 = await pos();
+    assert.ok(p1 !== p2 && p2 !== p3, `pino deve mudar de lugar: ${p1} | ${p2} | ${p3}`);
+    // botão PROMAX2.0 no fim da página
+    const promax = page.locator('#detailContent a.promax-btn[href="promax.html"]');
+    assert.equal(await promax.count(), 1);
+    assert.match(await promax.innerText(), /PROMAX2\.0/);
     assert.doesNotMatch(text, /Fluxo/);
     await page.waitForTimeout(1000);
     await page.screenshot({ path: join(OUT, "detail-private.png") });
@@ -853,6 +866,46 @@ await test("Horários (telemóvel): painel utilizável e sem scroll horizontal",
   await ctx.close();
 });
 await ownerPut("schedule", null);
+
+/* ============================== PROMAX 2.0 ============================== */
+await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante e EM BREVE", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  const errors = watchErrors(page);
+  await page.goto(`${BASE}/?emulators=1#/atividade/apresentacao-privada`);
+  await page.waitForSelector("#detail.is-open .promax-btn");
+  await page.locator(".promax-btn").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: join(OUT, "promax-button.png") });
+  await Promise.all([page.waitForURL(/promax\.html$/), page.locator(".promax-btn").click()]);
+  assert.match(await page.title(), /PROMAX2\.0/);
+  assert.ok((await page.locator(".pm-lasers .beam").count()) >= 6, "lasers");
+  assert.equal(await page.locator(".pm-diamond").count(), 1);
+  assert.equal(await page.locator(".pm-pedestal").count(), 1);
+  assert.equal((await page.locator("#pmSoon").innerText()).trim(), "EM BREVE");
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: join(OUT, "promax-top.png") });
+  await page.locator(".pm-reveal").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  await page.screenshot({ path: join(OUT, "promax-diamond.png") });
+  assert.equal(await page.locator('a.pm-back[href="index.html#/atividade/apresentacao-privada"]').count(), 1);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+await test("PROMAX 2.0 (telemóvel): sem scroll horizontal", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/promax.html`);
+  await page.waitForSelector("#pmSoon");
+  const ow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  assert.ok(ow <= 0, `overflow ${ow}`);
+  await page.locator(".pm-reveal").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(600);
+  await page.screenshot({ path: join(OUT, "promax-mobile.png") });
+  await ctx.close();
+});
 
 /* ===================== ATUALIZAÇÃO FORÇADA / REVOGAÇÃO ===================== */
 await test("Atualização forçada: páginas abertas recarregam quando /meta/version muda", async () => {

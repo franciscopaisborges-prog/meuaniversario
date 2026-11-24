@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Código PROMAX2.0</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#04060f" />
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/promax.css" />
+  </head>
+  <body class="pm">
+    <!-- Lasers fixos ao ecrã -->
+    <div class="pm-lasers" aria-hidden="true">
+      <span class="beam beam--r" style="--x: 8%; --from: -28deg; --to: 22deg; --d: 7s"></span>
+      <span class="beam beam--b" style="--x: 18%; --from: 30deg; --to: -12deg; --d: 9s"></span>
+      <span class="beam beam--r" style="--x: 32%; --from: -14deg; --to: 26deg; --d: 6s"></span>
+      <span class="beam beam--b" style="--x: 50%; --from: 24deg; --to: -24deg; --d: 8s"></span>
+      <span class="beam beam--r" style="--x: 50%; --from: -22deg; --to: 20deg; --d: 10s"></span>
+      <span class="beam beam--b" style="--x: 68%; --from: 16deg; --to: -28deg; --d: 7.5s"></span>
+      <span class="beam beam--r" style="--x: 82%; --from: 28deg; --to: -10deg; --d: 8.5s"></span>
+      <span class="beam beam--b" style="--x: 92%; --from: -8deg; --to: 30deg; --d: 6.5s"></span>
+      <span class="scan scan--b" style="--y: 30%; --d: 5s"></span>
+      <span class="scan scan--r" style="--y: 62%; --d: 7s"></span>
+    </div>
+    <div class="pm-noise" aria-hidden="true"></div>
+
+    <a class="pm-back" href="index.html#/atividade/apresentacao-privada">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Voltar
+    </a>
+
+    <main>
+      <!-- Abertura -->
+      <section class="pm-hero" aria-labelledby="pmTitle">
+        <p class="pm-kicker">Código aceite</p>
+        <h1 class="pm-title" id="pmTitle" data-text="PROMAX 2.0">PROMAX 2.0</h1>
+        <p class="pm-sub">Acesso concedido. Desce para descobrir o que está a ser preparado.</p>
+        <span class="pm-cue" aria-hidden="true"></span>
+      </section>
+
+      <!-- Túnel de lasers -->
+      <section class="pm-tunnel" aria-hidden="true">
+        <div class="pm-floor"></div>
+        <p class="pm-line pm-line--1">A sincronizar</p>
+        <p class="pm-line pm-line--2">A desbloquear</p>
+        <p class="pm-line pm-line--3">Quase…</p>
+      </section>
+
+      <!-- Pedestal com diamante -->
+      <section class="pm-reveal" aria-labelledby="pmSoon">
+        <div class="pm-spot" aria-hidden="true"></div>
+        <span class="pm-converge pm-converge--l" aria-hidden="true"></span>
+        <span class="pm-converge pm-converge--r" aria-hidden="true"></span>
+
+        <div class="pm-stage">
+          <svg class="pm-diamond" viewBox="0 0 200 170" role="img" aria-label="Diamante">
+            <defs>
+              <linearGradient id="gTable" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#e9f1ff" />
+                <stop offset="1" stop-color="#7fa8ff" />
+              </linearGradient>
+              <linearGradient id="gBlue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#8fb4ff" />
+                <stop offset="1" stop-color="#1b3fb8" />
+              </linearGradient>
+              <linearGradient id="gRed" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ff8aa0" />
+                <stop offset="1" stop-color="#b0152f" />
+              </linearGradient>
+              <linearGradient id="gPale" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#ffffff" />
+                <stop offset="1" stop-color="#a9c2ff" />
+              </linearGradient>
+            </defs>
+            <g stroke="rgba(255,255,255,.55)" stroke-width=".8" stroke-linejoin="round">
+              <!-- coroa -->
+              <polygon points="55,40 145,40 125,70 75,70" fill="url(#gTable)" />
+              <polygon points="55,40 75,70 10,70" fill="url(#gBlue)" />
+              <polygon points="145,40 190,70 125,70" fill="url(#gRed)" />
+              <polygon points="55,40 30,40 10,70" fill="url(#gPale)" opacity=".9" />
+              <polygon points="145,40 170,40 190,70" fill="url(#gBlue)" opacity=".9" />
+              <!-- pavilhão -->
+              <polygon points="10,70 75,70 100,165" fill="url(#gBlue)" />
+              <polygon points="75,70 125,70 100,165" fill="url(#gPale)" />
+              <polygon points="125,70 190,70 100,165" fill="url(#gRed)" />
+              <polyline points="40,70 100,165 160,70" fill="none" stroke="rgba(255,255,255,.35)" />
+            </g>
+            <polygon class="pm-diamond__shine" points="60,42 90,42 78,68 66,68" fill="#fff" opacity=".0" />
+          </svg>
+          <span class="pm-sparkle pm-sparkle--1" aria-hidden="true"></span>
+          <span class="pm-sparkle pm-sparkle--2" aria-hidden="true"></span>
+          <span class="pm-sparkle pm-sparkle--3" aria-hidden="true"></span>
+
+          <svg class="pm-pedestal" viewBox="0 0 300 250" aria-hidden="true">
+            <defs>
+              <linearGradient id="gStone" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#0b1230" />
+                <stop offset=".5" stop-color="#1a2552" />
+                <stop offset="1" stop-color="#0b1230" />
+              </linearGradient>
+              <linearGradient id="gRim" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#ff2d4d" />
+                <stop offset="1" stop-color="#2d7bff" />
+              </linearGradient>
+            </defs>
+            <rect x="60" y="0" width="180" height="22" fill="url(#gStone)" stroke="url(#gRim)" stroke-width="1.5" />
+            <rect x="90" y="22" width="120" height="150" fill="url(#gStone)" />
+            <line x1="110" y1="22" x2="110" y2="172" stroke="rgba(45,123,255,.25)" />
+            <line x1="190" y1="22" x2="190" y2="172" stroke="rgba(255,45,77,.25)" />
+            <rect x="70" y="172" width="160" height="22" fill="url(#gStone)" stroke="url(#gRim)" stroke-width="1.5" />
+            <rect x="40" y="194" width="220" height="26" fill="url(#gStone)" stroke="url(#gRim)" stroke-width="1.5" />
+            <rect x="15" y="220" width="270" height="30" fill="url(#gStone)" stroke="url(#gRim)" stroke-width="1.5" />
+          </svg>
+        </div>
+
+        <h2 class="pm-soon" id="pmSoon" data-text="EM BREVE">EM BREVE</h2>
+      </section>
+    </main>
+
+    <footer class="pm-footer">
+      <a href="index.html#/atividade/apresentacao-privada">← Voltar à apresentação de projetos</a>
+    </footer>
+  </body>
+</html>

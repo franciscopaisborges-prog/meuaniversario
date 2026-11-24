@@ -157,12 +157,25 @@ function privateBlock(a) {
   </section>`;
 }
 
+function promaxBlock() {
+  return `
+  <section class="promax-cta" aria-label="Acesso especial">
+    <a class="promax-btn" href="promax.html">
+      <span class="promax-btn__label">Código</span>
+      <span class="promax-btn__code">PROMAX2.0</span>
+    </a>
+  </section>`;
+}
+
 function mapBlock(a) {
   const url = googleMapsUrl(a);
   const loc = a.location;
   let meta;
   let note;
-  if (!loc) {
+  if (!loc && a.special === "private") {
+    meta = "Indefinida";
+    note = "Localização: indefinida entre o espaço e o tempo.";
+  } else if (!loc) {
     meta = "Localização a confirmar";
     note =
       "O local ainda não está definido. O mapa mostra Coimbra e será atualizado quando houver confirmação.";
@@ -262,6 +275,7 @@ export function renderDetail(a) {
     ${a.special === "golf" ? golfBlock(a) : ""}
     ${mapBlock(a)}
     ${pager(a)}
+    ${a.special === "private" ? promaxBlock() : ""}
     <footer class="d-footer">Francisco Rodrigues · Coimbra · 29.11.2026</footer>
   `;
 }
