@@ -363,3 +363,4 @@ initOverviewMap();
 initRsvp();
 initRouter();
 startLiveSchedule();
+import("../shared/visit.js").then(({ logVisit }) => logVisit("convite")).catch(() => {});

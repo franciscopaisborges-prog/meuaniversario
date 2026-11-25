@@ -768,3 +768,103 @@ select.input option {
   font-size: 0.75rem;
   color: var(--muted);
 }
+
+/* Visitas */
+.a-stats--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.a-stat__value--sm {
+  font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+  line-height: 1.2;
+}
+@media (max-width: 860px) {
+  .a-stats--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .a-stats--four .a-stat:nth-child(3) {
+    border-left: 0;
+  }
+  .a-stats--four .a-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--gold-line-soft);
+  }
+}
+.a-chart {
+  margin: 2.5rem 0 0;
+}
+.a-chart__title {
+  margin-bottom: 1rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.a-bars {
+  display: grid;
+  align-items: end;
+  gap: 4px;
+  height: 180px;
+  padding: 0 0 1.6rem;
+  border-bottom: 1px solid var(--gold-line-soft);
+  position: relative;
+}
+.a-bars--hours {
+  grid-template-columns: repeat(24, minmax(0, 1fr));
+}
+.a-bars--days {
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+}
+.a-bar {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.a-bar__fill {
+  width: 100%;
+  min-height: 2px;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-deep));
+  border-radius: 2px 2px 0 0;
+  opacity: 0.9;
+  transition: height 0.5s var(--ease);
+}
+.a-bar--peak .a-bar__fill {
+  background: linear-gradient(180deg, #fff3cf, var(--gold));
+  box-shadow: 0 0 18px -4px rgba(232, 211, 156, 0.7);
+}
+.a-bar__label {
+  position: absolute;
+  left: 50%;
+  bottom: -1.4rem;
+  transform: translateX(-50%);
+  font-size: 0.62rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.a-bar__count {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -1.2rem);
+  font-size: 0.62rem;
+  color: var(--bone-dim);
+}
+@media (max-width: 640px) {
+  .a-bars--hours .a-bar:nth-child(odd) .a-bar__label {
+    visibility: hidden;
+  }
+}
+.a-visits-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 2.5rem;
+}
+#vNoTrack[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--ink-0);
+  background: var(--gold);
+}
+.a-visits-note {
+  max-width: 46rem;
+  font-size: 0.82rem;
+}

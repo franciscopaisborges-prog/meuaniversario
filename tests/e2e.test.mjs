@@ -944,6 +944,74 @@ await test("Nomes proibidos: painel adiciona, site bloqueia (sem acentos/maiúsc
   await pubCtx.close();
 });
 
+/* ================================ VISITAS ================================ */
+await test("Visitas: registo anónimo, sem duplicados na sessão, painel com horas e 'não contar'", async () => {
+  await ownerPut("visits", null);
+  const pubCtx = await browser.newContext({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 }, userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Mobile" });
+  await prepare(pubCtx);
+  const pub = await pubCtx.newPage();
+  const count = async () => Object.values((await ownerGet("visits")) || {});
+  await pub.goto(`${BASE}/?emulators=1`);
+  await pub.waitForSelector(".step__link");
+  await pub.waitForFunction(() => sessionStorage.getItem("fr-aniversario:visited:convite") === "1", null, { timeout: 15000 });
+  let v = await count();
+  assert.equal(v.length, 1);
+  assert.equal(v[0].page, "convite");
+  assert.equal(v[0].device, "telemovel");
+  assert.match(v[0].visitor, /^[a-z0-9]{16}$/);
+  assert.deepEqual(Object.keys(v[0]).sort(), ["at", "device", "page", "visitor"]);
+  await pub.reload();
+  await pub.waitForSelector(".step__link");
+  await pub.waitForTimeout(1500);
+  assert.equal((await count()).length, 1, "recarregar na mesma sessão não conta");
+  await pub.goto(`${BASE}/promax.html`);
+  await pub.waitForFunction(() => sessionStorage.getItem("fr-aniversario:visited:promax") === "1", null, { timeout: 15000 });
+  v = await count();
+  assert.equal(v.length, 2);
+  assert.equal(new Set(v.map((x) => x.visitor)).size, 1, "mesmo visitante");
+
+  // painel
+  const adm = await pubCtx.newPage();
+  await adm.setViewportSize({ width: 1360, height: 900 });
+  const admErrors = watchErrors(adm);
+  await adm.goto(`${BASE}/admin.html?emulators=1`);
+  await adm.waitForSelector("#viewLogin:not([hidden])");
+  await googleLogin(adm, ADMIN_EMAIL);
+  await adm.waitForSelector("#viewDashboard:not([hidden])");
+  await adm.locator("#tabVisits").click();
+  await adm.waitForFunction(() => document.querySelector("#vTotal").textContent === "2");
+  assert.equal(await adm.locator("#vUnique").innerText(), "1");
+  assert.equal(await adm.locator("#vToday").innerText(), "2");
+  assert.equal(await adm.locator("#vHours .a-bar").count(), 24);
+  assert.equal(await adm.locator("#vDays .a-bar").count(), 14);
+  assert.equal(await adm.locator("#vHours .a-bar--peak").count(), 1);
+  assert.equal(await adm.locator("#vRows tr").count(), 2);
+  assert.match(await adm.locator("#vRows").innerText(), /PROMAX 2\.0[\s\S]*Telemóvel|Telemóvel[\s\S]*PROMAX 2\.0/);
+  await adm.screenshot({ path: join(OUT, "admin-visits.png"), fullPage: true });
+
+  // não contar este navegador (mesmo navegador/origem do convite)
+  await adm.locator("#vNoTrack").click();
+  assert.equal(await adm.locator("#vNoTrack").getAttribute("aria-pressed"), "true");
+  const pub2 = await pubCtx.newPage();
+  await pub2.evaluate(() => 0);
+  await pub2.goto(`${BASE}/promax.html`);
+  await pub2.evaluate(() => sessionStorage.clear());
+  await pub2.reload();
+  await pub2.waitForTimeout(2000);
+  assert.equal((await count()).length, 2, "navegador marcado não conta");
+  await adm.locator("#vNoTrack").click();
+  assert.equal(await adm.locator("#vNoTrack").getAttribute("aria-pressed"), "false");
+
+  // apagar histórico
+  adm.once("dialog", (d) => d.accept());
+  await adm.locator("#vClear").click();
+  await adm.waitForFunction(() => document.querySelector("#vTotal").textContent === "0");
+  assert.equal(await ownerGet("visits"), null);
+  // apis.google.com (biblioteca do login Google) não existe no ambiente de testes
+  assert.deepEqual(admErrors.filter((e) => !/ERR_NAME_NOT_RESOLVED/.test(e)), []);
+  await pubCtx.close();
+});
+
 /* ============================== PROMAX 2.0 ============================== */
 await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante e EM BREVE", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });

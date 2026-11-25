@@ -347,6 +347,33 @@ await test("Mensagem vazia ou > 300 caracteres é recusada", async () => {
   assert.equal((await req("PUT", "settings/bannedMessage", "x".repeat(301), organizer.token)).status, 401);
 });
 
+/* ---------- Visitas ---------- */
+const visit = (extra = {}) => ({ at: { ".sv": "timestamp" }, page: "convite", visitor: "0123456789abcdef", device: "telemovel", ...extra });
+await test("Anónimo regista uma visita válida", async () => {
+  assert.equal((await req("POST", "visits", visit())).status, 200);
+  assert.equal((await req("POST", "visits", visit({ page: "promax", device: "computador" }))).status, 200);
+});
+for (const [label, extra] of [
+  ["página inválida", { page: "admin" }],
+  ["visitante inválido", { visitor: "x" }],
+  ["dispositivo inválido", { device: "tv" }],
+  ["hora do cliente", { at: 1 }],
+  ["campo extra", { ip: "1.2.3.4" }],
+]) {
+  await test(`Rejeita visita inválida: ${label}`, async () => {
+    assert.equal((await req("POST", "visits", visit(extra))).status, 401);
+  });
+}
+await test("Só admins leem e apagam visitas", async () => {
+  assert.equal((await req("GET", "visits")).status, 401);
+  assert.equal((await req("GET", "visits", undefined, otherGoogle.token)).status, 401);
+  assert.equal((await req("GET", "visits", undefined, organizer.token)).status, 200);
+  assert.equal((await req("DELETE", "visits")).status, 401);
+  assert.equal((await req("DELETE", "visits", undefined, otherGoogle.token)).status, 401);
+  assert.equal((await req("PUT", "visits", { x: visit() }, organizer.token)).status, 401, "admin só pode apagar, não reescrever");
+  assert.equal((await req("DELETE", "visits", undefined, organizer.token)).status, 200);
+});
+
 /* ---------- Versão (/meta) ---------- */
 await test("Anónimo lê /meta/version", async () => {
   assert.equal((await req("GET", "meta/version")).status, 200);

@@ -111,6 +111,32 @@
         ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
         ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300"
       }
+    },
+    "visits": {
+      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
+      ".write": "(auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))) && !newData.exists()",
+      ".indexOn": [
+        "at"
+      ],
+      "$id": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['at', 'page', 'visitor', 'device'])",
+        "at": {
+          ".validate": "newData.isNumber() && newData.val() === now"
+        },
+        "page": {
+          ".validate": "newData.isString() && (newData.val() === 'convite' || newData.val() === 'promax')"
+        },
+        "visitor": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{16}$/)"
+        },
+        "device": {
+          ".validate": "newData.isString() && (newData.val() === 'telemovel' || newData.val() === 'tablet' || newData.val() === 'computador')"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
     }
   }
 }

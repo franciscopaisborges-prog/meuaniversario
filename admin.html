@@ -98,6 +98,7 @@
           <button class="a-tab" type="button" role="tab" id="tabRsvps" aria-controls="panelRsvps" aria-selected="true">Respostas</button>
           <button class="a-tab" type="button" role="tab" id="tabSchedule" aria-controls="panelSchedule" aria-selected="false" tabindex="-1">Horários</button>
           <button class="a-tab" type="button" role="tab" id="tabBanned" aria-controls="panelBanned" aria-selected="false" tabindex="-1">Nomes proibidos</button>
+          <button class="a-tab" type="button" role="tab" id="tabVisits" aria-controls="panelVisits" aria-selected="false" tabindex="-1">Visitas</button>
         </div>
 
         <!-- ===================== HORÁRIOS ===================== -->
@@ -153,6 +154,57 @@
             </div>
             <p class="a-banned-status" id="bannedMsgStatus" role="status" aria-live="polite"></p>
           </form>
+        </div>
+
+        <!-- ===================== VISITAS ===================== -->
+        <div id="panelVisits" role="tabpanel" aria-labelledby="tabVisits" hidden>
+          <div class="a-dash-head">
+            <div>
+              <p class="eyebrow a-gold">Estatísticas do site</p>
+              <h2 class="a-title a-title--xl">Visitas</h2>
+            </div>
+            <p class="a-live" id="visitsLive"><span class="a-live__dot" aria-hidden="true"></span> <span id="visitsLiveText">A ligar…</span></p>
+          </div>
+
+          <div class="a-stats a-stats--four" role="group" aria-label="Resumo de visitas">
+            <article class="a-stat"><p class="a-stat__label">Visitas</p><p class="a-stat__value" id="vTotal">0</p></article>
+            <article class="a-stat"><p class="a-stat__label">Visitantes únicos</p><p class="a-stat__value" id="vUnique">0</p></article>
+            <article class="a-stat"><p class="a-stat__label">Hoje</p><p class="a-stat__value" id="vToday">0</p></article>
+            <article class="a-stat"><p class="a-stat__label">Última visita</p><p class="a-stat__value a-stat__value--sm" id="vLast">—</p></article>
+          </div>
+
+          <section class="a-chart" aria-labelledby="vHoursTitle">
+            <h3 class="a-chart__title" id="vHoursTitle">Visitas por hora do dia</h3>
+            <div class="a-bars a-bars--hours" id="vHours" role="img" aria-label="Gráfico de visitas por hora do dia"></div>
+          </section>
+
+          <section class="a-chart" aria-labelledby="vDaysTitle">
+            <h3 class="a-chart__title" id="vDaysTitle">Últimos 14 dias</h3>
+            <div class="a-bars a-bars--days" id="vDays" role="img" aria-label="Gráfico de visitas nos últimos 14 dias"></div>
+          </section>
+
+          <section class="a-chart" aria-labelledby="vListTitle">
+            <h3 class="a-chart__title" id="vListTitle">Visitas recentes</h3>
+            <div class="a-table-wrap">
+              <table class="a-table">
+                <thead>
+                  <tr><th scope="col">Data</th><th scope="col">Hora</th><th scope="col">Página</th><th scope="col">Dispositivo</th><th scope="col">Visitante</th></tr>
+                </thead>
+                <tbody id="vRows"></tbody>
+              </table>
+              <p class="a-empty" id="vEmpty" hidden>Ainda não há visitas registadas.</p>
+            </div>
+          </section>
+
+          <div class="a-visits-actions">
+            <button class="btn btn--ghost" type="button" id="vNoTrack" aria-pressed="false">Não contar este navegador</button>
+            <button class="btn btn--ghost" type="button" id="vClear">Apagar histórico de visitas</button>
+          </div>
+          <p class="a-banned-status" id="vStatus" role="status" aria-live="polite"></p>
+          <p class="a-text a-muted a-visits-note">
+            Registo anónimo: guarda só a hora, a página (convite ou PROMAX), o tipo de dispositivo e um código aleatório por
+            navegador para contar visitantes únicos. Recarregar a página na mesma sessão não conta como nova visita.
+          </p>
         </div>
 
         <!-- ===================== RESPOSTAS ===================== -->

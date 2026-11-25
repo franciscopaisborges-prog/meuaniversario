@@ -382,6 +382,20 @@ npm run force-refresh
 - **Lista inicial:** Mariana, Marianna, Mariane, Mariani, Maryana, Mary Ana, Mari Ana, Marianinha, Mar1ana e M4riana.
 - **Limite:** a verificação é feita no navegador antes de gravar. Alguém com conhecimentos técnicos poderia contorná-la escrevendo diretamente na base de dados. Para impedir também isso seria preciso uma Cloud Function, o que exige o plano Blaze do Firebase.
 
+## 7D. Visitas (painel → separador “Visitas”)
+
+- **O que se regista:** cada abertura do convite (`index.html`) e da página PROMAX (`promax.html`) fica em `/visits/{id}`, com `at` (hora do servidor), `page` (`convite` | `promax`), `device` (`telemovel` | `tablet` | `computador`) e `visitor` (código aleatório deste navegador, para contar visitantes únicos).
+- **O que não se regista:** IP, nome, localização ou outros dados pessoais.
+- **Contagem:** cada página conta uma vez por sessão do navegador, por isso recarregar não conta como nova visita.
+- **No painel:**
+  - números: total de visitas, visitantes únicos, visitas de hoje e última visita;
+  - gráficos: visitas por hora do dia (00–23, a hora com mais visitas aparece destacada) e visitas nos últimos 14 dias;
+  - lista das 100 visitas mais recentes, com data, hora, página, dispositivo e visitante;
+  - tudo em tempo real e na hora de Lisboa.
+- **Não contar este navegador:** guarda uma marca no navegador do organizador para as visitas dele não entrarem nas contas. Pode ser desligada carregando de novo.
+- **Apagar histórico de visitas:** pede confirmação antes de apagar.
+- **Regras:** qualquer visitante pode criar uma visita válida, mas não a pode ler, alterar nem apagar. Só os administradores leem e apagam o histórico.
+
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
@@ -405,6 +419,7 @@ npm run force-refresh
 | Mudar cores ou tipografia | variáveis no topo de `assets/css/base.css` |
 | Mudar o texto do convite | `index.html` |
 | Mudar os limites do formulário | `assets/js/site/rsvp.js` **e** `firebase-rtdb-rules.json` (manter coerentes) |
+| Ver visitas e horas | `admin.html` → separador **Visitas** |
 | Proibir ou permitir um nome | `admin.html` → separador **Nomes proibidos** |
 | Adicionar um administrador | RTDB: `/admins/<UID>: true` |
 | Remover um administrador | Apagar `/admins/<UID>` (o acesso termina de imediato) |

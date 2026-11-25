@@ -9,6 +9,7 @@
 import { $, $$, esc, normalize } from "../shared/dom.js";
 import { createScheduleAdmin } from "./schedule-admin.js";
 import { createBannedAdmin } from "./banned-admin.js";
+import { createVisitsAdmin } from "./visits-admin.js";
 import { matchesBanned } from "../shared/banned.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
@@ -66,6 +67,7 @@ async function openDecoyGame() {
 let fb = null; // { db, auth, authModule, dbModule }
 let scheduleAdmin = null;
 let bannedAdmin = null;
+let visitsAdmin = null;
 
 /* ---------------- Separadores (Respostas / Horários) ---------------- */
 function selectTab(tab) {
@@ -435,6 +437,7 @@ function clearData() {
   stopListening();
   scheduleAdmin?.stop();
   bannedAdmin?.stop();
+  visitsAdmin?.stop();
   state.records = [];
   state.knownIds = new Set();
   state.firstLoad = true;
@@ -497,6 +500,7 @@ async function onUser(user) {
   startListening();
   scheduleAdmin.start();
   bannedAdmin.start();
+  visitsAdmin.start();
 }
 
 /* ---------------- Arranque ---------------- */
@@ -533,6 +537,7 @@ async function boot() {
   const { auth, authModule } = fb;
   scheduleAdmin = createScheduleAdmin(fb);
   bannedAdmin = createBannedAdmin(fb, { onChange: () => render() });
+  visitsAdmin = createVisitsAdmin(fb);
   initTabs();
   const { watchVersion } = await import("../shared/version-watch.js");
   watchVersion(fb.db, fb.dbModule, { onBeforeReload: clearData });
