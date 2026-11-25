@@ -50,6 +50,9 @@ Para desligar, corre a função `desinstalar`.
 | `visitas` | Visitas ao site e a hora com mais visitas |
 | `emails ligar` / `emails desligar` | Emails do EmailJS |
 | `atualizar` | Recarrega as páginas do site que estão abertas |
+| `ver Joana` | Todos os dados de um convidado |
+| `apagar Joana` | Apaga a resposta da Joana (pede confirmação) |
+| `apagar todas as respostas` | Apaga todas as respostas, por exemplo as de teste (pede confirmação) |
 | `sim` / `não` | Confirma ou cancela a alteração pendente (válida durante 30 min) |
 | `ajuda` | Esta lista |
 
@@ -59,6 +62,12 @@ Para desligar, corre a função `desinstalar`.
 - "quem é que tem alergias?"
 - "a Joana não pode vir"
 - "muda a mensagem dos proibidos para: esta festa é só por convite"
+- "apaga os convites de teste" / "tira todos os que disseram que não"
+- "o Rui afinal vem e é alérgico a marisco"
+- "a Ana respondeu por mensagem, vem e não tem cartão"
+- várias coisas de uma vez: vêm numa só lista com um "Confirmas?"
+
+Lembra-se das últimas mensagens durante 30 minutos, por isso percebe "e a outra?" ou "apaga essa". Para o que não tiver uma ação própria, consegue ler e alterar qualquer dado do site, exceto os administradores, sempre com confirmação.
 
 Números das atividades: 01 Largo da Portagem · 02 Metrobus · 03 Mr. Pizza · 04 Passeio pela Baixa · 05 Torre de Almedina · 06 Regresso à Portagem · 07 Golfe · 08 Apresentação · 09 Lanche.
 
@@ -66,7 +75,8 @@ Números das atividades: 01 Largo da Portagem · 02 Metrobus · 03 Mr. Pizza · 
 
 - **Quem é aceite:** só os emails do teu iCloud **com assinatura DKIM válida** do iCloud. Emails falsificados com o teu endereço são ignorados.
 - **Confirmação:** toda a alteração pede "sim" e expira ao fim de 30 minutos.
-- **Respostas dos convidados:** não podem ser apagadas por aqui.
+- **Respostas dos convidados:** podem ser apagadas ou corrigidas, mas sempre com confirmação. A lista mostra os nomes antes do "sim".
+- **Administradores:** nunca podem ser mudados por email.
 - **IA:** a IA nunca grava diretamente. Só propõe; quem confirma és tu.
 - **Privacidade:** nos modelos gratuitos do OpenRouter, os pedidos podem ficar registados pelo fornecedor do modelo; a página do `openrouter/free` indica que regista os pedidos. Quando perguntas por respostas ou alergias, esses dados passam pelo OpenRouter. Se preferires evitar isso, não adiciones a chave e usa só os comandos simples, que não passam pela IA.
 

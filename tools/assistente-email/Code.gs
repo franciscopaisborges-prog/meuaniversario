@@ -10,8 +10,8 @@
  *    3. responde no mesmo email (curto, para ler no relógio);
  *    4. avisa-te por email de cada nova confirmação de presença.
  *
- *  Nada é alterado sem responderes "sim" à pergunta de confirmação.
- *  Respostas de convidados nunca são apagadas por aqui.
+ *  Nada é alterado sem responderes "sim" à pergunta de confirmação
+ *  (inclui apagar respostas de convidados).
  *
  *  Instalação: ver tools/assistente-email/LEIA-ME.md
  */
@@ -35,6 +35,9 @@ const CONFIG = {
   CONVERSA_MINUTOS: 3,
   CONVERSA_INTERVALO_S: 10,
   TIMEZONE: "Europe/Lisbon",
+  // Memória da conversa para a IA (para perceber "esse", "a outra", "também").
+  HISTORICO_MINUTOS: 30,
+  HISTORICO_MENSAGENS: 10,
 };
 
 /** Atividades do programa (iguais às do site). */
@@ -189,6 +192,37 @@ function notificarNovidades_() {
 /* ============================ PEDIDOS / AÇÕES ============================= */
 
 function tratarMensagem_(texto) {
+  const resposta = responder_(texto);
+  guardarHistorico_(texto, resposta);
+  return resposta;
+}
+
+/** Últimas trocas de mensagens (para a IA perceber "esse", "o outro", etc.). */
+function historico_() {
+  try {
+    const h = JSON.parse(PropertiesService.getScriptProperties().getProperty("HISTORICO") || "[]");
+    const limite = Date.now() - CONFIG.HISTORICO_MINUTOS * 60000;
+    return h.filter((m) => m.ts > limite).map((m) => ({ role: m.role, content: m.content }));
+  } catch (e) {
+    return [];
+  }
+}
+
+function guardarHistorico_(texto, resposta) {
+  const props = PropertiesService.getScriptProperties();
+  let h = [];
+  try {
+    h = JSON.parse(props.getProperty("HISTORICO") || "[]");
+  } catch (e) {
+    h = [];
+  }
+  const ts = Date.now();
+  h.push({ role: "user", content: String(texto).slice(0, 500), ts });
+  h.push({ role: "assistant", content: String(resposta).slice(0, 700), ts });
+  props.setProperty("HISTORICO", JSON.stringify(h.slice(-CONFIG.HISTORICO_MENSAGENS)));
+}
+
+function responder_(texto) {
   const t = normalizar_(texto);
   const pend = getPendente_();
   if (pend) {
@@ -225,6 +259,8 @@ function ajuda_() {
     "• visitas",
     "• emails ligar / emails desligar",
     "• atualizar — recarrega o site aberto",
+    "• ver Joana — dados de um convidado",
+    "• apagar Joana / apagar todas as respostas",
     "Alterações pedem sempre: sim / não.",
   ].join("\n");
 }
@@ -245,6 +281,15 @@ function comandosSimples_(texto) {
   if ((m = t.match(/^(?:sem hora|remover hora|apagar hora)\s+(\d{1,2})$/))) return pedirConfirmacao_("remover_horario", { atividade: m[1] });
   if ((m = String(texto).trim().match(/^proibir\s+(.+)$/i))) return pedirConfirmacao_("proibir_nome", { nome: m[1].trim() });
   if ((m = String(texto).trim().match(/^permitir\s+(.+)$/i))) return pedirConfirmacao_("permitir_nome", { nome: m[1].trim() });
+  if (/^(apaga|apagar|elimina|eliminar|remove|remover|limpa|limpar)\s+(todas|todos|tudo)( as| os)?( respostas| convites| confirmacoes)?$/.test(t))
+    return pedirConfirmacao_("apagar_respostas", { todas: true });
+  if ((m = String(texto).trim().match(/^(?:apaga|apagar|elimina|eliminar)\s+(?:a\s+|o\s+)?(?:resposta|convite|confirma[çc][ãa]o)?\s*(?:d[aoe]\s+)?(.+)$/i))) {
+    // Se não houver ninguém com esse nome, deixa a IA tentar perceber o pedido.
+    const temIA = PropertiesService.getScriptProperties().getProperty("OPENROUTER_API_KEY");
+    if (!temIA || !procurarRespostas_({ nome: m[1].trim() }).erro) return pedirConfirmacao_("apagar_respostas", { nome: m[1].trim() });
+  }
+  if ((m = String(texto).trim().match(/^ver\s+(.+)$/i)) && !/^(horarios?|respostas?|visitas|proibidos|nomes)$/.test(normalizar_(m[1])))
+    return ACOES.ver_convidado.run({ nome: m[1].trim() });
   return null;
 }
 
@@ -422,15 +467,221 @@ const ACOES = {
       return "Feito. As páginas abertas vão recarregar.";
     },
   },
+  ver_convidado: {
+    escrita: false,
+    descricao: "Todos os dados de um ou mais convidados, procurando por nome ou parte do nome.",
+    params: { nome: { type: "string", description: "Nome ou parte do nome." } },
+    obrigatorios: ["nome"],
+    run: (a) => {
+      const r = procurarRespostas_({ nome: a.nome });
+      if (r.erro) return r.erro;
+      return r.lista.map(([, x]) => detalheResposta_(x)).join("\n\n");
+    },
+  },
+  apagar_respostas: {
+    escrita: true,
+    descricao:
+      "Apaga respostas de convidados. Usa 'nome' (ou parte) para apagar uma pessoa, ou todas=true para apagar todas " +
+      "(por exemplo, convites de teste). 'so' = 'yes' ou 'no' para apagar só quem vai ou só quem não vai.",
+    params: {
+      nome: { type: "string", description: "Nome ou parte do nome. Vazio se todas=true." },
+      todas: { type: "boolean", description: "true para apagar todas." },
+      so: { type: "string", description: "'yes', 'no' ou vazio (todas)." },
+    },
+    validar: (a) => {
+      const r = procurarRespostas_(a);
+      if (r.erro) return { erro: r.erro };
+      return { args: { ids: r.lista.map(([id]) => id), nomes: r.lista.map(([, x]) => x.name) } };
+    },
+    resumo: (a) => `Apagar ${a.ids.length} resposta${a.ids.length === 1 ? "" : "s"}: ${a.nomes.join(", ")}`,
+    run: (a) => {
+      const upd = {};
+      a.ids.forEach((id) => (upd["rsvps/" + id] = null));
+      dbWrite_("PATCH", "", upd);
+      return `Feito. Apagad${a.ids.length === 1 ? "a" : "as"}: ${a.nomes.join(", ")}.`;
+    },
+  },
+  alterar_resposta: {
+    escrita: true,
+    descricao: "Corrige a resposta de UM convidado: nome, se vai, mensagem, alergias ou cartão Move C. Só envia os campos a mudar.",
+    params: {
+      nome: { type: "string", description: "Nome atual (ou parte) do convidado." },
+      novo_nome: { type: "string", description: "Novo nome (opcional)." },
+      vai: { type: "boolean", description: "true se vai, false se não vai (opcional)." },
+      mensagem: { type: "string", description: "Nova mensagem; '' para apagar (opcional)." },
+      alergias: { type: "string", description: "Alergias; '' para apagar (opcional)." },
+      sem_cartao: { type: "boolean", description: "true se NÃO tem cartão Move C (opcional)." },
+    },
+    obrigatorios: ["nome"],
+    validar: (a) => {
+      const r = procurarRespostas_({ nome: a.nome });
+      if (r.erro) return { erro: r.erro };
+      if (r.lista.length > 1) return { erro: `Há ${r.lista.length} com esse nome: ${r.lista.map(([, x]) => x.name).join(", ")}. Diz qual.` };
+      const [id, atual] = r.lista[0];
+      const mud = {};
+      if (a.novo_nome != null && String(a.novo_nome).trim()) {
+        const n = String(a.novo_nome).replace(/\s+/g, " ").trim().slice(0, 80);
+        if (n.length < 2) return { erro: "Nome demasiado curto." };
+        mud.name = n;
+      }
+      if (typeof a.vai === "boolean" || a.vai === "true" || a.vai === "false") mud.attending = a.vai === true || a.vai === "true" ? "yes" : "no";
+      if (a.mensagem != null) mud.message = String(a.mensagem).trim().slice(0, 500) || null;
+      if (a.alergias != null) mud.allergies = String(a.alergias).trim().slice(0, 300) || null;
+      if (typeof a.sem_cartao === "boolean" || a.sem_cartao === "true" || a.sem_cartao === "false")
+        mud.noTransportCard = a.sem_cartao === true || a.sem_cartao === "true";
+      if (!Object.keys(mud).length) return { erro: "Não disseste o que mudar." };
+      if (mud.attending === "yes") mud.noticesRead = true;
+      if (mud.attending === "no") {
+        mud.allergies = null;
+        mud.noTransportCard = false;
+      }
+      return { args: { id, nome: atual.name, mud } };
+    },
+    resumo: (a) => `Alterar ${a.nome}: ${descreverMudancas_(a.mud)}`,
+    run: (a) => {
+      dbWrite_("PATCH", "rsvps/" + a.id, a.mud);
+      return `Feito. ${a.mud.name || a.nome} atualizado.`;
+    },
+  },
+  adicionar_resposta: {
+    escrita: true,
+    descricao: "Regista à mão a resposta de um convidado (por exemplo, quem respondeu por telefone ou mensagem).",
+    params: {
+      nome: { type: "string", description: "Nome do convidado." },
+      vai: { type: "boolean", description: "true se vai, false se não vai." },
+      mensagem: { type: "string", description: "Mensagem (opcional)." },
+      alergias: { type: "string", description: "Alergias (opcional)." },
+      sem_cartao: { type: "boolean", description: "true se NÃO tem cartão Move C (opcional)." },
+    },
+    obrigatorios: ["nome", "vai"],
+    validar: (a) => {
+      const nome = String(a.nome || "").replace(/\s+/g, " ").trim().slice(0, 80);
+      if (nome.length < 2) return { erro: "Nome demasiado curto." };
+      const vai = a.vai === true || a.vai === "true";
+      const v = { name: nome, attending: vai ? "yes" : "no", eventDate: "2026-11-29", noticesRead: true, noTransportCard: vai && (a.sem_cartao === true || a.sem_cartao === "true") };
+      const msg = String(a.mensagem || "").trim().slice(0, 500);
+      const alerg = vai ? String(a.alergias || "").trim().slice(0, 300) : "";
+      if (msg) v.message = msg;
+      if (alerg) v.allergies = alerg;
+      return { args: { v } };
+    },
+    resumo: (a) => `Registar ${a.v.name} — ${a.v.attending === "yes" ? "VAI" : "NÃO VAI"}${a.v.allergies ? ` (alergias: ${a.v.allergies})` : ""}`,
+    run: (a) => {
+      const id = "email-" + Utilities.getUuid().replace(/-/g, "").slice(0, 12);
+      dbWrite_("PUT", "rsvps/" + id, Object.assign({}, a.v, { createdAt: { ".sv": "timestamp" } }));
+      return `Feito. ${a.v.name} registado.`;
+    },
+  },
+  ler_dados: {
+    escrita: false,
+    descricao:
+      "Lê qualquer parte da base de dados (caminho, ex.: 'rsvps', 'schedule/07', 'settings', 'decoys', 'meta', 'bannedNames'). " +
+      "Usa quando nenhuma outra ferramenta de consulta serve.",
+    params: { caminho: { type: "string", description: "Caminho sem barra inicial; vazio = raiz (resumida)." } },
+    run: (a) => {
+      const caminho = limparCaminho_(a.caminho);
+      if (!caminho) return "Secções: " + Object.keys(dbQuery_("", { shallow: "true" }) || {}).join(", ");
+      if (caminho.split("/")[0] === "visits") return resumoVisitas_();
+      const v = dbGet_(caminho);
+      const txt = JSON.stringify(v);
+      return txt && txt.length > 3000 ? txt.slice(0, 3000) + "…(cortado)" : String(txt);
+    },
+  },
+  alterar_dados: {
+    escrita: true,
+    descricao:
+      "ÚLTIMO RECURSO, só se nenhuma outra ferramenta servir: grava um valor JSON num caminho da base de dados " +
+      "(ou apaga, com valor_json 'null'). Não pode mexer em 'admins'. Respeita o formato existente (lê antes com ler_dados).",
+    params: {
+      caminho: { type: "string", description: "Caminho, ex.: 'settings/emailjs/enabled'." },
+      valor_json: { type: "string", description: "Valor em JSON (ex.: '\"texto\"', 'true', '{\"a\":1}') ou 'null' para apagar." },
+    },
+    obrigatorios: ["caminho", "valor_json"],
+    validar: (a) => {
+      const caminho = limparCaminho_(a.caminho);
+      if (!caminho) return { erro: "Caminho em falta." };
+      if (/^(admins)(\/|$)/.test(caminho)) return { erro: "Os administradores só se mudam no painel." };
+      let valor;
+      try {
+        valor = JSON.parse(String(a.valor_json));
+      } catch (e) {
+        valor = String(a.valor_json);
+      }
+      return { args: { caminho, valor } };
+    },
+    resumo: (a) => (a.valor === null ? `Apagar /${a.caminho}` : `Gravar em /${a.caminho}: ${JSON.stringify(a.valor).slice(0, 200)}`),
+    run: (a) => {
+      if (a.valor === null) dbWrite_("DELETE", a.caminho);
+      else dbWrite_("PUT", a.caminho, a.valor);
+      return "Feito.";
+    },
+  },
 };
 
+/** Procura respostas por nome (parte, sem acentos) ou todas. Devolve { lista: [[id, r]] } ou { erro }. */
+function procurarRespostas_(a) {
+  const todas = Object.entries(dbGet_("rsvps") || {})
+    .filter(([, r]) => r && r.name)
+    .sort((x, y) => (x[1].createdAt || 0) - (y[1].createdAt || 0));
+  if (!todas.length) return { erro: "Não há respostas." };
+  const so = a.so === "yes" || a.so === "no" ? a.so : "";
+  let lista = todas.filter(([, r]) => !so || r.attending === so);
+  const nome = normalizarNome_(a.nome);
+  const tudo = a.todas === true || a.todas === "true" || /^(todas?|todos|tudo)$/.test(nome);
+  if (!tudo) {
+    if (!nome) return { erro: "Diz o nome, ou 'todas'." };
+    const exatos = lista.filter(([, r]) => normalizarNome_(r.name) === nome);
+    lista = exatos.length ? exatos : lista.filter(([, r]) => (" " + normalizarNome_(r.name) + " ").includes(" " + nome));
+    if (!lista.length) return { erro: `Não encontrei ninguém com "${a.nome}".` };
+  }
+  if (!lista.length) return { erro: "Nenhuma resposta corresponde." };
+  return { lista };
+}
+
+function detalheResposta_(r) {
+  const l = [`${r.name} — ${r.attending === "yes" ? "VAI" : "NÃO VAI"} · ${data_(r.createdAt)}`];
+  if (r.message) l.push(`Mensagem: ${r.message}`);
+  if (r.attending === "yes") {
+    l.push(r.noTransportCard ? "Sem cartão Move C" : "Tem cartão Move C");
+    l.push(r.allergies ? `Alergias: ${r.allergies}` : "Sem alergias");
+  }
+  return l.join("\n");
+}
+
+function descreverMudancas_(m) {
+  const nomes = { name: "nome", attending: "vai", message: "mensagem", allergies: "alergias", noTransportCard: "sem cartão", noticesRead: null };
+  return Object.entries(m)
+    .filter(([k]) => nomes[k])
+    .map(([k, v]) => `${nomes[k]} → ${v === null ? "(apagar)" : v === "yes" ? "sim" : v === "no" ? "não" : v === true ? "sim" : v === false ? "não" : v}`)
+    .join(", ");
+}
+
+function limparCaminho_(c) {
+  return String(c || "")
+    .trim()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\.json$/, "")
+    .replace(/[.#$\[\]]/g, "");
+}
+
 function pedirConfirmacao_(acao, args) {
-  const def = ACOES[acao];
-  const v = def.validar ? def.validar(args || {}) : { args };
-  if (v.erro) return v.erro;
-  const pend = { acao, args: v.args, expira: Date.now() + CONFIG.PENDING_MINUTES * 60000 };
+  return pedirConfirmacoes_([{ acao, args }]);
+}
+
+/** Valida uma ou várias alterações e pede UMA confirmação para todas. */
+function pedirConfirmacoes_(pedidos) {
+  const acoes = [];
+  for (const p of pedidos) {
+    const def = ACOES[p.acao];
+    const v = def.validar ? def.validar(p.args || {}) : { args: p.args || {} };
+    if (v.erro) return v.erro;
+    acoes.push({ acao: p.acao, args: v.args });
+  }
+  const pend = { acoes, expira: Date.now() + CONFIG.PENDING_MINUTES * 60000 };
   PropertiesService.getScriptProperties().setProperty("PENDENTE", JSON.stringify(pend));
-  return `${def.resumo(v.args)}.\nConfirmas? Responde sim ou não.`;
+  const linhas = acoes.map((x) => ACOES[x.acao].resumo(x.args));
+  const corpo = linhas.length === 1 ? linhas[0] + "." : linhas.map((l, i) => `${i + 1}. ${l}`).join("\n");
+  return `${corpo}\nConfirmas? Responde sim ou não.`;
 }
 
 function getPendente_() {
@@ -450,7 +701,8 @@ function limparPendente_() {
 
 function executarPendente_(pend) {
   limparPendente_();
-  return ACOES[pend.acao].run(pend.args);
+  const acoes = pend.acoes || [{ acao: pend.acao, args: pend.args }];
+  return acoes.map((x) => ACOES[x.acao].run(x.args)).join("\n");
 }
 
 /* ============================== IA (OPENROUTER) =========================== */
@@ -471,17 +723,22 @@ function conversarIA_(texto, key) {
     "Falas português de Portugal e respondes MUITO curto (vai ser lido num Apple Watch): 1 a 4 linhas.",
     `Agora são ${agora} (Lisboa).`,
     "Atividades do programa (número e nome): " + ACTIVITIES.map((a) => `${a.id}=${a.nome}`).join("; ") + ".",
-    "Usa as ferramentas para consultar ou alterar dados. Nunca inventes dados: consulta primeiro.",
-    "Para alterar, chama a ferramenta de alteração com os valores certos (horas em HH:MM, 24h);",
-    "o sistema vai pedir confirmação ao organizador, por isso não digas que já está feito.",
-    "Não podes apagar respostas de convidados. Se o pedido não for sobre o aniversário, diz que só tratas do aniversário.",
+    "Base de dados Firebase: rsvps/{id} = respostas dos convidados (name, attending 'yes'/'no', message, allergies, " +
+      "noTransportCard = sem cartão Move C, noticesRead, createdAt, eventDate); schedule/{01..09} = horários {start, end}; " +
+      "bannedNames/bannedHashes = nomes proibidos; settings/bannedMessage; settings/emailjs {enabled,…}; visits = visitas; " +
+      "decoys = convidados falsos do painel de demonstração; meta/version = forçar atualização.",
+    "As mensagens são ditadas no relógio: percebe pedidos informais, abreviados, com erros de ditado ou números por extenso",
+    "('convites' = respostas; 'tira'/'limpa'/'elimina' = apagar; 'mete'/'põe' = definir).",
+    "Usa as ferramentas para consultar ou alterar. Nunca inventes dados: consulta primeiro.",
+    "Prefere as ferramentas específicas; ler_dados e alterar_dados são para o que nenhuma outra cobre.",
+    "Podes chamar várias ferramentas de alteração de uma vez: o sistema junta tudo numa só confirmação.",
+    "Ao chamares uma alteração, o sistema pede 'sim' ao organizador; nunca digas que já está feito.",
+    "Se o pedido for ambíguo (por exemplo, dois convidados com o mesmo nome), faz UMA pergunta curta.",
+    "Se algo não for possível, diz o que consegues fazer em alternativa. Perguntas gerais respondes brevemente.",
   ].join("\n");
 
-  const messages = [
-    { role: "system", content: sistema },
-    { role: "user", content: texto },
-  ];
-  for (let i = 0; i < 4; i += 1) {
+  const messages = [{ role: "system", content: sistema }].concat(historico_(), [{ role: "user", content: texto }]);
+  for (let i = 0; i < 6; i += 1) {
     const res = UrlFetchApp.fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "post",
       contentType: "application/json",
@@ -491,7 +748,7 @@ function conversarIA_(texto, key) {
         "X-Title": "Assistente Aniversario FR",
       },
       muteHttpExceptions: true,
-      payload: JSON.stringify({ model, messages, tools, tool_choice: "auto", temperature: 0.2, max_tokens: 400 }),
+      payload: JSON.stringify({ model, messages, tools, tool_choice: "auto", temperature: 0.2, max_tokens: 600 }),
     });
     const code = res.getResponseCode();
     if (code !== 200) {
@@ -512,6 +769,7 @@ function conversarIA_(texto, key) {
       return txt || "Não percebi. Escreve 'ajuda' para ver os comandos.";
     }
     messages.push({ role: "assistant", content: msg.content || "", tool_calls: calls });
+    const alteracoes = [];
     for (const c of calls) {
       const nome = c.function && c.function.name;
       let args = {};
@@ -525,9 +783,19 @@ function conversarIA_(texto, key) {
         messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ erro: "Ferramenta desconhecida." }) });
         continue;
       }
-      if (def.escrita) return pedirConfirmacao_(nome, args); // nunca altera sem "sim"
-      messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ resultado: def.run(args) }) });
+      if (def.escrita) {
+        alteracoes.push({ acao: nome, args }); // nunca altera sem "sim"
+        continue;
+      }
+      let resultado;
+      try {
+        resultado = def.run(args);
+      } catch (e) {
+        resultado = "Erro: " + (e.message || e);
+      }
+      messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ resultado }) });
     }
+    if (alteracoes.length) return pedirConfirmacoes_(alteracoes);
   }
   return "Não consegui concluir. Tenta dizer de outra forma, ou escreve 'ajuda'.";
 }

@@ -369,6 +369,75 @@ await test("emails desligar / atualizar", () => {
   assert.match(env.db.meta.version, /^\d+$/);
 });
 
+await test("Apagar todas as respostas (convites de teste) pede confirmação", () => {
+  const env = makeEnv();
+  env.db.rsvps = { a: { name: "Teste 1", attending: "yes", createdAt: 1 }, b: { name: "Teste 2", attending: "no", createdAt: 2 } };
+  const r = env.api.tratarMensagem_("Apaga todos os convites");
+  assert.match(r, /Apagar 2 respostas: Teste 1, Teste 2[\s\S]*Confirmas/);
+  assert.equal(Object.keys(env.db.rsvps).length, 2);
+  assert.match(env.api.tratarMensagem_("sim"), /Apagadas/);
+  assert.deepEqual(env.db.rsvps || {}, {});
+});
+
+await test("Apagar e ver um convidado por nome (sem acentos)", () => {
+  const env = makeEnv();
+  env.db.rsvps = { a: { name: "Inês Rodrigues", attending: "yes", createdAt: 1, allergies: "Glúten" }, b: { name: "Rui", attending: "no", createdAt: 2 } };
+  assert.match(env.api.tratarMensagem_("ver ines"), /Inês Rodrigues — VAI[\s\S]*Alergias: Glúten/);
+  env.api.tratarMensagem_("apagar a resposta da ines");
+  env.api.tratarMensagem_("sim");
+  assert.deepEqual(Object.keys(env.db.rsvps), ["b"]);
+  assert.match(env.api.tratarMensagem_("apagar Zé"), /Não encontrei/);
+});
+
+await test("IA: várias alterações numa só confirmação (alterar, adicionar, horário)", () => {
+  const env = makeEnv({
+    gemini: [
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [
+          { id: "a", type: "function", function: { name: "alterar_resposta", arguments: '{"nome":"rui","vai":true,"alergias":"marisco"}' } },
+          { id: "b", type: "function", function: { name: "adicionar_resposta", arguments: '{"nome":"Ana Costa","vai":true,"sem_cartao":true}' } },
+          { id: "c", type: "function", function: { name: "definir_horario", arguments: '{"atividade":"9","inicio":"18h"}' } },
+        ],
+      },
+    ],
+  });
+  env.props.set("OPENROUTER_API_KEY", "CHAVE");
+  env.db.rsvps = { b: { name: "Rui", attending: "no", createdAt: 2, noticesRead: false, noTransportCard: false } };
+  const r = env.api.tratarMensagem_("o rui afinal vem e é alérgico a marisco, mete a ana costa a vir sem cartão e o lanche às 6");
+  assert.match(r, /1\. Alterar Rui: vai → sim, alergias → marisco[\s\S]*2\. Registar Ana Costa — VAI[\s\S]*3\. 09 Lanche[\s\S]*Confirmas/);
+  assert.equal(Object.keys(env.db.rsvps).length, 1, "nada gravado antes do sim");
+  env.api.tratarMensagem_("sim");
+  assert.equal(env.db.rsvps.b.attending, "yes");
+  assert.equal(env.db.rsvps.b.allergies, "marisco");
+  assert.equal(env.db.rsvps.b.noticesRead, true);
+  const ana = Object.values(env.db.rsvps).find((x) => x.name === "Ana Costa");
+  assert.equal(ana.noTransportCard, true);
+  assert.equal(ana.eventDate, "2026-11-29");
+  assert.equal(typeof ana.createdAt, "number");
+  assert.equal(env.db.schedule["09"].start, "18:00");
+});
+
+await test("IA: memória da conversa e alterar_dados nunca mexe em admins", () => {
+  const env = makeEnv({
+    gemini: [
+      { role: "assistant", content: "Vai a Rita." },
+      { role: "assistant", content: null, tool_calls: [{ id: "x", type: "function", function: { name: "alterar_dados", arguments: '{"caminho":"admins/abc","valor_json":"true"}' } }] },
+      { role: "assistant", content: null, tool_calls: [{ id: "y", type: "function", function: { name: "alterar_dados", arguments: '{"caminho":"settings/emailjs/enabled","valor_json":"false"}' } }] },
+    ],
+  });
+  env.props.set("OPENROUTER_API_KEY", "CHAVE");
+  env.api.tratarMensagem_("quem vai?");
+  assert.match(env.api.tratarMensagem_("torna-me admin"), /só se mudam no painel/);
+  const hist = env.geminiCalls[1].messages;
+  assert.ok(hist.some((m) => m.role === "user" && m.content === "quem vai?") && hist.some((m) => m.content === "Vai a Rita."), "histórico enviado");
+  assert.match(env.api.tratarMensagem_("desliga os emails"), /Gravar em \/settings\/emailjs\/enabled: false[\s\S]*Confirmas/);
+  env.api.tratarMensagem_("sim");
+  assert.equal(env.db.settings.emailjs.enabled, false);
+  assert.equal(env.db.admins, undefined);
+});
+
 for (const [m, n, e] of results) console.log(`${m} ${n}${e ? `\n    → ${e}` : ""}`);
 const failed = results.filter((r) => r[0] === "✘").length;
 console.log(`\nAssistente por email: ${results.length - failed}/${results.length} testes passaram.`);
