@@ -430,6 +430,19 @@ A cada resposta (sim ou não), o navegador do convidado envia um email através 
 - Se o envio falhar, por exemplo por limite mensal ou falta de rede, a resposta fica registada na mesma.
 - Respostas recusadas por nome proibido não geram email.
 
+## 7F. Assistente por email (Apple Watch / iCloud Mail)
+
+Em `tools/assistente-email/` há um Google Apps Script gratuito que permite controlar o aniversário por email a partir do Apple Watch:
+- consultar respostas, horários, visitas e nomes proibidos;
+- alterar horários e nomes proibidos, ligar ou desligar os emails e forçar a atualização das páginas abertas, sempre com confirmação "sim";
+- receber um email por cada nova confirmação.
+
+Com uma chave gratuita do Gemini, percebe pedidos escritos de forma livre. As instruções completas estão em [`tools/assistente-email/LEIA-ME.md`](tools/assistente-email/LEIA-ME.md), e os testes correm com:
+
+```bash
+npm run test:assistente
+```
+
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
