@@ -21,7 +21,7 @@ Controla o aniversário a partir do Apple Watch, só com emails:
 3. **Configuração:**
    - à esquerda, abre ⚙️ **Definições do projeto** e ativa **"Mostrar ficheiro de manifesto appsscript.json no editor"**;
    - volta ao **Editor**, abre `appsscript.json` e substitui o conteúdo pelo de [`appsscript.json`](appsscript.json).
-4. **O teu email:** no topo de `Code.gs`, troca `COLOCAR_O_TEU_EMAIL@icloud.com` pelo teu endereço iCloud. Só os emails desse endereço são aceites. Guarda com 💾.
+4. **O teu email:** em ⚙️ **Definições do projeto → Propriedades do script**, adiciona `ICLOUD_EMAIL` com o teu endereço iCloud (recomendado, porque não se perde ao atualizar o código). Em alternativa, troca `COLOCAR_O_TEU_EMAIL@icloud.com` no topo de `Code.gs`. Só os emails desse endereço são aceites. Guarda com 💾.
 5. **IA (opcional):** em ⚙️ **Definições do projeto → Propriedades do script → Adicionar propriedade**:
    - nome `OPENROUTER_API_KEY`;
    - valor: a tua chave do OpenRouter.
@@ -72,8 +72,9 @@ Números das atividades: 01 Largo da Portagem · 02 Metrobus · 03 Mr. Pizza · 
 
 ## Problemas comuns
 
+- **Tempo de resposta:** a primeira mensagem demora até 1 minuto, porque o Google só deixa correr de minuto a minuto. Durante 3 minutos depois de cada mensagem, o assistente verifica de 10 em 10 segundos e responde em cerca de 10–20 s. Fora disso volta a 1 vez por minuto, para respeitar o limite gratuito do Google de 90 minutos de execução por dia.
 - **Não responde:**
-  - espera 1–2 minutos, porque verifica de minuto a minuto;
+  - espera 1–2 minutos;
   - em script.google.com, vê **Execuções** à esquerda, onde aparecem os erros;
   - confirma que o email foi enviado do endereço configurado em `ICLOUD_EMAIL`.
 - **"Firebase GET … → 401":** a conta do script não é dona do projeto Firebase, ou faltou autorizar. Corre `testarLigacao` outra vez.

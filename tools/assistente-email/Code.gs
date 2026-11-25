@@ -18,7 +18,9 @@
 
 /* ----------------------------- CONFIGURAÇÃO ------------------------------ */
 const CONFIG = {
-  // ← O TEU ENDEREÇO iCLOUD (só emails deste endereço são aceites)
+  // ← O TEU ENDEREÇO iCLOUD (só emails deste endereço são aceites).
+  //   Melhor ainda: guarde-o em Propriedades do script → ICLOUD_EMAIL
+  //   (assim não se perde quando atualizar o código).
   ICLOUD_EMAIL: "COLOCAR_O_TEU_EMAIL@icloud.com",
   DATABASE_URL: "https://aniversario-francisco-default-rtdb.europe-west1.firebasedatabase.app",
   SITE_URL: "https://aniversario-francisco.web.app",
@@ -28,6 +30,10 @@ const CONFIG = {
   // Propriedades do script → OPENROUTER_MODEL (ex.: um modelo terminado em ":free").
   OPENROUTER_MODEL: "openrouter/free",
   PENDING_MINUTES: 30, // tempo para responder "sim" a uma alteração
+  // "Modo conversa": depois de tratar uma mensagem, verifica de N em N segundos
+  // durante alguns minutos (respostas em ~10–20 s). Fora disso, 1 vez por minuto.
+  CONVERSA_MINUTOS: 3,
+  CONVERSA_INTERVALO_S: 10,
   TIMEZONE: "Europe/Lisbon",
 };
 
@@ -47,6 +53,11 @@ const ACTIVITIES = [
 const BANNED_SALT = "fr-aniversario:nome:"; // igual a assets/js/shared/banned.js
 const DEFAULT_BANNED_MESSAGE =
   "Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.";
+
+/** Endereço iCloud: Propriedades do script (ICLOUD_EMAIL) ou CONFIG. */
+function icloud_() {
+  return (PropertiesService.getScriptProperties().getProperty("ICLOUD_EMAIL") || CONFIG.ICLOUD_EMAIL).trim();
+}
 
 /* ============================ PONTOS DE ENTRADA ============================ */
 
@@ -82,17 +93,29 @@ function verificar() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(5000)) return;
   try {
+    const inicio = Date.now();
     processarEmails_();
     notificarNovidades_();
+    // Modo conversa: se houve uma mensagem há pouco, continua atento até ~50 s
+    // (o próximo acionador entra a seguir). Respeita a quota diária do Google.
+    while (emConversa_() && Date.now() - inicio < 50000) {
+      Utilities.sleep(CONFIG.CONVERSA_INTERVALO_S * 1000);
+      processarEmails_();
+    }
   } finally {
     lock.releaseLock();
   }
 }
 
+function emConversa_() {
+  const ultima = Number(PropertiesService.getScriptProperties().getProperty("ULTIMA_ATIVIDADE") || 0);
+  return Date.now() - ultima < CONFIG.CONVERSA_MINUTOS * 60000;
+}
+
 /* ================================ EMAILS ================================== */
 
 function processarEmails_() {
-  const query = `from:${CONFIG.ICLOUD_EMAIL} is:unread newer_than:2d`;
+  const query = `from:${icloud_()} is:unread newer_than:2d`;
   const threads = GmailApp.search(query, 0, 20);
   for (const thread of threads) {
     for (const msg of thread.getMessages()) {
@@ -108,6 +131,7 @@ function processarEmails_() {
         resposta = "Ocorreu um erro: " + (e && e.message ? e.message : e);
       }
       msg.reply(resposta);
+      PropertiesService.getScriptProperties().setProperty("ULTIMA_ATIVIDADE", String(Date.now()));
     }
   }
 }
@@ -115,7 +139,7 @@ function processarEmails_() {
 /** Só aceita mensagens do teu iCloud com assinatura DKIM válida. */
 function remetenteValido_(msg) {
   const from = String(msg.getFrom() || "").toLowerCase();
-  if (!from.includes(CONFIG.ICLOUD_EMAIL.toLowerCase())) return false;
+  if (!from.includes(icloud_().toLowerCase())) return false;
   const auth = String(msg.getHeader("Authentication-Results") || "").toLowerCase();
   return /dkim=pass/.test(auth) && /(icloud\.com|me\.com|mac\.com)/.test(auth);
 }
@@ -136,7 +160,7 @@ function extrairTexto_(body) {
 }
 
 function enviar_(assunto, corpo) {
-  GmailApp.sendEmail(CONFIG.ICLOUD_EMAIL, assunto, corpo);
+  GmailApp.sendEmail(icloud_(), assunto, corpo);
 }
 
 /* ============================== NOTIFICAÇÕES ============================== */

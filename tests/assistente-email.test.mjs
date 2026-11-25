@@ -13,6 +13,9 @@ const CODE = readFileSync(new URL("../tools/assistente-email/Code.gs", import.me
 const ICLOUD = "teste@icloud.com";
 const DB_URL = "https://aniversario-francisco-default-rtdb.europe-west1.firebasedatabase.app";
 
+const clock = { now: Date.now() };
+const pendingAfterSleep = [];
+
 function makeEnv({ gemini = [] } = {}) {
   const db = {};
   const props = new Map();
@@ -72,7 +75,13 @@ function makeEnv({ gemini = [] } = {}) {
     return { getResponseCode: () => code, getContentText: () => text };
   }
 
+  const sleeps = [];
   const Utilities = {
+    sleep: (ms) => {
+      sleeps.push(ms);
+      clock.now += ms;
+      if (sleeps.length === 1 && pendingAfterSleep.length) pendingAfterSleep.splice(0).forEach((f) => f());
+    },
     DigestAlgorithm: { SHA_256: "sha256" },
     Charset: { UTF_8: "utf8" },
     computeDigest: (alg, text) => [...createHash("sha256").update(text, "utf8").digest()].map((b) => (b > 127 ? b - 256 : b)),
@@ -87,8 +96,17 @@ function makeEnv({ gemini = [] } = {}) {
     },
   };
 
+  const FakeDate = class extends Date {
+    constructor(...a) {
+      super(...(a.length ? a : [clock.now]));
+    }
+    static now() {
+      return clock.now;
+    }
+  };
   const ctx = vm.createContext({
     console,
+    Date: FakeDate,
     Logger: { log: () => {} },
     LockService: { getScriptLock: () => ({ tryLock: () => true, releaseLock: () => {} }) },
     PropertiesService: {
@@ -145,7 +163,7 @@ function makeEnv({ gemini = [] } = {}) {
     return replies;
   }
 
-  return { api: ctx.__api, db, props, sent, fetches, receive, geminiCalls };
+  return { api: ctx.__api, db, props, sent, fetches, receive, geminiCalls, sleeps };
 }
 
 const results = [];
@@ -237,6 +255,35 @@ await test("Email: aceita só do iCloud com DKIM válido e responde no mesmo ema
   assert.match(ok[0], /01 Largo da Portagem.*A confirmar/);
   assert.equal(falso.length, 0, "DKIM falhado é ignorado");
   assert.equal(outro.length, 0, "outro remetente é ignorado");
+});
+
+await test("Modo conversa: depois de uma mensagem verifica de 10 em 10 s (até ~50 s)", () => {
+  const env = makeEnv();
+  const r1 = env.receive("hora 7 16:00");
+  let r2;
+  pendingAfterSleep.push(() => (r2 = env.receive("sim")));
+  env.api.verificar();
+  assert.equal(r1.length, 1);
+  assert.match(r1[0], /Confirmas/);
+  assert.ok(r2 && r2.length === 1, "o 'sim' foi respondido na mesma execução, ~10 s depois");
+  assert.match(r2[0], /Feito/);
+  assert.ok(env.sleeps.length >= 4 && env.sleeps.length <= 5, `verificações: ${env.sleeps.length}`);
+  assert.ok(env.sleeps.every((ms) => ms === 10000));
+});
+
+await test("Endereço iCloud pode vir das Propriedades do script", () => {
+  const env = makeEnv();
+  env.props.set("ICLOUD_EMAIL", "outro@icloud.com");
+  const ok = env.receive("horarios", { from: "Eu <outro@icloud.com>" });
+  env.api.verificar();
+  assert.equal(ok.length, 1);
+});
+
+await test("Fora de conversa verifica só uma vez (poupa a quota do Google)", () => {
+  const env = makeEnv();
+  env.props.set("ULTIMA_ATIVIDADE", String(clock.now - 10 * 60000));
+  env.api.verificar();
+  assert.equal(env.sleeps.length, 0);
 });
 
 await test("Aviso por email de cada nova confirmação", () => {
