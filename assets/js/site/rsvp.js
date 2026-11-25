@@ -2,7 +2,7 @@
  * Confirmação de presença (RSVP) → Firebase Realtime Database (/rsvps).
  * O sucesso só é mostrado depois de a RTDB confirmar a escrita.
  */
-import { $, $$ } from "../shared/dom.js";
+import { $, $$, esc as escapeHtml } from "../shared/dom.js";
 import { EVENT } from "./program.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
@@ -17,6 +17,19 @@ async function isBannedName(db, dbModule, name) {
   const hashes = await Promise.all(candidateTerms(name).map(hashTerm));
   const snaps = await Promise.all(hashes.map((h) => dbModule.get(dbModule.ref(db, `bannedHashes/${h}`))));
   return snaps.some((snap) => snap.val() === true);
+}
+
+export const DEFAULT_BANNED_MESSAGE = "Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.";
+
+/** Mensagem personalizada (painel → Nomes proibidos) ou a predefinida. */
+async function bannedMessage(db, dbModule) {
+  try {
+    const snap = await dbModule.get(dbModule.ref(db, "settings/bannedMessage"));
+    const value = snap.val();
+    return typeof value === "string" && value.trim() ? value.trim() : DEFAULT_BANNED_MESSAGE;
+  } catch {
+    return DEFAULT_BANNED_MESSAGE;
+  }
 }
 
 async function loadDatabase() {
@@ -129,7 +142,7 @@ function friendlyError(error) {
     return "Não foi possível carregar o serviço de envio (problema de rede). A tua resposta não foi enviada — verifica a ligação e tenta novamente.";
   }
   if (code === "banned") {
-    return "Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.";
+    return escapeHtml(error.userMessage || DEFAULT_BANNED_MESSAGE);
   }
   if (code === "offline") {
     return "Parece que estás sem ligação à internet. A tua resposta não foi enviada — verifica a ligação e tenta novamente.";
@@ -334,7 +347,9 @@ export function initRsvp() {
       const { db, dbModule } = await loadDatabase();
       await waitForConnection(db, dbModule, CONNECT_TIMEOUT_MS);
       if (await withTimeout(isBannedName(db, dbModule, data.name), WRITE_TIMEOUT_MS, "timeout", "timeout")) {
-        throw new RsvpError("banned", "banned");
+        const err = new RsvpError("banned", "banned");
+        err.userMessage = await bannedMessage(db, dbModule);
+        throw err;
       }
 
       const payload = {

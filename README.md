@@ -378,6 +378,7 @@ npm run force-refresh
   - `/bannedNames` guarda a lista legível e só os administradores a leem.
   - `/bannedHashes/{sha256}` guarda só impressões digitais. O site público consulta apenas as do nome escrito e não consegue listar nenhuma.
 - **No separador Respostas:** as respostas antigas com um nome proibido aparecem marcadas com “Nome proibido”.
+- **Mensagem personalizável:** no mesmo separador há uma caixa “Mensagem mostrada a quem tem um nome proibido”, com os botões **Guardar mensagem** e **Repor padrão**. Fica em `/settings/bannedMessage` (leitura pública, escrita só para administradores, até 300 caracteres) e é mostrada como texto simples.
 - **Lista inicial:** Mariana, Marianna, Mariane, Mariani, Maryana, Mary Ana, Mari Ana, Marianinha, Mar1ana e M4riana.
 - **Limite:** a verificação é feita no navegador antes de gravar. Alguém com conhecimentos técnicos poderia contorná-la escrevendo diretamente na base de dados. Para impedir também isso seria preciso uma Cloud Function, o que exige o plano Blaze do Firebase.
 

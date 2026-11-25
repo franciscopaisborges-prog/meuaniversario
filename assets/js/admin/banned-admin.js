@@ -6,6 +6,9 @@
 import { $, esc } from "../shared/dom.js";
 import { normalizeTerm, hashTerm } from "../shared/banned.js";
 
+export const DEFAULT_BANNED_MESSAGE =
+  "Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.";
+
 export function createBannedAdmin({ db, dbModule }, { onChange } = {}) {
   const list = $("#bannedList");
   const form = $("#bannedForm");
@@ -13,6 +16,58 @@ export function createBannedAdmin({ db, dbModule }, { onChange } = {}) {
   const status = $("#bannedStatus");
   let entries = []; // { id, term, hash, createdAt }
   let unsubscribe = null;
+  let unsubscribeMsg = null;
+
+  /* ---- Mensagem personalizada ---- */
+  const msgForm = $("#bannedMsgForm");
+  const msgInput = $("#bannedMsgInput");
+  const msgCounter = $("#bannedMsgCounter");
+  const msgStatus = $("#bannedMsgStatus");
+  const msgRef = () => dbModule.ref(db, "settings/bannedMessage");
+  let msgDirty = false;
+
+  function setMsgStatus(text, kind) {
+    msgStatus.textContent = text || "";
+    msgStatus.className = `a-banned-status${kind ? ` is-${kind}` : ""}`;
+  }
+  const updateCounter = () => (msgCounter.textContent = `${msgInput.value.length} / 300`);
+
+  msgInput.addEventListener("input", () => {
+    msgDirty = true;
+    updateCounter();
+    setMsgStatus("");
+  });
+
+  async function saveMessage(value) {
+    const buttons = msgForm.querySelectorAll("button");
+    buttons.forEach((b) => (b.disabled = true));
+    try {
+      if (value) await dbModule.set(msgRef(), value);
+      else await dbModule.remove(msgRef());
+      msgDirty = false;
+      setMsgStatus(value ? "Mensagem guardada. Já está ativa no site." : "Mensagem reposta para a predefinida.", "ok");
+    } catch (error) {
+      console.error("[mensagem]", error);
+      setMsgStatus(errorText(error), "error");
+    } finally {
+      buttons.forEach((b) => (b.disabled = false));
+    }
+  }
+
+  msgForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const value = msgInput.value.replace(/\s+/g, " ").trim();
+    if (!value) {
+      setMsgStatus("Escreva uma mensagem (ou use “Repor padrão”).", "error");
+      return;
+    }
+    saveMessage(value === DEFAULT_BANNED_MESSAGE ? "" : value);
+  });
+  $("#bannedMsgReset").addEventListener("click", () => {
+    msgInput.value = DEFAULT_BANNED_MESSAGE;
+    updateCounter();
+    saveMessage("");
+  });
 
   function setLive(mode, text) {
     const el = $("#bannedLive");
@@ -112,6 +167,12 @@ export function createBannedAdmin({ db, dbModule }, { onChange } = {}) {
     start() {
       this.stop();
       setLive("idle", "A ligar…");
+      unsubscribeMsg = dbModule.onValue(msgRef(), (snap) => {
+        if (msgDirty) return; // não apagar o que está a ser escrito
+        const v = snap.val();
+        msgInput.value = typeof v === "string" && v ? v : DEFAULT_BANNED_MESSAGE;
+        updateCounter();
+      });
       unsubscribe = dbModule.onValue(
         dbModule.ref(db, "bannedNames"),
         (snapshot) => {
@@ -132,7 +193,12 @@ export function createBannedAdmin({ db, dbModule }, { onChange } = {}) {
     },
     stop() {
       if (unsubscribe) unsubscribe();
+      if (unsubscribeMsg) unsubscribeMsg();
       unsubscribe = null;
+      unsubscribeMsg = null;
+      msgDirty = false;
+      msgInput.value = "";
+      setMsgStatus("");
       entries = [];
       list.innerHTML = "";
       setStatus("");

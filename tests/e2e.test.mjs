@@ -912,6 +912,23 @@ await test("Nomes proibidos: painel adiciona, site bloqueia (sem acentos/maiúsc
   };
   const blocked = await send("  mariána   Silva ");
   assert.match(blocked, /Não foi possível registar a resposta com este nome/);
+
+  // mensagem personalizada pelo painel
+  await adm.locator("#tabBanned").click();
+  await adm.waitForFunction(() => document.querySelector("#bannedMsgInput").value.length > 0);
+  assert.match(await adm.locator("#bannedMsgInput").inputValue(), /Não foi possível registar/);
+  await adm.locator("#bannedMsgInput").fill("Ups! <b>Esta</b> festa é só por convite.");
+  await adm.locator("#bannedMsgSave").click();
+  await adm.waitForSelector("#bannedMsgStatus.is-ok");
+  assert.equal(await ownerGet("settings/bannedMessage"), "Ups! <b>Esta</b> festa é só por convite.");
+  const custom = await send("Mariana Costa");
+  assert.equal(custom.trim(), "Ups! <b>Esta</b> festa é só por convite.", "texto mostrado tal como escrito (sem HTML)");
+  await adm.screenshot({ path: join(OUT, "admin-banned-message.png"), fullPage: true });
+  await adm.locator("#bannedMsgReset").click();
+  await adm.waitForSelector("#bannedMsgStatus.is-ok");
+  assert.equal(await ownerGet("settings/bannedMessage"), null);
+  assert.match(await send("Mariana Costa"), /Não foi possível registar a resposta com este nome/);
+  await adm.locator("#tabRsvps").click();
   const all1 = Object.values((await ownerGet("rsvps")) || {});
   assert.equal(all1.some((r) => /silva/i.test(r.name)), false, "não gravou");
   await pub.screenshot({ path: join(OUT, "rsvp-banned.png") });

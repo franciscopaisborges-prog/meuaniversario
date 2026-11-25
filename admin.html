@@ -140,6 +140,19 @@
           </form>
           <p class="a-banned-status" id="bannedStatus" role="status" aria-live="polite"></p>
           <ul class="a-banned" id="bannedList" aria-label="Nomes proibidos"></ul>
+
+          <form class="a-banned-msg" id="bannedMsgForm" novalidate>
+            <div class="field">
+              <label class="field__label" for="bannedMsgInput">Mensagem mostrada a quem tem um nome proibido</label>
+              <textarea class="input" id="bannedMsgInput" maxlength="300" rows="3"></textarea>
+              <span class="counter" id="bannedMsgCounter">0 / 300</span>
+            </div>
+            <div class="a-banned-msg__actions">
+              <button class="btn btn--solid" type="submit" id="bannedMsgSave">Guardar mensagem</button>
+              <button class="btn btn--ghost" type="button" id="bannedMsgReset">Repor padrão</button>
+            </div>
+            <p class="a-banned-status" id="bannedMsgStatus" role="status" aria-live="polite"></p>
+          </form>
         </div>
 
         <!-- ===================== RESPOSTAS ===================== -->

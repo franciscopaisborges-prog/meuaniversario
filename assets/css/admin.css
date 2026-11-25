@@ -744,3 +744,27 @@ select.input option {
     grid-template-columns: 1fr;
   }
 }
+
+.a-banned-msg {
+  display: grid;
+  gap: 1rem;
+  max-width: 640px;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gold-line-soft);
+}
+.a-banned-msg__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+@media (max-width: 560px) {
+  .a-banned-msg__actions .btn {
+    flex: 1;
+  }
+}
+.a-banned-msg .counter {
+  justify-self: end;
+  font-size: 0.75rem;
+  color: var(--muted);
+}

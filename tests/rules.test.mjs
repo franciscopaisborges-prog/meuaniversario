@@ -334,6 +334,19 @@ await test("Admin remove nome proibido", async () => {
   assert.equal((await req("GET", `bannedHashes/${H}`)).json, null);
 });
 
+/* ---------- Mensagem para nomes proibidos ---------- */
+await test("Admin define a mensagem; público lê-a mas não a altera", async () => {
+  assert.equal((await req("PUT", "settings/bannedMessage", "Mensagem X", organizer.token)).status, 200);
+  assert.equal((await req("GET", "settings/bannedMessage")).json, "Mensagem X");
+  assert.equal((await req("PUT", "settings/bannedMessage", "hack")).status, 401);
+  assert.equal((await req("PUT", "settings/bannedMessage", "hack", otherGoogle.token)).status, 401);
+  assert.equal((await req("GET", "settings")).status, 401);
+});
+await test("Mensagem vazia ou > 300 caracteres é recusada", async () => {
+  assert.equal((await req("PUT", "settings/bannedMessage", "", organizer.token)).status, 401);
+  assert.equal((await req("PUT", "settings/bannedMessage", "x".repeat(301), organizer.token)).status, 401);
+});
+
 /* ---------- Versão (/meta) ---------- */
 await test("Anónimo lê /meta/version", async () => {
   assert.equal((await req("GET", "meta/version")).status, 200);
