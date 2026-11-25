@@ -437,7 +437,7 @@ Em `tools/assistente-email/` há um Google Apps Script gratuito que permite cont
 - alterar horários e nomes proibidos, ligar ou desligar os emails e forçar a atualização das páginas abertas, sempre com confirmação "sim";
 - receber um email por cada nova confirmação.
 
-Com uma chave gratuita do Gemini, percebe pedidos escritos de forma livre. As instruções completas estão em [`tools/assistente-email/LEIA-ME.md`](tools/assistente-email/LEIA-ME.md), e os testes correm com:
+Com uma chave do OpenRouter (modelos gratuitos), percebe pedidos escritos de forma livre. As instruções completas estão em [`tools/assistente-email/LEIA-ME.md`](tools/assistente-email/LEIA-ME.md), e os testes correm com:
 
 ```bash
 npm run test:assistente

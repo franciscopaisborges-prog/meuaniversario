@@ -1,6 +1,6 @@
 /**
  * Testes do assistente por email (tools/assistente-email/Code.gs) em Node,
- * com Gmail, Firebase (REST), Gemini e serviços do Apps Script simulados.
+ * com Gmail, Firebase (REST), OpenRouter e serviços do Apps Script simulados.
  * Executar:  node tests/assistente-email.test.mjs
  */
 import assert from "node:assert/strict";
@@ -108,12 +108,13 @@ function makeEnv({ gemini = [] } = {}) {
     UrlFetchApp: {
       fetch: (url, opts = {}) => {
         if (url.startsWith(DB_URL)) return firebase(url, opts);
-        if (url.includes("generativelanguage.googleapis.com")) {
+        if (url === "https://openrouter.ai/api/v1/chat/completions") {
           geminiCalls.push(JSON.parse(opts.payload));
-          assert.equal(opts.headers["x-goog-api-key"], "CHAVE");
+          assert.equal(opts.headers.Authorization, "Bearer CHAVE");
           const next = geminiQueue.shift();
-          if (!next) throw new Error("Gemini: sem resposta preparada");
-          return resp(200, JSON.stringify({ candidates: [{ content: { role: "model", parts: next } }] }));
+          if (!next) throw new Error("OpenRouter: sem resposta preparada");
+          if (next.status) return resp(next.status, JSON.stringify({ error: { message: next.error } }));
+          return resp(200, JSON.stringify({ choices: [{ message: next }] }));
         }
         throw new Error("URL inesperado: " + url);
       },
@@ -254,34 +255,53 @@ await test("Aviso por email de cada nova confirmação", () => {
   assert.equal(env.sent.length, 1, "não repete");
 });
 
-await test("IA: pedido em linguagem natural → consulta → alteração com confirmação", () => {
+await test("IA (OpenRouter): pedido em linguagem natural → consulta → alteração com confirmação", () => {
   const env = makeEnv({
     gemini: [
-      [{ functionCall: { name: "ver_horarios", args: {} } }],
-      [{ functionCall: { name: "definir_horario", args: { atividade: "7", inicio: "16:30", fim: "18:00" } } }],
+      { role: "assistant", content: null, tool_calls: [{ id: "c1", type: "function", function: { name: "ver_horarios", arguments: "{}" } }] },
+      {
+        role: "assistant",
+        content: null,
+        tool_calls: [{ id: "c2", type: "function", function: { name: "definir_horario", arguments: '{"atividade":"7","inicio":"16:30","fim":"18:00"}' } }],
+      },
     ],
   });
-  env.props.set("GEMINI_API_KEY", "CHAVE");
+  env.props.set("OPENROUTER_API_KEY", "CHAVE");
   const r = env.api.tratarMensagem_("põe o golfe às quatro e meia até às seis");
   assert.match(r, /07 Golfe.*16:30 – 18:00[\s\S]*Confirmas\?/);
   assert.equal(env.db.schedule, undefined);
   assert.equal(env.geminiCalls.length, 2);
-  const second = env.geminiCalls[1].contents;
-  assert.ok(second.some((c) => c.parts.some((p) => p.functionResponse?.name === "ver_horarios")), "resultado da consulta enviado à IA");
-  assert.ok(env.geminiCalls[0].tools[0].functionDeclarations.some((d) => d.name === "proibir_nome"));
+  const second = env.geminiCalls[1].messages;
+  assert.ok(second.some((m) => m.role === "tool" && m.tool_call_id === "c1" && /01 Largo/.test(m.content)), "resultado da consulta enviado à IA");
+  assert.ok(env.geminiCalls[0].tools.some((t) => t.type === "function" && t.function.name === "proibir_nome"));
+  assert.equal(env.geminiCalls[0].tools.find((t) => t.function.name === "definir_horario").function.parameters.properties.inicio.type, "string");
+  assert.equal(env.geminiCalls[0].model, "openrouter/free");
   assert.match(env.api.tratarMensagem_("sim"), /Feito/);
   assert.equal(env.db.schedule["07"].start, "16:30");
 });
 
-await test("IA: pergunta de consulta responde com texto, sem alterar", () => {
+await test("IA (OpenRouter): pergunta de consulta responde com texto, sem alterar", () => {
   const env = makeEnv({
-    gemini: [[{ functionCall: { name: "ver_resumo", args: {} } }], [{ text: "Vão 2 pessoas. A Rita tem alergia ao glúten." }]],
+    gemini: [
+      { role: "assistant", content: null, tool_calls: [{ id: "r1", type: "function", function: { name: "ver_resumo", arguments: "" } }] },
+      { role: "assistant", content: "Vão 2 pessoas. A Rita tem alergia ao glúten." },
+    ],
   });
-  env.props.set("GEMINI_API_KEY", "CHAVE");
+  env.props.set("OPENROUTER_API_KEY", "CHAVE");
   env.db.rsvps = { a: { name: "Rita", attending: "yes", createdAt: 1, allergies: "Glúten" } };
   const r = env.api.tratarMensagem_("quem tem alergias?");
   assert.equal(r, "Vão 2 pessoas. A Rita tem alergia ao glúten.");
   assert.ok(!env.fetches.some((f) => f.method !== "GET"), "nenhuma escrita");
+});
+
+await test("IA: erro do OpenRouter não bloqueia (mostra o erro e a ajuda); modelo configurável", () => {
+  const env = makeEnv({ gemini: [{ status: 429, error: "Rate limit exceeded: free-models-per-day" }] });
+  env.props.set("OPENROUTER_API_KEY", "CHAVE");
+  env.props.set("OPENROUTER_MODEL", "outro/modelo:free");
+  const r = env.api.tratarMensagem_("como está o dia?");
+  assert.match(r, /OpenRouter HTTP 429: Rate limit/);
+  assert.match(r, /hora 7 16:00/);
+  assert.equal(env.geminiCalls[0].model, "outro/modelo:free");
 });
 
 await test("Sem chave da IA, comandos simples funcionam e o resto mostra a ajuda", () => {

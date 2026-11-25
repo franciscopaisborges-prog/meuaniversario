@@ -12,7 +12,7 @@ Controla o aniversário a partir do Apple Watch, só com emails:
 
 1. A **conta Google dona do projeto Firebase** `aniversario-francisco`, a mesma do login da CLI.
 2. O teu **endereço iCloud**, que o Watch usa no Mail.
-3. *(Opcional, para escreveres à tua maneira)* uma **chave gratuita da IA Gemini**, criada em <https://aistudio.google.com/apikey> com a mesma conta Google.
+3. *(Opcional, para escreveres à tua maneira)* uma **chave do OpenRouter**, criada em <https://openrouter.ai/settings/keys>. É gratuita para modelos gratuitos.
 
 ## Instalação (cerca de 5 minutos, uma vez)
 
@@ -23,10 +23,10 @@ Controla o aniversário a partir do Apple Watch, só com emails:
    - volta ao **Editor**, abre `appsscript.json` e substitui o conteúdo pelo de [`appsscript.json`](appsscript.json).
 4. **O teu email:** no topo de `Code.gs`, troca `COLOCAR_O_TEU_EMAIL@icloud.com` pelo teu endereço iCloud. Só os emails desse endereço são aceites. Guarda com 💾.
 5. **IA (opcional):** em ⚙️ **Definições do projeto → Propriedades do script → Adicionar propriedade**:
-   - nome `GEMINI_API_KEY`;
-   - valor: a tua chave do Gemini.
+   - nome `OPENROUTER_API_KEY`;
+   - valor: a tua chave do OpenRouter.
 
-   Fica guardada só no teu Google, não no código.
+   Fica guardada só no teu Google, não no código. Por defeito usa `openrouter/free`, que escolhe sozinho um modelo gratuito disponível. Para fixar um modelo, adiciona também `OPENROUTER_MODEL` com o nome do modelo, por exemplo um terminado em `:free` que suporte "tools", como indica a página do modelo em openrouter.ai.
 6. **Teste de ligação:**
    - no editor, escolhe a função **`testarLigacao`** e carrega em **Executar**;
    - a Google pede autorização: **Rever permissões** → escolhe a conta → **Avançadas** → **Aceder a Assistente Aniversário (não seguro)** → **Permitir**. O aviso aparece porque o programa é teu e não foi publicado. As permissões são: ler e enviar emails, aceder ao Firebase e correr de minuto a minuto;
@@ -53,7 +53,7 @@ Para desligar, corre a função `desinstalar`.
 | `sim` / `não` | Confirma ou cancela a alteração pendente (válida durante 30 min) |
 | `ajuda` | Esta lista |
 
-**Com a chave do Gemini**, também podes escrever à tua maneira, por exemplo:
+**Com a chave do OpenRouter**, também podes escrever à tua maneira, por exemplo:
 
 - "põe o golfe às quatro e meia até às seis"
 - "quem é que tem alergias?"
@@ -68,7 +68,7 @@ Números das atividades: 01 Largo da Portagem · 02 Metrobus · 03 Mr. Pizza · 
 - **Confirmação:** toda a alteração pede "sim" e expira ao fim de 30 minutos.
 - **Respostas dos convidados:** não podem ser apagadas por aqui.
 - **IA:** a IA nunca grava diretamente. Só propõe; quem confirma és tu.
-- **Privacidade:** no nível gratuito do Gemini, a Google pode usar o conteúdo dos pedidos para melhorar os seus produtos. Quando perguntas por respostas ou alergias, esses dados passam pelo Gemini. Se preferires evitar isso, não adiciones a chave e usa só os comandos simples, que não passam pela IA.
+- **Privacidade:** nos modelos gratuitos do OpenRouter, os pedidos podem ficar registados pelo fornecedor do modelo; a página do `openrouter/free` indica que regista os pedidos. Quando perguntas por respostas ou alergias, esses dados passam pelo OpenRouter. Se preferires evitar isso, não adiciones a chave e usa só os comandos simples, que não passam pela IA.
 
 ## Problemas comuns
 
@@ -77,4 +77,10 @@ Números das atividades: 01 Largo da Portagem · 02 Metrobus · 03 Mr. Pizza · 
   - em script.google.com, vê **Execuções** à esquerda, onde aparecem os erros;
   - confirma que o email foi enviado do endereço configurado em `ICLOUD_EMAIL`.
 - **"Firebase GET … → 401":** a conta do script não é dona do projeto Firebase, ou faltou autorizar. Corre `testarLigacao` outra vez.
-- **"A IA não conseguiu responder":** a chave do Gemini está errada ou atingiu o limite gratuito. Os comandos simples continuam a funcionar. Podes mudar o modelo com a propriedade `GEMINI_MODEL`.
+- **"A IA não conseguiu responder (OpenRouter HTTP …)":**
+  - **401:** chave errada;
+  - **402:** sem créditos, para modelos pagos;
+  - **429:** limite diário gratuito atingido;
+  - **404 ou "No endpoints … tools":** o modelo não existe ou não suporta ferramentas. Troca a propriedade `OPENROUTER_MODEL`.
+
+  Os comandos simples continuam sempre a funcionar.

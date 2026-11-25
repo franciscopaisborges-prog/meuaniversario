@@ -6,7 +6,7 @@
  *  Corre no Google Apps Script, na conta Google dona do projeto Firebase.
  *  De minuto a minuto:
  *    1. lê os emails novos enviados do teu iCloud para esta conta Gmail;
- *    2. percebe o pedido (com IA Gemini, se tiver chave; senão, comandos simples);
+ *    2. percebe o pedido (com IA via OpenRouter, se tiver chave; senão, comandos simples);
  *    3. responde no mesmo email (curto, para ler no relógio);
  *    4. avisa-te por email de cada nova confirmação de presença.
  *
@@ -23,7 +23,10 @@ const CONFIG = {
   DATABASE_URL: "https://aniversario-francisco-default-rtdb.europe-west1.firebasedatabase.app",
   SITE_URL: "https://aniversario-francisco.web.app",
   SUBJECT: "Aniversário FR",
-  GEMINI_MODEL: "gemini-2.5-flash", // pode mudar em Propriedades do script → GEMINI_MODEL
+  // Modelo do OpenRouter (tem de suportar "tools"). "openrouter/free" escolhe
+  // automaticamente um modelo gratuito disponível. Para fixar outro, defina
+  // Propriedades do script → OPENROUTER_MODEL (ex.: um modelo terminado em ":free").
+  OPENROUTER_MODEL: "openrouter/free",
   PENDING_MINUTES: 30, // tempo para responder "sim" a uma alteração
   TIMEZONE: "Europe/Lisbon",
 };
@@ -174,7 +177,7 @@ function tratarMensagem_(texto) {
   if (t === "ajuda" || t === "?" || t === "help") return ajuda_();
   const simples = comandosSimples_(texto);
   if (simples) return simples;
-  const key = PropertiesService.getScriptProperties().getProperty("GEMINI_API_KEY");
+  const key = PropertiesService.getScriptProperties().getProperty("OPENROUTER_API_KEY");
   if (key) {
     try {
       return conversarIA_(texto, key);
@@ -271,9 +274,9 @@ const ACOES = {
     escrita: true,
     descricao: "Define o horário de uma atividade (hora de início obrigatória, fim opcional).",
     params: {
-      atividade: { type: "STRING", description: "Número da atividade, de 01 a 09." },
-      inicio: { type: "STRING", description: "Hora de início, HH:MM (24h)." },
-      fim: { type: "STRING", description: "Hora de fim, HH:MM (24h), ou vazio." },
+      atividade: { type: "string", description: "Número da atividade, de 01 a 09." },
+      inicio: { type: "string", description: "Hora de início, HH:MM (24h)." },
+      fim: { type: "string", description: "Hora de fim, HH:MM (24h), ou vazio." },
     },
     obrigatorios: ["atividade", "inicio"],
     validar: (a) => {
@@ -297,7 +300,7 @@ const ACOES = {
   remover_horario: {
     escrita: true,
     descricao: "Tira o horário de uma atividade (passa a 'A confirmar').",
-    params: { atividade: { type: "STRING", description: "Número da atividade, de 01 a 09." } },
+    params: { atividade: { type: "string", description: "Número da atividade, de 01 a 09." } },
     obrigatorios: ["atividade"],
     validar: (a) => (idAtividade_(a.atividade) ? { args: { atividade: idAtividade_(a.atividade) } } : { erro: "Atividade inválida." }),
     resumo: (a) => `${nomeAtividade_(a.atividade)} passa a "A confirmar"`,
@@ -309,7 +312,7 @@ const ACOES = {
   proibir_nome: {
     escrita: true,
     descricao: "Proíbe um nome: quem confirmar presença com este nome não fica registado.",
-    params: { nome: { type: "STRING", description: "Nome ou palavra a proibir." } },
+    params: { nome: { type: "string", description: "Nome ou palavra a proibir." } },
     obrigatorios: ["nome"],
     validar: (a) => {
       const nome = String(a.nome || "").replace(/\s+/g, " ").trim().slice(0, 60);
@@ -333,7 +336,7 @@ const ACOES = {
   permitir_nome: {
     escrita: true,
     descricao: "Retira um nome da lista de nomes proibidos.",
-    params: { nome: { type: "STRING", description: "Nome a voltar a permitir." } },
+    params: { nome: { type: "string", description: "Nome a voltar a permitir." } },
     obrigatorios: ["nome"],
     validar: (a) => (normalizarNome_(a.nome) ? { args: { nome: String(a.nome).trim() } } : { erro: "Nome vazio." }),
     resumo: (a) => `Voltar a permitir o nome "${a.nome}"`,
@@ -355,7 +358,7 @@ const ACOES = {
   mensagem_proibidos: {
     escrita: true,
     descricao: "Muda a mensagem mostrada a quem tenta confirmar com um nome proibido. Usar texto 'padrão' para repor.",
-    params: { texto: { type: "STRING", description: "Nova mensagem (até 300 caracteres) ou 'padrão'." } },
+    params: { texto: { type: "string", description: "Nova mensagem (até 300 caracteres) ou 'padrão'." } },
     obrigatorios: ["texto"],
     validar: (a) => {
       const t = String(a.texto || "").replace(/\s+/g, " ").trim();
@@ -373,7 +376,7 @@ const ACOES = {
   emails: {
     escrita: true,
     descricao: "Liga ou desliga os emails automáticos do EmailJS a cada resposta.",
-    params: { ligar: { type: "BOOLEAN", description: "true para ligar, false para desligar." } },
+    params: { ligar: { type: "boolean", description: "true para ligar, false para desligar." } },
     obrigatorios: ["ligar"],
     validar: (a) => ({ args: { ligar: a.ligar === true || a.ligar === "true" } }),
     resumo: (a) => (a.ligar ? "Ligar os emails EmailJS" : "Desligar os emails EmailJS"),
@@ -426,22 +429,18 @@ function executarPendente_(pend) {
   return ACOES[pend.acao].run(pend.args);
 }
 
-/* ================================ IA (GEMINI) ============================= */
+/* ============================== IA (OPENROUTER) =========================== */
 
 function conversarIA_(texto, key) {
-  const model = PropertiesService.getScriptProperties().getProperty("GEMINI_MODEL") || CONFIG.GEMINI_MODEL;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-  const tools = [
-    {
-      functionDeclarations: Object.entries(ACOES).map(([nome, a]) => {
-        const decl = { name: nome, description: a.descricao };
-        if (Object.keys(a.params || {}).length) {
-          decl.parameters = { type: "OBJECT", properties: a.params, required: a.obrigatorios || [] };
-        }
-        return decl;
-      }),
+  const model = PropertiesService.getScriptProperties().getProperty("OPENROUTER_MODEL") || CONFIG.OPENROUTER_MODEL;
+  const tools = Object.entries(ACOES).map(([nome, a]) => ({
+    type: "function",
+    function: {
+      name: nome,
+      description: a.descricao,
+      parameters: { type: "object", properties: a.params || {}, required: a.obrigatorios || [] },
     },
-  ];
+  }));
   const agora = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm");
   const sistema = [
     "És o assistente do organizador do aniversário de Francisco Rodrigues (Coimbra, 29/11/2026).",
@@ -454,44 +453,57 @@ function conversarIA_(texto, key) {
     "Não podes apagar respostas de convidados. Se o pedido não for sobre o aniversário, diz que só tratas do aniversário.",
   ].join("\n");
 
-  const contents = [{ role: "user", parts: [{ text: texto }] }];
+  const messages = [
+    { role: "system", content: sistema },
+    { role: "user", content: texto },
+  ];
   for (let i = 0; i < 4; i += 1) {
-    const res = UrlFetchApp.fetch(url, {
+    const res = UrlFetchApp.fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "post",
       contentType: "application/json",
-      headers: { "x-goog-api-key": key },
+      headers: {
+        Authorization: "Bearer " + key,
+        "HTTP-Referer": CONFIG.SITE_URL,
+        "X-Title": "Assistente Aniversario FR",
+      },
       muteHttpExceptions: true,
-      payload: JSON.stringify({
-        systemInstruction: { parts: [{ text: sistema }] },
-        contents,
-        tools,
-        generationConfig: { temperature: 0.2, maxOutputTokens: 400 },
-      }),
+      payload: JSON.stringify({ model, messages, tools, tool_choice: "auto", temperature: 0.2, max_tokens: 400 }),
     });
     const code = res.getResponseCode();
-    if (code !== 200) throw new Error("Gemini HTTP " + code);
+    if (code !== 200) {
+      let detalhe = "";
+      try {
+        detalhe = JSON.parse(res.getContentText()).error.message;
+      } catch (e) {
+        detalhe = "";
+      }
+      throw new Error("OpenRouter HTTP " + code + (detalhe ? ": " + String(detalhe).slice(0, 120) : ""));
+    }
     const data = JSON.parse(res.getContentText());
-    const cand = data.candidates && data.candidates[0];
-    const parts = (cand && cand.content && cand.content.parts) || [];
-    const calls = parts.filter((p) => p.functionCall);
+    const msg = data.choices && data.choices[0] && data.choices[0].message;
+    if (!msg) throw new Error("resposta vazia");
+    const calls = msg.tool_calls || [];
     if (!calls.length) {
-      const txt = parts.map((p) => p.text || "").join("").trim();
+      const txt = String(msg.content || "").trim();
       return txt || "Não percebi. Escreve 'ajuda' para ver os comandos.";
     }
-    contents.push({ role: "model", parts });
-    const respostas = [];
-    for (const p of calls) {
-      const nome = p.functionCall.name;
-      const args = p.functionCall.args || {};
+    messages.push({ role: "assistant", content: msg.content || "", tool_calls: calls });
+    for (const c of calls) {
+      const nome = c.function && c.function.name;
+      let args = {};
+      try {
+        args = c.function.arguments ? JSON.parse(c.function.arguments) : {};
+      } catch (e) {
+        args = {};
+      }
       const def = ACOES[nome];
       if (!def) {
-        respostas.push({ functionResponse: { name: nome, response: { erro: "Ferramenta desconhecida." } } });
+        messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ erro: "Ferramenta desconhecida." }) });
         continue;
       }
       if (def.escrita) return pedirConfirmacao_(nome, args); // nunca altera sem "sim"
-      respostas.push({ functionResponse: { name: nome, response: { resultado: def.run(args) } } });
+      messages.push({ role: "tool", tool_call_id: c.id, content: JSON.stringify({ resultado: def.run(args) }) });
     }
-    contents.push({ role: "user", parts: respostas });
   }
   return "Não consegui concluir. Tenta dizer de outra forma, ou escreve 'ajuda'.";
 }
