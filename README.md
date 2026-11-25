@@ -418,7 +418,7 @@ A cada resposta (sim ou não), o navegador do convidado envia um email através 
      ```
    - Guarde e copie o **Template ID**.
 4. Em **Account → General**, copie a **Public Key**.
-5. Recomendado: em **Account → Security**, ative **Use Private Key** desligado, e em **Allowed origins** coloque apenas `https://aniversario-francisco.web.app`. Isto impede que outros sites usem a sua conta.
+5. Recomendado: em **Account → Security**, preencha a lista de origens permitidas só com `https://aniversario-francisco.web.app`. Assim, outros sites não podem usar a sua conta.
 6. No painel, separador **Email**:
    - cole os três códigos;
    - ligue **Enviar email a cada resposta**;
