@@ -17,6 +17,7 @@ Convite digital interativo para o aniversário de Francisco Rodrigues, com progr
 ├── index.html                  Site do convite (página única com router por hash)
 ├── admin.html                  Painel privado de administração
 ├── promax.html                 Página “Código PROMAX2.0” (ligada a partir da atividade 08)
+├── info.html                   Versão só de texto do convite (para robôs / assistente telefónico); gerada por tools/build-info.mjs
 ├── firebase-config.js          ← CONFIGURAÇÃO DO FIREBASE (partilhada pelos dois documentos)
 ├── firebase-rtdb-rules.json    Regras de segurança da Realtime Database
 ├── firebase.json               Hosting, cabeçalhos de segurança (CSP), regras e emuladores

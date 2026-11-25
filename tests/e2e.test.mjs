@@ -1113,6 +1113,26 @@ await test("Visitas: registo anónimo, sem duplicados na sessão, painel com hor
   await pubCtx.close();
 });
 
+/* ============================== INFO.HTML ============================== */
+await test("info.html: texto simples com as 9 atividades e horários atuais", async () => {
+  await ownerPut("schedule/03", { start: "13:00", end: "14:15", updatedAt: Date.now() });
+  const ctx = await browser.newContext();
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  const errors = watchErrors(page);
+  const res = await page.goto(`${BASE}/info.html?emulators=1`);
+  assert.equal(res.status(), 200);
+  const raw = await res.text();
+  assert.equal((raw.match(/<section id="atividade-/g) || []).length, 9, "atividades no HTML estático");
+  for (const t of ["Largo da Portagem", "Metrobus", "Mr. Pizza", "Torre de Almedina", "Regresso à Portagem", "Quinta das Lágrimas", "Move C", "alergias"])
+    assert.ok(raw.includes(t), t);
+  assert.equal(/Stay Hotel|Sala Smart|Mariana|PROMAX/i.test(raw), false, "sem dados privados");
+  await page.waitForFunction(() => document.querySelector('[data-schedule="03"]')?.textContent === "13:00 – 14:15");
+  assert.deepEqual(errors, []);
+  await ctx.close();
+  await ownerPut("schedule", null);
+});
+
 /* ============================== PROMAX 2.0 ============================== */
 await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante e EM BREVE", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
