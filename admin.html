@@ -99,6 +99,7 @@
           <button class="a-tab" type="button" role="tab" id="tabSchedule" aria-controls="panelSchedule" aria-selected="false" tabindex="-1">Horários</button>
           <button class="a-tab" type="button" role="tab" id="tabBanned" aria-controls="panelBanned" aria-selected="false" tabindex="-1">Nomes proibidos</button>
           <button class="a-tab" type="button" role="tab" id="tabVisits" aria-controls="panelVisits" aria-selected="false" tabindex="-1">Visitas</button>
+          <button class="a-tab" type="button" role="tab" id="tabEmail" aria-controls="panelEmail" aria-selected="false" tabindex="-1">Email</button>
         </div>
 
         <!-- ===================== HORÁRIOS ===================== -->
@@ -154,6 +155,59 @@
             </div>
             <p class="a-banned-status" id="bannedMsgStatus" role="status" aria-live="polite"></p>
           </form>
+        </div>
+
+        <!-- ===================== EMAIL (EmailJS) ===================== -->
+        <div id="panelEmail" role="tabpanel" aria-labelledby="tabEmail" hidden>
+          <div class="a-dash-head">
+            <div>
+              <p class="eyebrow a-gold">Avisos por email · EmailJS</p>
+              <h2 class="a-title a-title--xl">Email</h2>
+            </div>
+            <p class="a-live" id="emailLive"><span class="a-live__dot" aria-hidden="true"></span> <span id="emailLiveText">A ligar…</span></p>
+          </div>
+          <p class="a-text a-schedule-intro">
+            Sempre que alguém confirmar (ou recusar) a presença, é enviado um email através da sua conta
+            <a href="https://www.emailjs.com" target="_blank" rel="noopener" class="a-gold">EmailJS</a>. O email de destino é o
+            que definir no modelo do EmailJS — nunca aparece no site. Se o envio falhar, a resposta fica registada na mesma.
+          </p>
+          <form class="a-email-form" id="emailForm" novalidate>
+            <label class="a-switch">
+              <input type="checkbox" id="emailEnabled" />
+              <span class="a-switch__track" aria-hidden="true"><span class="a-switch__thumb"></span></span>
+              <span>Enviar email a cada resposta</span>
+            </label>
+            <div class="field">
+              <label class="field__label" for="emailService">Service ID</label>
+              <input class="input" id="emailService" type="text" autocomplete="off" spellcheck="false" placeholder="service_xxxxxxx" maxlength="64" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="emailTemplate">Template ID</label>
+              <input class="input" id="emailTemplate" type="text" autocomplete="off" spellcheck="false" placeholder="template_xxxxxxx" maxlength="64" />
+            </div>
+            <div class="field">
+              <label class="field__label" for="emailKey">Public Key</label>
+              <input class="input" id="emailKey" type="text" autocomplete="off" spellcheck="false" placeholder="xxxxxxxxxxxxxxxxx" maxlength="64" />
+            </div>
+            <div class="a-banned-msg__actions">
+              <button class="btn btn--solid" type="submit" id="emailSave">Guardar</button>
+              <button class="btn btn--ghost" type="button" id="emailTest">Enviar email de teste</button>
+            </div>
+            <p class="a-banned-status" id="emailStatus" role="status" aria-live="polite"></p>
+          </form>
+          <details class="a-email-help">
+            <summary>Variáveis disponíveis no modelo do EmailJS</summary>
+            <p class="a-text">Use-as no assunto e no corpo do modelo, entre chavetas duplas:</p>
+            <ul>
+              <li><code>{{guest_name}}</code> — nome do convidado</li>
+              <li><code>{{attending}}</code> — “Sim, vai estar presente” / “Não vai conseguir ir” (<code>{{attending_short}}</code>: SIM/NÃO)</li>
+              <li><code>{{message}}</code> — mensagem opcional</li>
+              <li><code>{{transport_card}}</code> — situação do cartão Move C</li>
+              <li><code>{{allergies}}</code> — alergias</li>
+              <li><code>{{submitted_at}}</code> — data e hora da resposta</li>
+              <li><code>{{event_date}}</code>, <code>{{site_url}}</code></li>
+            </ul>
+          </details>
         </div>
 
         <!-- ===================== VISITAS ===================== -->

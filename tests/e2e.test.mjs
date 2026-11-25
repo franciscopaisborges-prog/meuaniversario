@@ -944,6 +944,107 @@ await test("Nomes proibidos: painel adiciona, site bloqueia (sem acentos/maiúsc
   await pubCtx.close();
 });
 
+/* ================================ EMAILJS ================================ */
+await test("EmailJS: painel configura e testa; confirmação envia email; desligado não envia", async () => {
+  await ownerPut("settings/emailjs", null);
+  const sent = [];
+  const ctx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  await prepare(ctx);
+  await ctx.route("https://api.emailjs.com/**", async (route) => {
+    sent.push(JSON.parse(route.request().postData() || "{}"));
+    await route.fulfill({ status: 200, body: "OK", headers: { "Access-Control-Allow-Origin": "*" } });
+  });
+  const adm = await ctx.newPage();
+  const admErrors = watchErrors(adm);
+  await adm.goto(`${BASE}/admin.html?emulators=1`);
+  await adm.waitForSelector("#viewLogin:not([hidden])");
+  await googleLogin(adm, ADMIN_EMAIL);
+  await adm.waitForSelector("#viewDashboard:not([hidden])");
+  await adm.locator("#tabEmail").click();
+  // validação
+  await adm.locator("#emailSave").click();
+  assert.match(await adm.locator("#emailStatus").innerText(), /Service ID/);
+  await adm.locator(".a-switch").click();
+  await adm.locator("#emailService").fill("service_teste1");
+  await adm.locator("#emailTemplate").fill("template_teste1");
+  await adm.locator("#emailKey").fill("chavePublica_123");
+  await adm.locator("#emailTest").click();
+  await adm.waitForSelector("#emailStatus.is-ok");
+  assert.equal(sent.length, 1);
+  assert.equal(sent[0].service_id, "service_teste1");
+  assert.equal(sent[0].template_id, "template_teste1");
+  assert.equal(sent[0].user_id, "chavePublica_123");
+  assert.equal(sent[0].template_params.guest_name, "Convidado de teste");
+  await adm.locator("#emailSave").click();
+  await adm.waitForSelector("#emailStatus.is-ok");
+  assert.deepEqual(await ownerGet("settings/emailjs"), {
+    enabled: true,
+    serviceId: "service_teste1",
+    templateId: "template_teste1",
+    publicKey: "chavePublica_123",
+  });
+  await adm.screenshot({ path: join(OUT, "admin-email.png"), fullPage: true });
+
+  // confirmação no site → email com os dados da resposta
+  const pub = await ctx.newPage();
+  const pubErrors = watchErrors(pub);
+  await pub.goto(`${BASE}/?emulators=1`);
+  await pub.waitForSelector(".step__link");
+  await pub.locator(".hero__actions [data-open-rsvp]").click();
+  await pub.locator("#rsvpName").fill("Rita Email");
+  await pub.locator('label.choice:has-text("Sim")').click();
+  await pub.locator("#rsvpMessage").fill("Até lá!");
+  await pub.locator("#noticesToggle").click();
+  await pub.locator("label.check").click();
+  await pub.locator("#rsvpAllergies").fill("Glúten");
+  await pub.locator("#rsvpSubmit").click();
+  await pub.waitForSelector("#rsvpResultView:not([hidden])");
+  await pub.waitForFunction(() => true);
+  for (let i = 0; i < 30 && sent.length < 2; i += 1) await pub.waitForTimeout(200);
+  assert.equal(sent.length, 2, "email enviado após confirmação");
+  const p = sent[1].template_params;
+  assert.equal(p.guest_name, "Rita Email");
+  assert.equal(p.attending_short, "SIM");
+  assert.equal(p.message, "Até lá!");
+  assert.match(p.transport_card, /NÃO tem cartão/);
+  assert.equal(p.allergies, "Glúten");
+  assert.match(p.submitted_at, /\d{2}\/\d{2}\/\d{4}/);
+
+  // desligar → nenhuma mensagem
+  await adm.locator(".a-switch").click();
+  await adm.locator("#emailSave").click();
+  await adm.waitForFunction(() => /desligados/.test(document.querySelector("#emailStatus").textContent));
+  await pub.locator("#rsvpAnother").click();
+  await pub.locator("#rsvpName").fill("Sem Email");
+  await pub.locator('label.choice:has-text("Não vou")').click();
+  await pub.locator("#rsvpSubmit").click();
+  await pub.waitForSelector("#rsvpResultView:not([hidden])");
+  await pub.waitForTimeout(1500);
+  assert.equal(sent.length, 2, "desligado não envia");
+  assert.deepEqual([...admErrors, ...pubErrors], []);
+  await ctx.close();
+  await ownerPut("settings/emailjs", null);
+});
+
+await test("EmailJS: falha do envio não impede a confirmação", async () => {
+  await ownerPut("settings/emailjs", { enabled: true, serviceId: "s1", templateId: "t1", publicKey: "k1" });
+  const ctx = await browser.newContext();
+  await prepare(ctx);
+  await ctx.route("https://api.emailjs.com/**", (route) => route.fulfill({ status: 400, body: "The Public Key is invalid" }));
+  const pub = await ctx.newPage();
+  await pub.goto(`${BASE}/?emulators=1`);
+  await pub.waitForSelector(".step__link");
+  await pub.locator(".hero__actions [data-open-rsvp]").click();
+  await pub.locator("#rsvpName").fill("Falha Email");
+  await pub.locator('label.choice:has-text("Não vou")').click();
+  await pub.locator("#rsvpSubmit").click();
+  await pub.waitForSelector("#rsvpResultView:not([hidden])");
+  const all = Object.values((await ownerGet("rsvps")) || {});
+  assert.ok(all.some((r) => r.name === "Falha Email"));
+  await ctx.close();
+  await ownerPut("settings/emailjs", null);
+});
+
 /* ================================ VISITAS ================================ */
 await test("Visitas: registo anónimo, sem duplicados na sessão, painel com horas e 'não contar'", async () => {
   await ownerPut("visits", null);

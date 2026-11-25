@@ -10,6 +10,7 @@ import { $, $$, esc, normalize } from "../shared/dom.js";
 import { createScheduleAdmin } from "./schedule-admin.js";
 import { createBannedAdmin } from "./banned-admin.js";
 import { createVisitsAdmin } from "./visits-admin.js";
+import { createEmailAdmin } from "./email-admin.js";
 import { matchesBanned } from "../shared/banned.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
@@ -68,6 +69,7 @@ let fb = null; // { db, auth, authModule, dbModule }
 let scheduleAdmin = null;
 let bannedAdmin = null;
 let visitsAdmin = null;
+let emailAdmin = null;
 
 /* ---------------- Separadores (Respostas / Horários) ---------------- */
 function selectTab(tab) {
@@ -438,6 +440,7 @@ function clearData() {
   scheduleAdmin?.stop();
   bannedAdmin?.stop();
   visitsAdmin?.stop();
+  emailAdmin?.stop();
   state.records = [];
   state.knownIds = new Set();
   state.firstLoad = true;
@@ -501,6 +504,7 @@ async function onUser(user) {
   scheduleAdmin.start();
   bannedAdmin.start();
   visitsAdmin.start();
+  emailAdmin.start();
 }
 
 /* ---------------- Arranque ---------------- */
@@ -538,6 +542,7 @@ async function boot() {
   scheduleAdmin = createScheduleAdmin(fb);
   bannedAdmin = createBannedAdmin(fb, { onChange: () => render() });
   visitsAdmin = createVisitsAdmin(fb);
+  emailAdmin = createEmailAdmin(fb);
   initTabs();
   const { watchVersion } = await import("../shared/version-watch.js");
   watchVersion(fb.db, fb.dbModule, { onBeforeReload: clearData });

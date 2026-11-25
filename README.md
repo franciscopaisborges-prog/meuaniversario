@@ -396,6 +396,39 @@ npm run force-refresh
 - **Apagar histórico de visitas:** pede confirmação antes de apagar.
 - **Regras:** qualquer visitante pode criar uma visita válida, mas não a pode ler, alterar nem apagar. Só os administradores leem e apagam o histórico.
 
+## 7E. Avisos por email com EmailJS (painel → separador “Email”)
+
+A cada resposta (sim ou não), o navegador do convidado envia um email através do [EmailJS](https://www.emailjs.com). O plano gratuito permite 200 emails por mês.
+
+1. Crie uma conta em <https://dashboard.emailjs.com/sign-up>.
+2. Em **Email Services → Add New Service**, escolha **Gmail** (ou outro), ligue a sua conta e copie o **Service ID**.
+3. Em **Email Templates → Create New Template**:
+   - **To Email:** o seu email, escrito diretamente no modelo. Assim nunca aparece no site.
+   - **Subject:** `Aniversário FR — {{guest_name}}: {{attending_short}}`
+   - **Content:**
+     ```
+     {{guest_name}} respondeu ao convite.
+
+     Resposta: {{attending}}
+     Mensagem: {{message}}
+     Cartão Move C: {{transport_card}}
+     Alergias: {{allergies}}
+
+     Enviado em {{submitted_at}} · {{site_url}}
+     ```
+   - Guarde e copie o **Template ID**.
+4. Em **Account → General**, copie a **Public Key**.
+5. Recomendado: em **Account → Security**, ative **Use Private Key** desligado, e em **Allowed origins** coloque apenas `https://aniversario-francisco.web.app`. Isto impede que outros sites usem a sua conta.
+6. No painel, separador **Email**:
+   - cole os três códigos;
+   - ligue **Enviar email a cada resposta**;
+   - carregue em **Guardar** e depois em **Enviar email de teste**.
+
+**Notas:**
+- Os códigos ficam em `/settings/emailjs`, com leitura pública e escrita só para administradores. São públicos por natureza, porque o EmailJS é chamado a partir do navegador.
+- Se o envio falhar, por exemplo por limite mensal ou falta de rede, a resposta fica registada na mesma.
+- Respostas recusadas por nome proibido não geram email.
+
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
@@ -419,6 +452,7 @@ npm run force-refresh
 | Mudar cores ou tipografia | variáveis no topo de `assets/css/base.css` |
 | Mudar o texto do convite | `index.html` |
 | Mudar os limites do formulário | `assets/js/site/rsvp.js` **e** `firebase-rtdb-rules.json` (manter coerentes) |
+| Receber email a cada resposta | `admin.html` → separador **Email** (EmailJS) |
 | Ver visitas e horas | `admin.html` → separador **Visitas** |
 | Proibir ou permitir um nome | `admin.html` → separador **Nomes proibidos** |
 | Adicionar um administrador | RTDB: `/admins/<UID>: true` |

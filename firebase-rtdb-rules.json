@@ -110,6 +110,26 @@
         ".read": true,
         ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
         ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 300"
+      },
+      "emailjs": {
+        ".read": true,
+        ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
+        ".validate": "newData.hasChildren(['enabled', 'serviceId', 'templateId', 'publicKey'])",
+        "enabled": {
+          ".validate": "newData.isBoolean()"
+        },
+        "serviceId": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)"
+        },
+        "templateId": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)"
+        },
+        "publicKey": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{1,64}$/)"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "visits": {

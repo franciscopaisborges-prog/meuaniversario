@@ -868,3 +868,77 @@ select.input option {
   max-width: 46rem;
   font-size: 0.82rem;
 }
+
+/* Email (EmailJS) */
+.a-email-form {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 520px;
+}
+.a-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 44px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.a-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.a-switch__track {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: background-color 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.a-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bone-dim);
+  transition: transform 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+.a-switch input:checked + .a-switch__track {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.a-switch input:checked + .a-switch__track .a-switch__thumb {
+  transform: translateX(22px);
+  background: var(--ink-0);
+}
+.a-switch input:focus-visible + .a-switch__track {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 3px;
+}
+.a-email-help {
+  max-width: 46rem;
+  margin-top: 2rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--gold-line-soft);
+  color: var(--bone-dim);
+  font-size: 0.9rem;
+}
+.a-email-help summary {
+  cursor: pointer;
+  color: var(--gold-light);
+  font-weight: 600;
+}
+.a-email-help ul {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.a-email-help code {
+  color: var(--gold-light);
+}

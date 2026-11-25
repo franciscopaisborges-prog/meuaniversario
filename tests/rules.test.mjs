@@ -374,6 +374,21 @@ await test("Só admins leem e apagam visitas", async () => {
   assert.equal((await req("DELETE", "visits", undefined, organizer.token)).status, 200);
 });
 
+/* ---------- EmailJS ---------- */
+const ejs = (extra = {}) => ({ enabled: true, serviceId: "service_abc123", templateId: "template_x9", publicKey: "AbC-123_xyz", ...extra });
+await test("Admin guarda configuração EmailJS; público lê, não altera", async () => {
+  assert.equal((await req("PUT", "settings/emailjs", ejs(), organizer.token)).status, 200);
+  assert.equal((await req("GET", "settings/emailjs")).json.serviceId, "service_abc123");
+  assert.equal((await req("PUT", "settings/emailjs", ejs({ serviceId: "service_mau" }))).status, 401);
+  assert.equal((await req("PUT", "settings/emailjs", ejs(), otherGoogle.token)).status, 401);
+});
+await test("Rejeita configuração EmailJS inválida", async () => {
+  assert.equal((await req("PUT", "settings/emailjs", ejs({ serviceId: "com espaços" }), organizer.token)).status, 401);
+  assert.equal((await req("PUT", "settings/emailjs", ejs({ enabled: "sim" }), organizer.token)).status, 401);
+  assert.equal((await req("PUT", "settings/emailjs", ejs({ toEmail: "x@y.z" }), organizer.token)).status, 401);
+  assert.equal((await req("PUT", "settings/emailjs", { enabled: true }, organizer.token)).status, 401);
+});
+
 /* ---------- Versão (/meta) ---------- */
 await test("Anónimo lê /meta/version", async () => {
   assert.equal((await req("GET", "meta/version")).status, 200);

@@ -32,6 +32,20 @@ async function bannedMessage(db, dbModule) {
   }
 }
 
+/** Envia o aviso por email (EmailJS), se estiver configurado no painel. */
+async function notifyByEmail(db, dbModule, data) {
+  try {
+    const snap = await dbModule.get(dbModule.ref(db, "settings/emailjs"));
+    const { isEmailConfigComplete, sendEmail, rsvpTemplateParams } = await import("../shared/emailjs.js");
+    const cfg = snap.val();
+    if (!isEmailConfigComplete(cfg)) return;
+    const result = await sendEmail(cfg, rsvpTemplateParams(data));
+    if (!result.ok) console.warn("[email] envio falhou:", result.status, result.text);
+  } catch (error) {
+    console.warn("[email] indisponível:", error?.message || error);
+  }
+}
+
 async function loadDatabase() {
   const [{ getFirebase }, dbModule] = await Promise.all([import("../shared/firebase.js"), import(DB_CDN)]);
   const { db } = await getFirebase();
@@ -368,6 +382,7 @@ export function initRsvp() {
       await withTimeout(dbModule.set(writeRef, payload), WRITE_TIMEOUT_MS, "timeout", "timeout");
 
       showResult(data.attending);
+      notifyByEmail(db, dbModule, data); // em segundo plano; nunca afeta a confirmação
     } catch (error) {
       console.error("[RSVP]", error);
       setStatus(friendlyError(error));
