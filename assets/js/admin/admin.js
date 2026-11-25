@@ -8,6 +8,8 @@
  */
 import { $, $$, esc, normalize } from "../shared/dom.js";
 import { createScheduleAdmin } from "./schedule-admin.js";
+import { createBannedAdmin } from "./banned-admin.js";
+import { matchesBanned } from "../shared/banned.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 const EXPECTED_GUESTS = 6;
@@ -63,6 +65,7 @@ async function openDecoyGame() {
 
 let fb = null; // { db, auth, authModule, dbModule }
 let scheduleAdmin = null;
+let bannedAdmin = null;
 
 /* ---------------- Separadores (Respostas / Horários) ---------------- */
 function selectTab(tab) {
@@ -204,11 +207,14 @@ function render() {
   $("#statYesHint").textContent = `de ${EXPECTED_GUESTS} convidados previstos`;
 
   const rows = visibleRecords();
+  const bannedSet = bannedAdmin && !state.decoy ? bannedAdmin.normalizedSet() : new Set();
   $("#rsvpRows").innerHTML = rows
     .map(
       (r) => `
       <tr class="${!state.firstLoad && !state.knownIds.has(r.id) ? "is-new" : ""}">
-        <td class="a-name">${esc(r.name)}</td>
+        <td class="a-name">${esc(r.name)}${
+          bannedSet.size && matchesBanned(r.name, bannedSet) ? '<span class="badge badge--banned">Nome proibido</span>' : ""
+        }</td>
         <td><span class="badge badge--${r.attending === "yes" ? "yes" : "no"}">${esc(statusLabel(r.attending))}</span></td>
         <td class="a-msg">${r.message ? esc(r.message) : '<span class="a-muted">—</span>'}</td>
         <td>${
@@ -428,6 +434,7 @@ function clearData() {
   state.decoy = false;
   stopListening();
   scheduleAdmin?.stop();
+  bannedAdmin?.stop();
   state.records = [];
   state.knownIds = new Set();
   state.firstLoad = true;
@@ -489,6 +496,7 @@ async function onUser(user) {
   render();
   startListening();
   scheduleAdmin.start();
+  bannedAdmin.start();
 }
 
 /* ---------------- Arranque ---------------- */
@@ -524,6 +532,7 @@ async function boot() {
 
   const { auth, authModule } = fb;
   scheduleAdmin = createScheduleAdmin(fb);
+  bannedAdmin = createBannedAdmin(fb, { onChange: () => render() });
   initTabs();
   const { watchVersion } = await import("../shared/version-watch.js");
   watchVersion(fb.db, fb.dbModule, { onBeforeReload: clearData });

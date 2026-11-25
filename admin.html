@@ -97,6 +97,7 @@
         <div class="a-tabs" role="tablist" aria-label="Secções do painel">
           <button class="a-tab" type="button" role="tab" id="tabRsvps" aria-controls="panelRsvps" aria-selected="true">Respostas</button>
           <button class="a-tab" type="button" role="tab" id="tabSchedule" aria-controls="panelSchedule" aria-selected="false" tabindex="-1">Horários</button>
+          <button class="a-tab" type="button" role="tab" id="tabBanned" aria-controls="panelBanned" aria-selected="false" tabindex="-1">Nomes proibidos</button>
         </div>
 
         <!-- ===================== HORÁRIOS ===================== -->
@@ -114,6 +115,31 @@
             <strong>“A confirmar”</strong>.
           </p>
           <ol class="a-schedule" id="scheduleList" aria-label="Horários das atividades"></ol>
+        </div>
+
+        <!-- ===================== NOMES PROIBIDOS ===================== -->
+        <div id="panelBanned" role="tabpanel" aria-labelledby="tabBanned" hidden>
+          <div class="a-dash-head">
+            <div>
+              <p class="eyebrow a-gold">Confirmações bloqueadas</p>
+              <h2 class="a-title a-title--xl">Nomes proibidos</h2>
+            </div>
+            <p class="a-live" id="bannedLive"><span class="a-live__dot" aria-hidden="true"></span> <span id="bannedLiveText">A ligar…</span></p>
+          </div>
+          <p class="a-text a-schedule-intro">
+            Quem tentar confirmar presença com um destes nomes não fica registado e vê apenas
+            “Não foi possível registar a resposta com este nome”. A comparação ignora maiúsculas e acentos e verifica cada
+            palavra do nome (por exemplo, “Mariana” bloqueia também “MARIÁNA Silva”). A lista nunca é visível no site público.
+          </p>
+          <form class="a-banned-form" id="bannedForm" novalidate>
+            <div class="field">
+              <label class="field__label" for="bannedInput">Nome ou palavra a proibir</label>
+              <input class="input" id="bannedInput" name="term" type="text" maxlength="60" autocomplete="off" placeholder="Ex.: Mariana" />
+            </div>
+            <button class="btn btn--solid" type="submit" id="bannedAdd">Adicionar</button>
+          </form>
+          <p class="a-banned-status" id="bannedStatus" role="status" aria-live="polite"></p>
+          <ul class="a-banned" id="bannedList" aria-label="Nomes proibidos"></ul>
         </div>
 
         <!-- ===================== RESPOSTAS ===================== -->

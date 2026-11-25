@@ -676,3 +676,71 @@ select.input option {
     grid-template-columns: 1fr;
   }
 }
+
+/* Nomes proibidos */
+.a-banned-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  max-width: 640px;
+}
+.a-banned-status {
+  min-height: 1.4em;
+  margin: 0.75rem 0 1.25rem;
+  font-size: 0.88rem;
+}
+.a-banned-status.is-error { color: var(--danger); }
+.a-banned-status.is-ok { color: var(--ok); }
+.a-banned {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.6rem;
+}
+.a-banned li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: 0.4rem 0.4rem 0.4rem 1rem;
+  border: 1px solid rgba(227, 139, 124, 0.35);
+  background: rgba(227, 139, 124, 0.05);
+}
+.a-banned__term {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.a-banned__remove {
+  min-height: 40px;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--gold-line);
+  background: none;
+  color: var(--bone-dim);
+  font: 600 0.62rem/1 var(--font-sans);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.a-banned__remove:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.a-banned-empty {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.badge--banned {
+  margin-left: 0.5rem;
+  color: #f2c2b8;
+  border-color: rgba(227, 139, 124, 0.6);
+  background: rgba(227, 139, 124, 0.12);
+}
+@media (max-width: 560px) {
+  .a-banned-form {
+    grid-template-columns: 1fr;
+  }
+}

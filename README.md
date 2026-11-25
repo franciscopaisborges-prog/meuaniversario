@@ -370,6 +370,17 @@ npm run force-refresh
 - `/meta` tem leitura pública e não pode ser escrito a partir do site. Só a CLI com acesso de dono do projeto o altera.
 - **Administrador removido:** se for retirado de `/admins` enquanto tem o painel aberto, as regras recusam logo a leitura e o painel apaga os dados do ecrã e mostra “sem autorização”.
 
+## 7C. Nomes proibidos (painel → separador “Nomes proibidos”)
+
+- **No painel:** adicione ou remova nomes ou palavras. Quem tentar confirmar presença com um nome que contenha um desses termos não fica registado e vê apenas “Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.”
+- **Comparação:** ignora maiúsculas, acentos e pontuação, e verifica cada palavra, cada par de palavras seguidas (com e sem espaço) e o nome completo. “Mariana” bloqueia “MARIÁNA Silva”, mas não “Ana Maria”.
+- **Privacidade:**
+  - `/bannedNames` guarda a lista legível e só os administradores a leem.
+  - `/bannedHashes/{sha256}` guarda só impressões digitais. O site público consulta apenas as do nome escrito e não consegue listar nenhuma.
+- **No separador Respostas:** as respostas antigas com um nome proibido aparecem marcadas com “Nome proibido”.
+- **Lista inicial:** Mariana, Marianna, Mariane, Mariani, Maryana, Mary Ana, Mari Ana, Marianinha, Mar1ana e M4riana.
+- **Limite:** a verificação é feita no navegador antes de gravar. Alguém com conhecimentos técnicos poderia contorná-la escrevendo diretamente na base de dados. Para impedir também isso seria preciso uma Cloud Function, o que exige o plano Blaze do Firebase.
+
 ## 8. Limitações e pendentes (dependem de si)
 
 1. **Firebase:** já ligado ao projeto `aniversario-francisco` e publicado em <https://aniversario-francisco.web.app>, com o painel em `/admin.html` (login Google de franciscopaisborges@gmail.com). Para voltar a publicar depois de alterações, use `npm run deploy`.
@@ -393,6 +404,7 @@ npm run force-refresh
 | Mudar cores ou tipografia | variáveis no topo de `assets/css/base.css` |
 | Mudar o texto do convite | `index.html` |
 | Mudar os limites do formulário | `assets/js/site/rsvp.js` **e** `firebase-rtdb-rules.json` (manter coerentes) |
+| Proibir ou permitir um nome | `admin.html` → separador **Nomes proibidos** |
 | Adicionar um administrador | RTDB: `/admins/<UID>: true` |
 | Remover um administrador | Apagar `/admins/<UID>` (o acesso termina de imediato) |
 | Obrigar as páginas abertas a atualizar | `npm run force-refresh` |

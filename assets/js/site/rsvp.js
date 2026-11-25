@@ -11,6 +11,14 @@ const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js"
  * O Firebase é carregado de forma dinâmica: se o CDN estiver inacessível,
  * o resto do site (programa, mapa) continua a funcionar.
  */
+/** Verifica se o nome contém algum termo proibido (lê só as entradas candidatas). */
+async function isBannedName(db, dbModule, name) {
+  const { candidateTerms, hashTerm } = await import("../shared/banned.js");
+  const hashes = await Promise.all(candidateTerms(name).map(hashTerm));
+  const snaps = await Promise.all(hashes.map((h) => dbModule.get(dbModule.ref(db, `bannedHashes/${h}`))));
+  return snaps.some((snap) => snap.val() === true);
+}
+
 async function loadDatabase() {
   const [{ getFirebase }, dbModule] = await Promise.all([import("../shared/firebase.js"), import(DB_CDN)]);
   const { db } = await getFirebase();
@@ -119,6 +127,9 @@ function friendlyError(error) {
   }
   if (/dynamically imported module|importing a module script failed|error loading dynamically/i.test(msg)) {
     return "Não foi possível carregar o serviço de envio (problema de rede). A tua resposta não foi enviada — verifica a ligação e tenta novamente.";
+  }
+  if (code === "banned") {
+    return "Não foi possível registar a resposta com este nome. Fala diretamente com o organizador.";
   }
   if (code === "offline") {
     return "Parece que estás sem ligação à internet. A tua resposta não foi enviada — verifica a ligação e tenta novamente.";
@@ -322,6 +333,9 @@ export function initRsvp() {
       if (navigator.onLine === false) throw new RsvpError("offline", "offline");
       const { db, dbModule } = await loadDatabase();
       await waitForConnection(db, dbModule, CONNECT_TIMEOUT_MS);
+      if (await withTimeout(isBannedName(db, dbModule, data.name), WRITE_TIMEOUT_MS, "timeout", "timeout")) {
+        throw new RsvpError("banned", "banned");
+      }
 
       const payload = {
         name: data.name,

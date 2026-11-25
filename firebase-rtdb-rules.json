@@ -76,6 +76,33 @@
       "$uid": {
         ".read": "auth != null && auth.uid === $uid"
       }
+    },
+    "bannedNames": {
+      ".read": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
+      "$id": {
+        ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
+        ".validate": "newData.hasChildren(['term', 'hash', 'createdAt'])",
+        "term": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+        },
+        "hash": {
+          ".validate": "newData.isString() && newData.val().matches(/^[0-9a-f]{64}$/)"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() <= now"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "bannedHashes": {
+      ".read": false,
+      "$hash": {
+        ".read": true,
+        ".write": "auth != null && (root.child('admins').child(auth.uid).val() === true || (auth.token.email === 'franciscopaisborges@gmail.com' && auth.token.email_verified === true))",
+        ".validate": "$hash.matches(/^[0-9a-f]{64}$/) && newData.val() === true"
+      }
     }
   }
 }

@@ -300,6 +300,40 @@ await test("Conta fictícia continua sem ler /rsvps", async () => {
   assert.equal((await req("GET", "rsvps", undefined, otherGoogle.token)).status, 401);
 });
 
+/* ---------- Nomes proibidos ---------- */
+const H = "a".repeat(64);
+const H2 = "b".repeat(64);
+await test("Admin adiciona nome proibido (nome + impressão digital)", async () => {
+  const r = await req("PATCH", "", { "bannedNames/t1": { term: "Mariana", hash: H, createdAt: { ".sv": "timestamp" } }, [`bannedHashes/${H}`]: true }, organizer.token);
+  assert.equal(r.status, 200, JSON.stringify(r.json));
+});
+await test("Público verifica UMA impressão digital, mas não lista", async () => {
+  const one = await req("GET", `bannedHashes/${H}`);
+  assert.equal(one.status, 200);
+  assert.equal(one.json, true);
+  assert.equal((await req("GET", `bannedHashes/${H2}`)).json, null);
+  assert.equal((await req("GET", "bannedHashes")).status, 401);
+});
+await test("Público e não-admins NÃO leem a lista de nomes", async () => {
+  assert.equal((await req("GET", "bannedNames")).status, 401);
+  assert.equal((await req("GET", "bannedNames", undefined, otherGoogle.token)).status, 401);
+  assert.equal((await req("GET", "bannedNames", undefined, organizer.token)).status, 200);
+});
+await test("Público NÃO escreve nem apaga nomes proibidos", async () => {
+  assert.equal((await req("PUT", `bannedHashes/${H2}`, true)).status, 401);
+  assert.equal((await req("DELETE", `bannedHashes/${H}`)).status, 401);
+  assert.equal((await req("PUT", "bannedNames/x", { term: "x", hash: H2, createdAt: { ".sv": "timestamp" } }, otherGoogle.token)).status, 401);
+});
+await test("Rejeita impressão digital inválida", async () => {
+  assert.equal((await req("PUT", "bannedHashes/naohex", true, organizer.token)).status, 401);
+  assert.equal((await req("PUT", `bannedNames/t2`, { term: "x", hash: "zz", createdAt: { ".sv": "timestamp" } }, organizer.token)).status, 401);
+});
+await test("Admin remove nome proibido", async () => {
+  const r = await req("PATCH", "", { "bannedNames/t1": null, [`bannedHashes/${H}`]: null }, organizer.token);
+  assert.equal(r.status, 200);
+  assert.equal((await req("GET", `bannedHashes/${H}`)).json, null);
+});
+
 /* ---------- Versão (/meta) ---------- */
 await test("Anónimo lê /meta/version", async () => {
   assert.equal((await req("GET", "meta/version")).status, 200);

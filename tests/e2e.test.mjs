@@ -867,6 +867,66 @@ await test("Horários (telemóvel): painel utilizável e sem scroll horizontal",
 });
 await ownerPut("schedule", null);
 
+/* ============================ NOMES PROIBIDOS ============================ */
+await test("Nomes proibidos: painel adiciona, site bloqueia (sem acentos/maiúsculas), remover volta a permitir", async () => {
+  await ownerPut("bannedNames", null);
+  await ownerPut("bannedHashes", null);
+  await anonPush({ name: "Mariana Teste", attending: "yes", createdAt: { ".sv": "timestamp" }, eventDate: "2026-11-29", noticesRead: true, noTransportCard: false });
+  const admCtx = await browser.newContext({ viewport: { width: 1360, height: 900 } });
+  await prepare(admCtx);
+  const adm = await admCtx.newPage();
+  const admErrors = watchErrors(adm);
+  await adm.goto(`${BASE}/admin.html?emulators=1`);
+  await adm.waitForSelector("#viewLogin:not([hidden])");
+  await googleLogin(adm, ADMIN_EMAIL);
+  await adm.waitForSelector("#viewDashboard:not([hidden])");
+  await adm.locator("#tabBanned").click();
+  await adm.waitForSelector("#panelBanned:not([hidden])");
+  await adm.locator("#bannedInput").fill("Mariana");
+  await adm.locator("#bannedAdd").click();
+  await adm.waitForSelector('#bannedList li[data-id] .a-banned__term:text("Mariana")');
+  // duplicado (com acento/maiúsculas) é recusado
+  await adm.waitForSelector("#bannedStatus.is-ok");
+  await adm.locator("#bannedInput").fill("MARIÁNA");
+  await adm.locator("#bannedAdd").click();
+  await adm.waitForSelector("#bannedStatus.is-error");
+  assert.match(await adm.locator("#bannedStatus").innerText(), /já está na lista/);
+  await adm.screenshot({ path: join(OUT, "admin-banned.png"), fullPage: true });
+  // resposta existente com nome proibido fica marcada
+  await adm.locator("#tabRsvps").click();
+  await adm.waitForFunction(() => [...document.querySelectorAll("#rsvpRows tr")].some((tr) => /Mariana Teste/.test(tr.textContent) && tr.querySelector(".badge--banned")));
+
+  const pubCtx = await browser.newContext();
+  await prepare(pubCtx);
+  const pub = await pubCtx.newPage();
+  const send = async (name) => {
+    await pub.goto(`${BASE}/?emulators=1`);
+    await pub.waitForSelector(".step__link");
+    await pub.locator(".hero__actions [data-open-rsvp]").click();
+    await pub.locator("#rsvpName").fill(name);
+    await pub.locator('label.choice:has-text("Sim")').click();
+    await pub.locator("#noticesToggle").click();
+    await pub.locator("#rsvpSubmit").click();
+    await pub.waitForSelector("#rsvpStatus .alert--error, #rsvpResultView:not([hidden])");
+    return (await pub.locator("#rsvpResultView").isVisible()) ? "ok" : await pub.locator("#rsvpStatus").innerText();
+  };
+  const blocked = await send("  mariána   Silva ");
+  assert.match(blocked, /Não foi possível registar a resposta com este nome/);
+  const all1 = Object.values((await ownerGet("rsvps")) || {});
+  assert.equal(all1.some((r) => /silva/i.test(r.name)), false, "não gravou");
+  await pub.screenshot({ path: join(OUT, "rsvp-banned.png") });
+  assert.equal(await send("Ana Maria"), "ok", "nome parecido mas não proibido passa");
+
+  // remover → volta a permitir
+  await adm.locator("#tabBanned").click();
+  await adm.locator('#bannedList [data-remove]').first().click();
+  await adm.waitForSelector("#bannedList .a-banned-empty");
+  assert.equal(await send("Mariana Silva"), "ok");
+  assert.deepEqual(admErrors, []);
+  await admCtx.close();
+  await pubCtx.close();
+});
+
 /* ============================== PROMAX 2.0 ============================== */
 await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante e EM BREVE", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
