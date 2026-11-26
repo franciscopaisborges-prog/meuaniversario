@@ -145,7 +145,7 @@
           ".validate": "newData.isNumber() && newData.val() === now"
         },
         "page": {
-          ".validate": "newData.isString() && (newData.val() === 'convite' || newData.val() === 'promax')"
+          ".validate": "newData.isString() && (newData.val() === 'convite' || newData.val() === 'promax' || newData.val() === 'citygames')"
         },
         "visitor": {
           ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9]{16}$/)"

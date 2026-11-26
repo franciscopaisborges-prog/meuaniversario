@@ -1159,6 +1159,81 @@ await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante
   await ctx.close();
 });
 
+/* ============================== OU · CITY GAMES ============================== */
+await test("OU: botão no fim do programa abre City Games (preto/néon) com animação e capítulos", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  const errors = watchErrors(page);
+  await page.goto(`${BASE}/?emulators=1`);
+  await page.waitForSelector("#roteiro li");
+  const ou = page.locator('#programa a.ou-btn[href="citygames.html"]');
+  assert.equal(await ou.count(), 1);
+  assert.match(await ou.innerText(), /^OU/);
+  // fica depois do último passo do programa
+  const after = await page.evaluate(() => {
+    const r = document.querySelector("#roteiro");
+    const b = document.querySelector(".ou-btn");
+    return Boolean(r.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  });
+  assert.ok(after, "OU depois do roteiro");
+  await ou.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: join(OUT, "ou-button.png") });
+  await Promise.all([page.waitForURL(/citygames\.html$/), ou.click()]);
+  assert.match(await page.title(), /City Games/);
+  assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), "rgb(0, 0, 0)");
+  assert.equal(await page.locator(".cg-level").count(), 6);
+  assert.ok((await page.locator(".cg-item").count()) >= 6);
+  assert.match(await page.locator("#cgInventory").innerText(), /Bolo de aniversário/);
+  assert.match(await page.locator("main").innerText(), /Continente/);
+  assert.match(await page.locator("main").innerText(), /Avenida Dr\. Mendes Silva/);
+  // animação a correr (só quando está visível) e capítulos a saltar de cena
+  await page.locator("#cgPlayer").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(200);
+  const t1 = await page.locator("#cgTime").innerText();
+  await page.waitForTimeout(1300);
+  const t2 = await page.locator("#cgTime").innerText();
+  assert.notEqual(t1, t2, "o tempo avança");
+  await page.locator('.cg-chapter[data-chapter="3"]').click();
+  assert.equal(await page.locator("#cgCanvas").getAttribute("data-scene"), "3");
+  assert.equal(await page.locator('.cg-chapter[data-chapter="3"]').getAttribute("aria-current"), "step");
+  await page.locator("#cgPlay").click();
+  assert.equal(await page.locator("#cgPlay").getAttribute("aria-label"), "Reproduzir");
+  const p1 = await page.locator("#cgTime").innerText();
+  await page.waitForTimeout(800);
+  assert.equal(await page.locator("#cgTime").innerText(), p1, "pausado não avança");
+  const painted = await page.evaluate(() => {
+    const c = document.getElementById("cgCanvas");
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let lit = 0;
+    for (let i = 0; i < d.length; i += 4 * 97) if (d[i] + d[i + 1] + d[i + 2] > 200) lit += 1;
+    return lit;
+  });
+  assert.ok(painted > 50, `canvas desenhado (${painted})`);
+  for (const ch of [0, 1, 2, 4, 5]) {
+    await page.locator(`.cg-chapter[data-chapter="${ch}"]`).click();
+    await page.waitForTimeout(150);
+    await page.locator("#cgPlayer").screenshot({ path: join(OUT, `citygames-scene-${ch}.png`) });
+  }
+  await page.screenshot({ path: join(OUT, "citygames-top.png") });
+  await page.waitForFunction(() => sessionStorage.getItem("fr-aniversario:visited:citygames") === "1", null, { timeout: 15000 });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+await test("OU · City Games (telemóvel): sem scroll horizontal", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  await page.goto(`${BASE}/citygames.html`);
+  await page.waitForSelector(".cg-level");
+  const ow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  assert.ok(ow <= 0, `overflow ${ow}`);
+  await page.screenshot({ path: join(OUT, "citygames-mobile.png"), fullPage: true });
+  await ctx.close();
+});
+
 await test("PROMAX 2.0 (telemóvel): sem scroll horizontal", async () => {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
   await prepare(ctx);

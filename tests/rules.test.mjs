@@ -352,6 +352,7 @@ const visit = (extra = {}) => ({ at: { ".sv": "timestamp" }, page: "convite", vi
 await test("Anónimo regista uma visita válida", async () => {
   assert.equal((await req("POST", "visits", visit())).status, 200);
   assert.equal((await req("POST", "visits", visit({ page: "promax", device: "computador" }))).status, 200);
+  assert.equal((await req("POST", "visits", visit({ page: "citygames", device: "telemovel" }))).status, 200);
 });
 for (const [label, extra] of [
   ["página inválida", { page: "admin" }],

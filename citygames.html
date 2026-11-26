@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="pt-PT">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>OU · City Games</title>
+    <meta name="description" content="Plano alternativo do aniversário do Francisco: comer e jogar na City Games, no Coimbra Shopping." />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/citygames.css" />
+    <script type="module" src="assets/js/site/citygames.js"></script>
+  </head>
+  <body class="cg">
+    <div class="cg-grid" aria-hidden="true"></div>
+    <div class="cg-scan" aria-hidden="true"></div>
+
+    <a class="cg-back" href="index.html#programa">
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 12H5M11 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+      Programa principal
+    </a>
+
+    <main>
+      <!-- Abertura -->
+      <header class="cg-hero">
+        <p class="cg-kicker"><span class="cg-blink" aria-hidden="true">▶</span> Plano alternativo</p>
+        <p class="cg-ou" aria-hidden="true">OU</p>
+        <h1 class="cg-title" data-text="CITY GAMES">CITY GAMES</h1>
+        <p class="cg-sub">Comer e jogar no <b>Coimbra Shopping</b>, com a comida toda do <b>Continente</b>.</p>
+        <ul class="cg-chips" aria-label="Resumo">
+          <li><span>Data</span> 29 nov 2026</li>
+          <li><span>Jogadores</span> 6</li>
+          <li><span>Horário</span> A confirmar</li>
+        </ul>
+      </header>
+
+      <!-- "Vídeo" animado -->
+      <section class="cg-section" aria-labelledby="cgVideoTitle">
+        <h2 class="cg-h2" id="cgVideoTitle"><span>01</span> O trailer</h2>
+        <figure class="cg-player" id="cgPlayer">
+          <div class="cg-screen">
+            <canvas id="cgCanvas" width="960" height="540" role="img" aria-label="Animação do programa: encontro no Coimbra Shopping, compras no Continente, refeição, jogos na City Games, torneio e parabéns."></canvas>
+            <button class="cg-bigplay" id="cgBigPlay" type="button" aria-label="Reproduzir animação" hidden>
+              <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+            </button>
+          </div>
+          <div class="cg-controls">
+            <button class="cg-play" id="cgPlay" type="button" aria-label="Pausar">
+              <svg class="i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" /></svg>
+              <svg class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+            </button>
+            <input class="cg-seek" id="cgSeek" type="range" min="0" max="1000" value="0" step="1" aria-label="Posição da animação" />
+            <output class="cg-time" id="cgTime">0:00 / 0:30</output>
+          </div>
+          <ol class="cg-chapters" id="cgChapters" aria-label="Capítulos">
+            <!-- gerado por citygames.js -->
+          </ol>
+        </figure>
+      </section>
+
+      <!-- Níveis -->
+      <section class="cg-section" aria-labelledby="cgLevelsTitle">
+        <h2 class="cg-h2" id="cgLevelsTitle"><span>02</span> O programa, nível a nível</h2>
+        <ol class="cg-levels" id="cgLevels">
+          <!-- gerado por citygames.js -->
+        </ol>
+      </section>
+
+      <!-- Inventário Continente -->
+      <section class="cg-section" aria-labelledby="cgMenuTitle">
+        <h2 class="cg-h2" id="cgMenuTitle"><span>03</span> Inventário · Menu Continente</h2>
+        <p class="cg-lead">Toda a comida vem do <b>Continente do Coimbra Shopping</b>, comprada no próprio dia. A lista final ainda está por confirmar e tem em conta as alergias indicadas na confirmação de presença.</p>
+        <ul class="cg-inventory" id="cgInventory">
+          <!-- gerado por citygames.js -->
+        </ul>
+      </section>
+
+      <!-- Onde -->
+      <section class="cg-section" aria-labelledby="cgWhereTitle">
+        <h2 class="cg-h2" id="cgWhereTitle"><span>04</span> Ponto de partida</h2>
+        <div class="cg-where">
+          <div>
+            <p class="cg-where__name">Coimbra Shopping</p>
+            <p class="cg-where__addr">Avenida Dr. Mendes Silva, 3030-193 Coimbra</p>
+            <p class="cg-where__note">Não confundir com o Fórum Coimbra, que é outro centro comercial.</p>
+          </div>
+          <a class="cg-btn" href="https://www.openstreetmap.org/search?query=Coimbra%20Shopping%2C%20Avenida%20Dr.%20Mendes%20Silva%2C%20Coimbra" target="_blank" rel="noopener noreferrer">Abrir no mapa ↗</a>
+        </div>
+        <p class="cg-fine">Plano alternativo ao programa principal. Horários e detalhes a confirmar pelo organizador.</p>
+      </section>
+    </main>
+
+    <footer class="cg-footer">
+      <a href="index.html#programa">← Voltar ao programa principal</a>
+      <a href="index.html#presenca">Confirmar presença</a>
+    </footer>
+  </body>
+</html>

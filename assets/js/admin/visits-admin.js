@@ -7,7 +7,7 @@ import { isTrackingDisabled, setTrackingDisabled } from "../shared/visit.js";
 
 const TZ = "Europe/Lisbon";
 const LIMIT = 2000;
-const PAGE_LABEL = { convite: "Convite", promax: "PROMAX 2.0" };
+const PAGE_LABEL = { convite: "Convite", promax: "PROMAX 2.0", citygames: "OU · City Games" };
 const DEVICE_LABEL = { telemovel: "Telemóvel", tablet: "Tablet", computador: "Computador" };
 
 const dayKeyFmt = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" });
