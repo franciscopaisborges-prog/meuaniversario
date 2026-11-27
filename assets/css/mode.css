@@ -52,10 +52,23 @@ html[data-mode="games"] .mode-switch {
   inset: 0;
   border-radius: inherit;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.24);
   -webkit-backdrop-filter: blur(14px) saturate(1.7);
   backdrop-filter: blur(14px) saturate(1.7);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.mode-switch__track::before {
+  /* borda de vidro: fina, mais clara em cima e a desaparecer em baixo */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.12) 55%, rgba(255, 255, 255, 0.22));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
 }
 .mode-switch__track::after {
   /* reflexo do vidro */
@@ -74,21 +87,19 @@ html[data-mode="games"] .mode-switch {
   display: flex;
   width: var(--sw);
   height: var(--sh);
+  /* dourado a fundir-se no preto, sem corte a meio */
+  background: radial-gradient(70% 140% at 18% 0%, rgba(255, 244, 214, 0.5), transparent 60%),
+    radial-gradient(70% 140% at 82% 0%, rgba(130, 130, 180, 0.26), transparent 60%),
+    linear-gradient(90deg, #b8975a 0%, #8f7036 34%, #5a4422 46%, #1c1a22 54%, #0b0b12 66%, #050508 100%);
 }
 .ms-half {
   flex: 1;
   display: grid;
   place-items: center;
 }
-.ms-half--classic {
-  /* vidro com dourado clássico */
-  background: radial-gradient(120% 140% at 20% 0%, rgba(255, 244, 214, 0.55), transparent 55%),
-    linear-gradient(160deg, rgba(243, 227, 182, 0.5) 0%, rgba(201, 169, 97, 0.42) 45%, rgba(120, 92, 40, 0.55) 100%);
-}
+.ms-half--classic,
 .ms-half--games {
-  /* vidro preto */
-  background: radial-gradient(120% 140% at 80% 0%, rgba(120, 120, 170, 0.28), transparent 55%),
-    linear-gradient(160deg, rgba(30, 30, 46, 0.78) 0%, rgba(4, 4, 8, 0.92) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.18));
 }
 .ms-label {
   font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -126,13 +137,24 @@ html[data-mode="games"] .mode-switch {
   height: calc(var(--sh) - 2 * var(--pad));
   border-radius: 999px;
   overflow: hidden;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.95), inset 0 -3px 8px rgba(0, 0, 0, 0.28),
-    0 6px 16px rgba(0, 0, 0, 0.55);
+  background: #050508; /* opaco: o que está por baixo não aparece "duplicado" */
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 12px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+  z-index: 3;
+}
+.mode-switch__thumb::before {
+  /* aro de vidro da lente */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.85), inset 0 -2px 5px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   pointer-events: none;
 }
 .ms-face--lens {
   transform-origin: calc(var(--tx) + var(--tw) / 2) 50%;
-  transform: translate(calc(-1 * var(--tx)), calc(-1 * var(--pad))) scale(1.38);
+  transform: translate(calc(-1 * var(--tx)), calc(-1 * var(--pad))) scale(1.2);
 }
 .mode-switch__thumb::after {
   /* brilho especular da lente */
@@ -143,10 +165,10 @@ html[data-mode="games"] .mode-switch {
   background: radial-gradient(80% 60% at 30% 12%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 60%),
     radial-gradient(70% 50% at 70% 110%, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0) 70%);
   mix-blend-mode: screen;
+  z-index: 1;
 }
 html[data-mode="games"] .mode-switch__thumb {
-  box-shadow: 0 0 0 1px rgba(34, 243, 255, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.8), inset 0 -3px 8px rgba(0, 0, 0, 0.4),
-    0 0 14px rgba(34, 243, 255, 0.55), 0 0 26px rgba(255, 43, 214, 0.35);
+  box-shadow: 0 0 0 0.5px rgba(34, 243, 255, 0.8), 0 0 10px rgba(34, 243, 255, 0.45), 0 0 22px rgba(255, 43, 214, 0.25), 0 4px 12px rgba(0, 0, 0, 0.55);
 }
 
 @keyframes ms-buzz {
