@@ -13,7 +13,7 @@
 import { writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { PROGRAM, EVENT } from "../assets/js/site/program.js";
-import { LEVELS, INVENTORY, GAMES_START, GAMES_END } from "../assets/js/site/games.js";
+import { LEVELS, INVENTORY, GAMES_START, GAMES_END, GAMES_DATE_LABEL } from "../assets/js/site/games.js";
 
 const SITE = "https://aniversario-francisco.web.app";
 const DB = "https://aniversario-francisco-default-rtdb.europe-west1.firebasedatabase.app";
@@ -160,7 +160,7 @@ const html = `<!doctype html>
     <h2 id="resumo">1. Resumo do evento</h2>
     <table>
       <tr><th>Aniversariante</th><td>${esc(EVENT.name)} (monograma ${esc(EVENT.initials)})</td></tr>
-      <tr><th>Data</th><td>${esc(EVENT.weekday)}, ${esc(EVENT.dateLabel)}</td></tr>
+      <tr><th>Datas</th><td>Programa principal: ${esc(EVENT.weekday)}, ${esc(EVENT.dateLabel)}.<br />Programa secundário (GAMES): ${esc(GAMES_DATE_LABEL)}, das ${GAMES_START} às ${GAMES_END}.</td></tr>
       <tr><th>Cidade</th><td>${esc(EVENT.city)}, Portugal</td></tr>
       <tr><th>Pessoas</th><td>${esc(EVENT.guests)} pessoas (${esc(EVENT.guests)} jogadores no programa secundário)</td></tr>
       <tr><th>Site do convite</th><td><a href="${SITE}">${SITE}</a></td></tr>
@@ -190,6 +190,7 @@ const html = `<!doctype html>
       <li><b>O switch não muda de página:</b> muda só o <b>estilo</b> e o <b>programa</b>.
         <ul>
           <li>CLASSIC: preto e dourado, letra serifada elegante, programa principal (9 momentos) e mapa.</li>
+          <li>GAMES: a data mostrada no topo, no menu e na contagem decrescente passa a sábado, 28 de novembro.</li>
           <li>GAMES: preto e néon (azul, rosa e verde-lima), letra de computador com brilho, chão em grelha néon; o programa principal e o mapa dão lugar ao programa secundário (trailer, 6 níveis, menu Continente e ponto de partida).</li>
         </ul>
       </li>
@@ -205,7 +206,7 @@ const html = `<!doctype html>
     ${classic}
 
     <h2 id="secundario">5. Programa secundário — 6 níveis (modo GAMES)</h2>
-    <p>Alternativa ao programa principal: comer e jogar <b>minigames</b> na zona de jogos do <b>Bowling City</b> (City Games), no <b>Coimbra Shopping</b>, com a comida toda comprada no <b>Continente</b> do Coimbra Shopping. <b>Não se joga bowling</b>, só minigames. <b>Horário: das ${GAMES_START} às ${GAMES_END}.</b> Cada nível dura 30 minutos, exceto os minigames (o momento principal), que duram 1 h 15. São ${esc(EVENT.guests)} jogadores.</p>
+    <p>Alternativa ao programa principal: comer e jogar <b>minigames</b> na zona de jogos do <b>Bowling City</b> (City Games), no <b>Coimbra Shopping</b>, com a comida toda comprada no <b>Continente</b> do Coimbra Shopping. <b>Não se joga bowling</b>, só minigames. <b>Data e horário: ${esc(GAMES_DATE_LABEL)}, das ${GAMES_START} às ${GAMES_END}</b> (um dia antes do programa principal). Cada nível dura 30 minutos, exceto os minigames (o momento principal), que duram 1 h 15. São ${esc(EVENT.guests)} jogadores.</p>
     <p><b>Ponto de partida:</b> Coimbra Shopping, Avenida Dr. Mendes Silva, 3030-193 Coimbra (não confundir com o Fórum Coimbra, que é outro centro comercial).</p>
     <h3>Níveis</h3>
     <ol>${games}
@@ -246,13 +247,13 @@ const html = `<!doctype html>
 
     <h2 id="faq">9. Perguntas frequentes</h2>
     <h4>Quando e onde é?</h4>
-    <p>${esc(EVENT.weekday)}, ${esc(EVENT.dateLabel)}, em ${esc(EVENT.city)}. Programa principal: começa no ${esc(PROGRAM[0].place)}. Programa secundário: começa no Coimbra Shopping.</p>
+    <p>Em ${esc(EVENT.city)}. Programa principal: ${esc(EVENT.weekday)}, ${esc(EVENT.dateLabel)}, começa no ${esc(PROGRAM[0].place)}. Programa secundário (GAMES): ${esc(GAMES_DATE_LABEL)}, às ${GAMES_START}, no Coimbra Shopping.</p>
     <h4>Quantas pessoas vão?</h4>
     <p>Estão previstas ${esc(EVENT.guests)} pessoas.</p>
     <h4>A que horas?</h4>
     <p>Os horários ainda por definir aparecem como “A confirmar”. Quando o organizador os define, aparecem no site.</p>
     <h4>Qual é a diferença entre os dois programas?</h4>
-    <p>O principal é um passeio por Coimbra (Largo da Portagem, Metrobus, almoço na Mr. Pizza, Baixa, Torre de Almedina, golfe, apresentação e lanche). O secundário é comer e jogar minigames no Bowling City, no Coimbra Shopping, com comida do Continente, das ${GAMES_START} às ${GAMES_END}. No site troca-se entre eles com o switch Classic/Games.</p>
+    <p>O principal é um passeio por Coimbra (Largo da Portagem, Metrobus, almoço na Mr. Pizza, Baixa, Torre de Almedina, golfe, apresentação e lanche). O secundário é comer e jogar minigames no Bowling City, no Coimbra Shopping, com comida do Continente, no sábado, 28 de novembro, das ${GAMES_START} às ${GAMES_END} (um dia antes). No site troca-se entre eles com o switch Classic/Games.</p>
     <h4>Vamos jogar bowling?</h4>
     <p>Não. No programa secundário só se jogam minigames na zona de jogos do Bowling City.</p>
     <h4>O que levar?</h4>

@@ -104,6 +104,11 @@ function applyMode(mode, { animate = false } = {}) {
     root.classList.add("mode-anim");
     setTimeout(() => root.classList.remove("mode-anim"), 700);
   }
+  // Textos que mudam com o modo (ex.: a data do programa GAMES é sábado, 28)
+  document.querySelectorAll("[data-games]").forEach((el) => {
+    if (el.dataset.classic == null) el.dataset.classic = el.textContent;
+    el.textContent = games ? el.dataset.games : el.dataset.classic;
+  });
   if (games) root.dataset.mode = "games";
   else delete root.dataset.mode;
   const classic = document.getElementById("classicProgram");

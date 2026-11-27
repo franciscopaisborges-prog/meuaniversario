@@ -74,7 +74,7 @@ const html = `<!doctype html>
     ${activities}
 
     <h2>Programa secundário (modo GAMES): minigames no Bowling City</h2>
-    <p>No site, o switch Classic/Games mostra o programa secundário, um plano alternativo: comer e jogar minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Não se joga bowling. Horário: das 18:00 às 21:45. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
+    <p>No site, o switch Classic/Games mostra o programa secundário, um plano alternativo: comer e jogar minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Não se joga bowling. Data: sábado, 28 de novembro de 2026, das 18:00 às 21:45. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
     <ol>
       <li>18:00–18:30 · Encontro no Coimbra Shopping.</li>
       <li>18:30–19:00 · Missão Continente: compras de comida e bebida (pizzas, sandes e wraps, snacks, fruta, sumos e águas, doces e bolo de aniversário; lista final a confirmar, tendo em conta as alergias).</li>

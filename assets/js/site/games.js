@@ -13,6 +13,8 @@ const ORANGE = "#ff8a1f";
 const VIOLET = "#9b6bff";
 
 /** Horário: começa às 18:00; cada nível 30 min, os minigames 1 h 15. */
+export const GAMES_DATE_ISO = "2026-11-28";
+export const GAMES_DATE_LABEL = "Sábado, 28 de novembro de 2026";
 export const GAMES_START = "18:00";
 export const GAMES_END = "21:45";
 
@@ -25,7 +27,7 @@ export const LEVELS = [
     title: "Encontro no Coimbra Shopping",
     start: "18:00",
     end: "18:30",
-    text: "Os 8 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva, às 18:00.",
+    text: "Os 8 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva, no sábado, 28 de novembro, às 18:00.",
   },
   {
     tag: "Nível 2 · Missão",

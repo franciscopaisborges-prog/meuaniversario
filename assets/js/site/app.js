@@ -9,7 +9,8 @@ import { startLiveSchedule } from "./live.js";
 import { renderDetail } from "./detail.js";
 import { createOverviewMap, createDetailMap } from "./map.js";
 import { initRsvp } from "./rsvp.js";
-import { initMode } from "./mode.js";
+import { initMode, currentMode } from "./mode.js";
+import { GAMES_DATE_ISO } from "./games.js";
 import { $, $$, esc, icon, prefersReducedMotion } from "../shared/dom.js";
 
 const ROUTE_RE = /^#\/atividade\/([a-z0-9-]+)\/?$/;
@@ -65,7 +66,8 @@ function lisbonToday() {
 function renderCountdown() {
   const el = $("#countdown");
   if (!el) return;
-  const days = Math.round((new Date(`${EVENT.dateISO}T00:00:00Z`) - lisbonToday()) / 86400000);
+  const iso = currentMode() === "games" ? GAMES_DATE_ISO : EVENT.dateISO;
+  const days = Math.round((new Date(`${iso}T00:00:00Z`) - lisbonToday()) / 86400000);
   el.textContent =
     days > 1 ? `Faltam ${days} dias` : days === 1 ? "É amanhã" : days === 0 ? "É hoje!" : "Celebrado";
 }
@@ -356,6 +358,7 @@ onStateChange(() => {
 
 /* ---------------- Arranque ---------------- */
 document.addEventListener("modechange", (e) => {
+  renderCountdown();
   if (e.detail.mode === "classic") requestAnimationFrame(() => overview?.map?.invalidateSize({ animate: false }));
 });
 initMode();
