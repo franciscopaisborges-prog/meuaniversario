@@ -843,7 +843,7 @@ function resumoRespostas_() {
   if (!l.length) return "Ainda não há respostas.";
   const sim = l.filter((r) => r.attending === "yes");
   const nao = l.filter((r) => r.attending === "no");
-  const linhas = [`${sim.length} vão · ${nao.length} não vão (de 6 previstos)`];
+  const linhas = [`${sim.length} vão · ${nao.length} não vão (de 8 previstos)`];
   if (sim.length) linhas.push("Vão: " + sim.map((r) => r.name).join(", "));
   const alerg = sim.filter((r) => r.allergies);
   if (alerg.length) linhas.push("Alergias: " + alerg.map((r) => `${r.name} (${r.allergies})`).join("; "));

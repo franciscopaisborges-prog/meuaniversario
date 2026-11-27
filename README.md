@@ -18,6 +18,8 @@ Convite digital interativo para o aniversário de Francisco Rodrigues, com progr
 ├── admin.html                  Painel privado de administração
 ├── promax.html                 Página “Código PROMAX2.0” (ligada a partir da atividade 08)
 ├── info.html                   Versão só de texto do convite (para robôs / assistente telefónico); gerada por tools/build-info.mjs
+├── ia.html                     Guia completo do site para qualquer IA (com prints); gerado por tools/build-ia.mjs
+├── citygames.html              Programa secundário (minigames no Bowling City)
 ├── firebase-config.js          ← CONFIGURAÇÃO DO FIREBASE (partilhada pelos dois documentos)
 ├── firebase-rtdb-rules.json    Regras de segurança da Realtime Database
 ├── firebase.json               Hosting, cabeçalhos de segurança (CSP), regras e emuladores
@@ -449,7 +451,7 @@ npm run test:assistente
 2. **Horários:** definir no painel → separador **Horários** (secção 7A).
 3. **Mr. Pizza (Praça da República):** reserva a confirmar.
 5. **Metrobus (linha U2, Portagem → República):** funcionamento e horários a confirmar junto da Metro Mondego.
-6. **Golfe:** reserva, disponibilidade de posições cobertas para 6 pessoas, preço e duração a confirmar com o clube (+351 923 312 226).
+6. **Golfe:** reserva, disponibilidade de posições cobertas para 8 pessoas, preço e duração a confirmar com o clube (+351 923 312 226).
 8. **Lanche:** local e condições a confirmar.
 9. **Percursos no mapa:** só serão desenhados quando houver trajetos confirmados.
 10. **App Check:** recomendado antes de partilhar o link (secção 5).

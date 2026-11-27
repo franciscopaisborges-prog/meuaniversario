@@ -19,7 +19,7 @@ export const LEVELS = [
     icon: "📍",
     color: CYAN,
     title: "Encontro no Coimbra Shopping",
-    text: "Os 6 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva. Hora a confirmar.",
+    text: "Os 8 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva. Hora a confirmar.",
   },
   {
     tag: "Nível 2 · Missão",
@@ -196,7 +196,7 @@ function background(ctx, t) {
   ctx.fillRect(0, horizon - 1, W, 2);
 }
 
-const PLAYER_COLORS = [CYAN, PINK, LIME, YELLOW, ORANGE, VIOLET];
+const PLAYER_COLORS = [CYAN, PINK, LIME, YELLOW, ORANGE, VIOLET, "#ff4d6d", "#4d7cff"]; // 8 jogadores
 
 /** Bonequinho néon. */
 function player(ctx, x, y, color, t, { walk = false, s = 1, jump = 0 } = {}) {
@@ -233,8 +233,8 @@ function hud(ctx, t, idx) {
   text(ctx, lvl.title.toUpperCase(), 28, 64, { size: 26, color: "#fff", align: "left", blur: 10 });
   const score = Math.floor(t * 333);
   text(ctx, `SCORE ${String(score).padStart(5, "0")}`, W - 28, 34, { size: 18, color: YELLOW, align: "right", blur: 10 });
-  // vidas = 6 jogadores
-  for (let i = 0; i < 6; i += 1) {
+  // vidas = 8 jogadores
+  for (let i = 0; i < PLAYER_COLORS.length; i += 1) {
     ctx.save();
     glow(ctx, PINK, 8);
     ctx.fillStyle = PINK;
@@ -260,11 +260,11 @@ function sceneMeet(ctx, p, t) {
   for (let i = 0; i < 4; i += 1) neonRect(ctx, 320 + i * 80 + (i > 1 ? 80 : 0), 210, 40, 30, "rgba(34,243,255,.6)", { r: 3, lw: 1.5, blur: 6 });
   // jogadores a chegar
   PLAYER_COLORS.forEach((c, i) => {
-    const target = 330 + i * 60;
+    const target = 270 + i * 60;
     const x = lerp(-60 - i * 70, target, ease(clamp(p * 1.4 - i * 0.05)));
     player(ctx, x, 420, c, t + i, { walk: p < 0.75 });
   });
-  if (p > 0.75) text(ctx, "6 JOGADORES PRONTOS", W / 2, 480, { size: 22, color: LIME, blur: 14 });
+  if (p > 0.75) text(ctx, "8 JOGADORES PRONTOS", W / 2, 480, { size: 22, color: LIME, blur: 14 });
 }
 
 function sceneShop(ctx, p, t) {
@@ -353,7 +353,7 @@ function sceneEat(ctx, p, t) {
   ctx.restore();
   // bebidas
   [300, 660].forEach((x, k) => neonRect(ctx, x, 252 - k * 4, 26, 46, k ? CYAN : LIME, { r: 5, lw: 2 }));
-  PLAYER_COLORS.forEach((c, i) => player(ctx, 250 + i * 92, 420, c, t + i * 0.7, { s: 0.9 }));
+  PLAYER_COLORS.forEach((c, i) => player(ctx, 200 + i * 80, 420, c, t + i * 0.7, { s: 0.85 }));
   // barra de energia
   const e = clamp(p * 1.1);
   text(ctx, "ENERGIA", 230, 490, { size: 18, color: ORANGE, align: "left", blur: 10 });
@@ -422,7 +422,7 @@ function sceneArcade(ctx, p, t) {
     ctx.fillRect(x + 3 * cw + 1, fy, cw * 2 - 2, cw - 2);
   });
   text(ctx, "MINIGAMES · BOWLING CITY", W / 2, 118, { size: 30, color: PINK, blur: 24 });
-  PLAYER_COLORS.forEach((c, i) => player(ctx, 190 + (i % 3) * 265 + (i > 2 ? 50 : 0), 470, c, t * 1.4 + i, { s: 0.8, jump: Math.max(0, Math.sin(t * 6 + i)) * 10 }));
+  PLAYER_COLORS.forEach((c, i) => player(ctx, 140 + i * 97, 470, c, t * 1.4 + i, { s: 0.8, jump: Math.max(0, Math.sin(t * 6 + i)) * 10 }));
   if (Math.sin(t * 8) > 0) text(ctx, "INSERT COIN", W / 2, 432, { size: 16, color: YELLOW, blur: 10 });
 }
 
@@ -471,9 +471,9 @@ function sceneTournament(ctx, p, t) {
   }
   const q = ease(clamp((p - 0.5) / 0.4));
   text(ctx, "QUEM FICA COM O RECORDE?", W / 2, 120, { size: 26, color: YELLOW, blur: 18 });
-  const finals = [0.82, 0.64, 0.95, 0.71, 0.58, 0.88];
+  const finals = [0.82, 0.64, 0.95, 0.71, 0.58, 0.88, 0.76, 0.69];
   PLAYER_COLORS.forEach((c, i) => {
-    const y = 170 + i * 50;
+    const y = 156 + i * 38;
     const w = 520 * finals[i] * q * (0.85 + 0.15 * Math.abs(Math.sin(t * 4 + i)));
     player(ctx, 210, y + 30, c, t + i, { s: 0.45 });
     ctx.save();
@@ -492,7 +492,7 @@ function sceneCake(ctx, p, t) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(t * 3 + i);
-    ctx.fillStyle = PLAYER_COLORS[i % 6];
+    ctx.fillStyle = PLAYER_COLORS[i % PLAYER_COLORS.length];
     ctx.globalAlpha = 0.85;
     ctx.fillRect(-4, -2, 8, 4);
     ctx.restore();

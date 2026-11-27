@@ -22,7 +22,7 @@ export const EVENT = {
   dateISO: "2026-11-29",
   dateLabel: "29 de novembro de 2026",
   weekday: "Domingo",
-  guests: 6,
+  guests: 8,
 };
 
 export const COIMBRA_CENTER = { lat: 40.2075, lng: -8.428 };
@@ -87,7 +87,7 @@ export const PROGRAM = [
     summary: "Momento de almoço e convívio entre os convidados.",
     description: [
       "Momento de almoço e convívio entre os convidados.",
-      "Uma mesa para seis, conversa sem pressa e o primeiro brinde do dia.",
+      "Uma mesa para oito, conversa sem pressa e o primeiro brinde do dia.",
     ],
     notes: [],
     location: {
@@ -175,11 +175,11 @@ export const PROGRAM = [
     summary: "Primeiras tacadas e princípios básicos do golfe, com foco no Driving Range.",
     description: [
       "Uma experiência recreativa de golfe, onde os convidados poderão experimentar algumas tacadas e aprender os princípios básicos da modalidade.",
-      "A atividade privilegia o Driving Range. O clube tem posições de treino cobertas e descobertas; a disponibilidade de posições cobertas para seis pessoas tem de ser confirmada com o clube.",
+      "A atividade privilegia o Driving Range. O clube tem posições de treino cobertas e descobertas; a disponibilidade de posições cobertas para oito pessoas tem de ser confirmada com o clube.",
     ],
     notes: [
       "Reserva ainda não confirmada.",
-      "Disponibilidade de posições cobertas para 6 pessoas a confirmar com o clube.",
+      "Disponibilidade de posições cobertas para 8 pessoas a confirmar com o clube.",
       "Preço e duração a confirmar.",
     ],
     location: {

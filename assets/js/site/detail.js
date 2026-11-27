@@ -117,7 +117,7 @@ function golfBlock(a) {
       <div class="golf__cell">
         <span class="golf__label">Posições de treino</span>
         <span class="golf__value">Cobertas e descobertas</span>
-        <p>A disponibilidade de posições cobertas para seis pessoas tem de ser confirmada com o clube.</p>
+        <p>A disponibilidade de posições cobertas para oito pessoas tem de ser confirmada com o clube.</p>
       </div>
       <div class="golf__cell">
         <span class="golf__label">Contactos do clube</span>

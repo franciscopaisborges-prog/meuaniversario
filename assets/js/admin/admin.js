@@ -14,7 +14,7 @@ import { createEmailAdmin } from "./email-admin.js";
 import { matchesBanned } from "../shared/banned.js";
 
 const DB_CDN = "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
-const EXPECTED_GUESTS = 6;
+const EXPECTED_GUESTS = 8;
 
 const views = ["viewLoading", "viewNotConfigured", "viewLoadError", "viewLogin", "viewUnauthorized", "viewDashboard"];
 
