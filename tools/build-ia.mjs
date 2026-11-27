@@ -89,7 +89,7 @@ const PRINTS = [
   ["08-inicio-games", "Página inicial no modo GAMES (preto e néon)", "O mesmo convite com outro estilo: títulos em letra de computador com brilho néon azul e rosa, botões em gradiente néon e chão em grelha néon ao fundo."],
   ["09-programa-secundario", "Programa secundário (modo GAMES)", "No lugar dos nove momentos aparece “Seis níveis, um só dia”, com o trailer animado do programa."],
   ["10-niveis-games", "Níveis do programa secundário", "Os seis níveis em cartões de jogo, com ícone, cor própria e barra de XP."],
-  ["11-pagina-citygames", "Página do botão OU (citygames.html)", "Página própria do programa secundário, aberta pelo botão OU no fim do programa principal."],
+  ["11-pagina-citygames", "Página citygames.html", "Página própria do programa secundário (a mesma informação do modo GAMES)."],
   ["12-pagina-promax", "Página PROMAX 2.0", "Página surpresa azul e vermelha com lasers, aberta pelo botão “Código PROMAX2.0” na atividade 08; termina num diamante com “EM BREVE”."],
   ["13-telemovel-classic", "Telemóvel — modo CLASSIC", "Versão para telemóvel: o switch pequeno fica no topo, ao lado do botão Confirmar presença."],
   ["14-telemovel-games", "Telemóvel — modo GAMES", "A mesma página no telemóvel, em modo GAMES."],
@@ -174,7 +174,6 @@ const html = `<!doctype html>
       <li><b>Menu do topo:</b> Programa, Mapa, o switch pequeno Classic/Games e o botão Confirmar presença. No telemóvel ficam só o monograma, o switch e o botão.</li>
       <li><b>Página de cada atividade:</b> endereço <code>${SITE}/#/atividade/&lt;nome&gt;</code>, em branco e azul (cores do azulejo), com descrição, local, horário, mapa e, quando existe, contactos.</li>
       <li><b>Mapa interativo:</b> mapa de Coimbra (OpenStreetMap) com marcadores numerados, percurso a pé pela Baixa e trajeto do Metrobus.</li>
-      <li><b>Botão OU</b> no fim do programa principal: abre <a href="${SITE}/citygames.html">${SITE}/citygames.html</a>, a página própria do programa secundário.</li>
       <li><b>Atualizações em direto:</b> quando o organizador muda um horário, o site atualiza-se sozinho, sem recarregar.</li>
     </ul>
 

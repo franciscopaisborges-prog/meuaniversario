@@ -1159,28 +1159,16 @@ await test("PROMAX 2.0: botão abre página azul e vermelha com lasers, diamante
   await ctx.close();
 });
 
-/* ============================== OU · CITY GAMES ============================== */
-await test("OU: botão no fim do programa abre City Games (preto/néon) com animação e capítulos", async () => {
+/* ============================== CITY GAMES ============================== */
+await test("City Games: sem botão OU; página preto/néon com animação e capítulos", async () => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await prepare(ctx);
   const page = await ctx.newPage();
   const errors = watchErrors(page);
   await page.goto(`${BASE}/?emulators=1`);
   await page.waitForSelector("#roteiro li");
-  const ou = page.locator('#programa a.ou-btn[href="citygames.html"]');
-  assert.equal(await ou.count(), 1);
-  assert.match(await ou.innerText(), /^OU/);
-  // fica depois do último passo do programa
-  const after = await page.evaluate(() => {
-    const r = document.querySelector("#roteiro");
-    const b = document.querySelector(".ou-btn");
-    return Boolean(r.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
-  });
-  assert.ok(after, "OU depois do roteiro");
-  await ou.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(700);
-  await page.screenshot({ path: join(OUT, "ou-button.png") });
-  await Promise.all([page.waitForURL(/citygames\.html$/), ou.click()]);
+  assert.equal(await page.locator(".ou-btn").count(), 0, "sem botão OU");
+  await page.goto(`${BASE}/citygames.html`);
   assert.match(await page.title(), /City Games/);
   assert.equal(await page.evaluate(() => getComputedStyle(document.body).backgroundColor), "rgb(0, 0, 0)");
   assert.equal(await page.locator(".cg-level").count(), 6);
