@@ -426,3 +426,62 @@ html.mode-anim body::after {
     font-size: 13px;
   }
 }
+
+/* ---------- 5. Switch grande no topo da página ---------- */
+.hero__switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: clamp(1.8rem, 4vw, 2.6rem);
+}
+.mode-switch--hero {
+  --sw: 280px;
+  --sh: 80px;
+  --pad: 5px;
+}
+.mode-switch--hero .mode-switch__track {
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 40px rgba(201, 169, 97, 0.12);
+}
+.mode-switch--hero .ms-label {
+  font-size: 1.05rem;
+  letter-spacing: 0.2em;
+}
+.mode-switch--hero .ms-label--classic {
+  font-size: 1.65rem;
+  letter-spacing: 0.02em;
+}
+.mode-switch--hero .ms-label--games {
+  text-shadow: 0 0 6px #fff, 0 0 14px #22f3ff, 0 0 28px #ff2bd6;
+}
+html[data-mode="games"] .mode-switch--hero .mode-switch__track {
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 36px rgba(34, 243, 255, 0.25), 0 0 60px rgba(255, 43, 214, 0.15);
+}
+.hero__switch-hint {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero__switch-hint b {
+  color: #22f3ff;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(34, 243, 255, 0.7);
+}
+html[data-mode="games"] .hero__switch-hint {
+  visibility: hidden;
+}
+@media (max-width: 720px) {
+  .mode-switch--hero {
+    --sw: 230px;
+    --sh: 66px;
+    --pad: 4px;
+  }
+  .mode-switch--hero .ms-label {
+    font-size: 0.9rem;
+  }
+  .mode-switch--hero .ms-label--classic {
+    font-size: 1.35rem;
+  }
+}

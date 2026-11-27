@@ -111,12 +111,11 @@ function applyMode(mode, { animate = false } = {}) {
   if (classic) classic.hidden = games;
   if (gamesBox) gamesBox.hidden = !games;
   if (games) ensureGames();
-  const sw = document.getElementById("modeSwitch");
-  if (sw) {
+  document.querySelectorAll(".mode-switch").forEach((sw) => {
     sw.setAttribute("aria-checked", String(games));
     sw.style.setProperty("--x", games ? "1" : "0");
     sw.title = games ? "Arrasta para voltar ao modo CLASSIC" : "Arrasta para o modo GAMES";
-  }
+  });
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = games ? "#000000" : "#060606";
   document.dispatchEvent(new CustomEvent("modechange", { detail: { mode } }));
@@ -138,9 +137,7 @@ function setMode(mode) {
 
 /* ---------------------------- Switch ------------------------------- */
 
-function initSwitch() {
-  const sw = document.getElementById("modeSwitch");
-  if (!sw) return;
+function initSwitch(sw) {
   let start = null;
   let moved = false;
   let x = currentMode() === "games" ? 1 : 0;
@@ -208,5 +205,5 @@ function initSwitch() {
 
 export function initMode() {
   applyMode(currentMode());
-  initSwitch();
+  document.querySelectorAll(".mode-switch").forEach(initSwitch);
 }
