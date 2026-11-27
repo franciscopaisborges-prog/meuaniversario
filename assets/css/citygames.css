@@ -583,3 +583,18 @@
     animation: none;
   }
 }
+
+.cg-tag {
+  margin-top: 0.9rem;
+  padding: 0.35rem 1rem;
+  border: 1px solid var(--yellow);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-weight: 800;
+  font-size: clamp(0.9rem, 3vw, 1.1rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  text-shadow: 0 0 10px rgba(255, 225, 77, 0.8);
+  box-shadow: 0 0 16px rgba(255, 225, 77, 0.35), 0 0 10px rgba(255, 225, 77, 0.25) inset;
+}

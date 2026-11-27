@@ -1,5 +1,5 @@
 /**
- * OU · City Games — plano alternativo.
+ * OU · City Games · Bowling City — plano alternativo.
  * Gera os níveis e o inventário, e desenha a animação ("trailer") em <canvas>
  * com controlos de vídeo: reproduzir/pausar, barra de posição e capítulos.
  */
@@ -41,15 +41,15 @@ export const LEVELS = [
     tag: "Nível 4 · Jogos",
     icon: "🕹️",
     color: PINK,
-    title: "City Games",
-    text: "Tempo de jogar na City Games, no Coimbra Shopping. Os jogos escolhem-se no local, em equipa ou uns contra os outros.",
+    title: "Bowling City",
+    text: "Bowling e jogos na City Games · Bowling City, no Coimbra Shopping. Partidas em equipa ou uns contra os outros.",
   },
   {
     tag: "Nível 5 · Boss final",
     icon: "🏆",
     color: YELLOW,
-    title: "Torneio final",
-    text: "Um último desafio entre todos para decidir quem fica com o recorde do dia.",
+    title: "Torneio de bowling",
+    text: "Uma última partida de bowling entre todos para decidir quem fica com o recorde do dia.",
   },
   {
     tag: "Nível 6 · Bónus",
@@ -423,26 +423,99 @@ function sceneArcade(ctx, p, t) {
     ctx.fillStyle = PINK;
     ctx.fillRect(x + 3 * cw + 1, fy, cw * 2 - 2, cw - 2);
   });
-  text(ctx, "CITY GAMES", W / 2, 118, { size: 34, color: PINK, blur: 24 });
+  text(ctx, "CITY GAMES · BOWLING CITY", W / 2, 118, { size: 30, color: PINK, blur: 24 });
   PLAYER_COLORS.forEach((c, i) => player(ctx, 190 + (i % 3) * 265 + (i > 2 ? 50 : 0), 470, c, t * 1.4 + i, { s: 0.8, jump: Math.max(0, Math.sin(t * 6 + i)) * 10 }));
   if (Math.sin(t * 8) > 0) text(ctx, "INSERT COIN", W / 2, 432, { size: 16, color: YELLOW, blur: 10 });
 }
 
-function sceneTournament(ctx, p, t) {
-  if (p < 0.3) {
-    const s = 1 + Math.sin(p * 30) * 0.05;
+/** Pista de bowling: a bola rola até aos pinos e faz STRIKE. */
+function bowlingLane(ctx, q, t) {
+  // pista em perspetiva
+  ctx.save();
+  glow(ctx, YELLOW, 16);
+  ctx.strokeStyle = YELLOW;
+  ctx.lineWidth = 3;
+  ctx.fillStyle = "rgba(255,225,77,.06)";
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 70, 120);
+  ctx.lineTo(W / 2 + 70, 120);
+  ctx.lineTo(W / 2 + 230, 520);
+  ctx.lineTo(W / 2 - 230, 520);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+  for (let k = 0; k < 7; k += 1) {
+    ctx.fillStyle = "rgba(255,225,77,.5)";
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 60 + k * 20, 440);
+    ctx.lineTo(W / 2 - 54 + k * 20, 452);
+    ctx.lineTo(W / 2 - 66 + k * 20, 452);
+    ctx.fill();
+  }
+  // bola
+  const roll = clamp(q / 0.6);
+  const by = lerp(480, 175, ease(roll));
+  const br = lerp(34, 12, roll);
+  const bx = W / 2 + Math.sin(roll * Math.PI) * 26;
+  // pinos (triângulo 4-3-2-1)
+  const hit = clamp((q - 0.6) / 0.25);
+  let n = 0;
+  for (let row = 0; row < 4; row += 1) {
+    for (let k = 0; k <= row; k += 1) {
+      const x = W / 2 + (k - row / 2) * 26;
+      const y = 175 - row * 16;
+      const dir = (k - row / 2) || (n % 2 ? 1 : -1);
+      ctx.save();
+      ctx.translate(x + dir * 60 * hit, y - 30 * hit * (1 - hit) * 4);
+      ctx.rotate(dir * 1.6 * hit);
+      glow(ctx, "#fff", 12);
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 6, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = PINK;
+      ctx.fillRect(-6, -6, 12, 3);
+      ctx.restore();
+      n += 1;
+    }
+  }
+  if (roll < 1 || hit < 1) {
     ctx.save();
-    ctx.translate(W / 2, 250);
-    ctx.scale(s, s);
-    text(ctx, "VS", 0, 0, { size: 120, color: YELLOW, blur: 40 });
+    glow(ctx, CYAN, 22);
+    ctx.fillStyle = "#06222a";
+    ctx.strokeStyle = CYAN;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(bx, by, br, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = CYAN;
+    const a = t * 12;
+    [0, 0.5, 1].forEach((d) => {
+      ctx.beginPath();
+      ctx.arc(bx + Math.cos(a + d) * br * 0.45, by + Math.sin(a + d) * br * 0.45, br * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+    });
     ctx.restore();
-    player(ctx, 260, 330, CYAN, t, { s: 1.6 });
-    player(ctx, 700, 330, PINK, t + 1, { s: 1.6 });
-    text(ctx, "P1", 260, 380, { size: 22, color: CYAN });
-    text(ctx, "P2", 700, 380, { size: 22, color: PINK });
+  }
+  if (hit > 0.4) {
+    const s = 1 + Math.sin(t * 20) * 0.04;
+    ctx.save();
+    ctx.translate(W / 2, 300);
+    ctx.scale(s, s);
+    text(ctx, "STRIKE!", 0, 0, { size: 84, color: PINK, blur: 34 });
+    ctx.restore();
+  }
+  text(ctx, "BOWLING CITY", W / 2, 96, { size: 22, color: YELLOW, blur: 16 });
+}
+
+function sceneTournament(ctx, p, t) {
+  if (p < 0.5) {
+    bowlingLane(ctx, p / 0.5, t);
     return;
   }
-  const q = ease(clamp((p - 0.3) / 0.6));
+  const q = ease(clamp((p - 0.5) / 0.4));
   text(ctx, "QUEM FICA COM O RECORDE?", W / 2, 120, { size: 26, color: YELLOW, blur: 18 });
   const finals = [0.82, 0.64, 0.95, 0.71, 0.58, 0.88];
   PLAYER_COLORS.forEach((c, i) => {
