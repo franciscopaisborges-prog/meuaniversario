@@ -2283,17 +2283,3 @@ body.detail-open {
     animation: none;
   }
 }
-
-/* Link do programa secundário (City Games) na navegação */
-.site-nav__link--alt {
-  color: #22f3ff;
-  text-shadow: 0 0 8px rgba(34, 243, 255, 0.55);
-}
-.site-nav__link--alt::after {
-  background: #ff2bd6;
-  box-shadow: 0 0 8px #ff2bd6;
-}
-.site-nav__link--alt:hover {
-  color: #fff;
-  text-shadow: 0 0 6px #fff, 0 0 14px #ff2bd6;
-}

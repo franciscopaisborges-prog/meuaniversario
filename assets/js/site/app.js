@@ -9,6 +9,7 @@ import { startLiveSchedule } from "./live.js";
 import { renderDetail } from "./detail.js";
 import { createOverviewMap, createDetailMap } from "./map.js";
 import { initRsvp } from "./rsvp.js";
+import { initMode } from "./mode.js";
 import { $, $$, esc, icon, prefersReducedMotion } from "../shared/dom.js";
 
 const ROUTE_RE = /^#\/atividade\/([a-z0-9-]+)\/?$/;
@@ -354,6 +355,10 @@ onStateChange(() => {
 });
 
 /* ---------------- Arranque ---------------- */
+document.addEventListener("modechange", (e) => {
+  if (e.detail.mode === "classic") requestAnimationFrame(() => overview?.map?.invalidateSize({ animate: false }));
+});
+initMode();
 renderProgram();
 renderCountdown();
 initHeader();

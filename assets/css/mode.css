@@ -1,0 +1,406 @@
+/* ==========================================================================
+   Modo CLASSIC ↔ GAMES
+   1. Switch "liquid glass"   2. Tema GAMES (preto + néon)
+   3. Programa secundário embutido   4. Chat de comandos (/games_on)
+   ========================================================================== */
+
+/* Permite animar --x (posição do switch, 0 = CLASSIC, 1 = GAMES) */
+@property --x {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/* ---------- 1. Switch ---------- */
+.mode-switch {
+  --sw: 128px;
+  --sh: 40px;
+  --pad: 3px;
+  --tw: calc(var(--sw) / 2 - var(--pad));
+  --tx: calc(var(--pad) + var(--x) * (var(--sw) / 2 - var(--pad)));
+  position: relative;
+  flex: none;
+  width: var(--sw);
+  height: var(--sh);
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: --x 0.46s cubic-bezier(0.34, 1.45, 0.64, 1);
+  animation: ms-buzz 3.4s ease-in-out 1.2s infinite, ms-nudge 3.4s ease-in-out 1.2s infinite;
+}
+.mode-switch.is-dragging {
+  cursor: grabbing;
+  transition: none;
+  animation: none;
+}
+.mode-switch:focus-visible {
+  outline: 2px solid var(--gold-light);
+  outline-offset: 4px;
+}
+html[data-mode="games"] .mode-switch {
+  animation: none;
+}
+
+.mode-switch__track {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  -webkit-backdrop-filter: blur(14px) saturate(1.7);
+  backdrop-filter: blur(14px) saturate(1.7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -1px 0 rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.mode-switch__track::after {
+  /* reflexo do vidro */
+  content: "";
+  position: absolute;
+  inset: 0 0 50% 0;
+  border-radius: 999px 999px 40% 40% / 999px 999px 100% 100%;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.ms-face {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  width: var(--sw);
+  height: var(--sh);
+}
+.ms-half {
+  flex: 1;
+  display: grid;
+  place-items: center;
+}
+.ms-half--classic {
+  /* vidro com dourado clássico */
+  background: radial-gradient(120% 140% at 20% 0%, rgba(255, 244, 214, 0.55), transparent 55%),
+    linear-gradient(160deg, rgba(243, 227, 182, 0.5) 0%, rgba(201, 169, 97, 0.42) 45%, rgba(120, 92, 40, 0.55) 100%);
+}
+.ms-half--games {
+  /* vidro preto */
+  background: radial-gradient(120% 140% at 80% 0%, rgba(120, 120, 170, 0.28), transparent 55%),
+    linear-gradient(160deg, rgba(30, 30, 46, 0.78) 0%, rgba(4, 4, 8, 0.92) 100%);
+}
+.ms-label {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.ms-label--classic {
+  font-family: "Instrument Serif", "Iowan Old Style", serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  background: linear-gradient(115deg, #6d5326 0%, #f3e3b6 40%, #c9a961 58%, #fff3cf 72%, #8f7036 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.35));
+}
+.ms-label--games {
+  color: #fff;
+  text-shadow: 0 0 4px #fff, 0 0 9px #22f3ff, 0 0 16px #ff2bd6;
+  animation: ms-neon 2.6s infinite;
+}
+
+/* Lente: o polegar de vidro amplia o que está por baixo */
+.mode-switch__thumb {
+  position: absolute;
+  top: var(--pad);
+  left: var(--tx);
+  width: var(--tw);
+  height: calc(var(--sh) - 2 * var(--pad));
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.95), inset 0 -3px 8px rgba(0, 0, 0, 0.28),
+    0 6px 16px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
+}
+.ms-face--lens {
+  transform-origin: calc(var(--tx) + var(--tw) / 2) 50%;
+  transform: translate(calc(-1 * var(--tx)), calc(-1 * var(--pad))) scale(1.38);
+}
+.mode-switch__thumb::after {
+  /* brilho especular da lente */
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(80% 60% at 30% 12%, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(70% 50% at 70% 110%, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0) 70%);
+  mix-blend-mode: screen;
+}
+html[data-mode="games"] .mode-switch__thumb {
+  box-shadow: 0 0 0 1px rgba(34, 243, 255, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.8), inset 0 -3px 8px rgba(0, 0, 0, 0.4),
+    0 0 14px rgba(34, 243, 255, 0.55), 0 0 26px rgba(255, 43, 214, 0.35);
+}
+
+@keyframes ms-buzz {
+  0%,
+  74%,
+  100% {
+    transform: none;
+  }
+  76% {
+    transform: translateX(-2px) rotate(-2deg);
+  }
+  78% {
+    transform: translateX(2px) rotate(2deg);
+  }
+  80% {
+    transform: translateX(-2px) rotate(-1.5deg);
+  }
+  82% {
+    transform: translateX(2px) rotate(1.5deg);
+  }
+  84% {
+    transform: translateX(-1px) rotate(-1deg);
+  }
+  86% {
+    transform: none;
+  }
+}
+@keyframes ms-nudge {
+  0%,
+  86%,
+  100% {
+    --x: 0;
+  }
+  92% {
+    --x: 0.2;
+  }
+}
+@keyframes ms-neon {
+  0%,
+  42%,
+  46%,
+  100% {
+    opacity: 1;
+  }
+  44% {
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 720px) {
+  .mode-switch {
+    --sw: 104px;
+    --sh: 36px;
+  }
+  .ms-label {
+    font-size: 0.52rem;
+  }
+  .ms-label--classic {
+    font-size: 0.74rem;
+  }
+}
+@media (max-width: 360px) {
+  .mode-switch {
+    --sw: 92px;
+    --sh: 34px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-switch {
+    animation: none;
+    transition: none;
+  }
+  .ms-label--games {
+    animation: none;
+  }
+}
+
+/* ---------- 2. Tema GAMES ---------- */
+html[data-mode="games"] {
+  --ink-0: #000;
+  --ink-1: #05050a;
+  --ink-2: #0a0a14;
+  --ink-3: #12121f;
+  --bone: #f4f4ff;
+  --bone-dim: #c7cbec;
+  --muted: #8d93bd;
+  --gold: #22f3ff;
+  --gold-light: #ff2bd6;
+  --gold-deep: #0a9fb0;
+  --gold-line: rgba(34, 243, 255, 0.32);
+  --gold-line-soft: rgba(34, 243, 255, 0.14);
+  --gold-metal: linear-gradient(115deg, #ff2bd6 0%, #22f3ff 48%, #b6ff3b 78%, #ff2bd6 100%);
+  --font-display: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+html[data-mode="games"] body {
+  background: #000;
+}
+html[data-mode="games"] body::before {
+  /* chão néon em perspetiva */
+  content: "";
+  position: fixed;
+  inset: auto -50% 0 -50%;
+  height: 45vh;
+  background-image: linear-gradient(rgba(255, 43, 214, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 43, 214, 0.28) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(380px) rotateX(62deg);
+  transform-origin: 50% 100%;
+  -webkit-mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+  mask-image: linear-gradient(to top, #000 10%, transparent 90%);
+  animation: cg-grid 2.4s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+html[data-mode="games"] .hero__title,
+html[data-mode="games"] .section__title,
+html[data-mode="games"] .rsvp-band__title {
+  letter-spacing: 0;
+  color: #fff;
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.6), 0 0 18px rgba(34, 243, 255, 0.7), 0 0 40px rgba(34, 243, 255, 0.35);
+}
+html[data-mode="games"] .hero__title em,
+html[data-mode="games"] .section__title em,
+html[data-mode="games"] .rsvp-band__title em {
+  color: #ff2bd6;
+  text-shadow: 0 0 8px rgba(255, 43, 214, 0.9), 0 0 24px rgba(255, 43, 214, 0.5);
+}
+html[data-mode="games"] .eyebrow {
+  color: #b6ff3b;
+  text-shadow: 0 0 8px rgba(182, 255, 59, 0.6);
+}
+html[data-mode="games"] .btn--solid {
+  color: #000;
+  box-shadow: 0 0 16px rgba(34, 243, 255, 0.45), 0 0 34px rgba(255, 43, 214, 0.25);
+}
+html[data-mode="games"] .btn--ghost {
+  box-shadow: 0 0 12px rgba(34, 243, 255, 0.25) inset;
+}
+html[data-mode="games"] .site-header.is-scrolled {
+  background: rgba(0, 0, 0, 0.78);
+  border-bottom-color: rgba(255, 43, 214, 0.3);
+}
+html[data-mode="games"] .brand svg,
+html[data-mode="games"] .hero__mark {
+  filter: drop-shadow(0 0 6px rgba(34, 243, 255, 0.8));
+}
+/* O mapa e o link "Mapa" pertencem ao programa principal */
+html[data-mode="games"] #mapa,
+html[data-mode="games"] .site-nav__link[href="#mapa"] {
+  display: none;
+}
+
+/* Transição entre modos: varrimento néon */
+html.mode-anim body *:not(.mode-switch):not(.mode-switch *) {
+  transition: color 0.5s, background-color 0.5s, border-color 0.5s, box-shadow 0.5s, text-shadow 0.5s !important;
+}
+html.mode-anim body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent 0%, rgba(34, 243, 255, 0.0) 40%, rgba(34, 243, 255, 0.35) 49%, rgba(255, 43, 214, 0.35) 51%, transparent 60%);
+  background-size: 100% 300%;
+  animation: mode-sweep 0.65s ease-out forwards;
+}
+@keyframes mode-sweep {
+  from {
+    background-position: 0 100%;
+  }
+  to {
+    background-position: 0 0%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.mode-anim body::after,
+  html[data-mode="games"] body::before {
+    animation: none;
+  }
+}
+
+/* ---------- 3. Programa secundário embutido ---------- */
+.cg.cg-embed {
+  min-height: 0;
+  background: transparent;
+  overflow: visible;
+  color: inherit;
+}
+.program-games[hidden],
+.program-classic[hidden] {
+  display: none;
+}
+.program-games .cg-player {
+  margin: 0 0 clamp(2.5rem, 6vw, 4rem);
+}
+.program-games .games-sub {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+}
+.program-games .cg-where {
+  margin-bottom: 1rem;
+}
+
+/* ---------- 4. Chat de comandos (estilo jogo) ---------- */
+.game-chat {
+  position: fixed;
+  left: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 400;
+  width: min(560px, calc(100vw - 24px));
+  font: 700 15px/1.35 ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  color: #fff;
+  text-shadow: 2px 2px 0 #3f3f3f;
+  -webkit-font-smoothing: none;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.game-chat.is-open {
+  opacity: 1;
+  transform: none;
+}
+.game-chat__log {
+  display: grid;
+  justify-items: start;
+  gap: 0;
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+}
+.game-chat__log li {
+  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.5);
+}
+.game-chat__reply--games {
+  color: #55ff55;
+}
+.game-chat__reply--classic {
+  color: #ffaa00;
+}
+.game-chat__input {
+  display: none;
+  padding: 6px 8px;
+  background: rgba(0, 0, 0, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.game-chat.is-typing .game-chat__input {
+  display: block;
+}
+.game-chat__caret {
+  animation: cg-blink 1s steps(2) infinite;
+}
+@media (max-width: 720px) {
+  .game-chat {
+    font-size: 13px;
+  }
+}

@@ -1167,9 +1167,6 @@ await test("OU: botão no fim do programa abre City Games (preto/néon) com anim
   const errors = watchErrors(page);
   await page.goto(`${BASE}/?emulators=1`);
   await page.waitForSelector("#roteiro li");
-  const nav = page.locator('.site-nav a.site-nav__link--alt[href="citygames.html"]');
-  assert.equal(await nav.count(), 1);
-  assert.match(await nav.innerText(), /prog\. secundário/i);
   const ou = page.locator('#programa a.ou-btn[href="citygames.html"]');
   assert.equal(await ou.count(), 1);
   assert.match(await ou.innerText(), /^OU/);
@@ -1221,6 +1218,49 @@ await test("OU: botão no fim do programa abre City Games (preto/néon) com anim
   }
   await page.screenshot({ path: join(OUT, "citygames-top.png") });
   await page.waitForFunction(() => sessionStorage.getItem("fr-aniversario:visited:citygames") === "1", null, { timeout: 15000 });
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+await test("Switch CLASSIC ↔ GAMES: vibra em CLASSIC, arrastar mostra /games_on e troca estilo e programa", async () => {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  await prepare(ctx);
+  const page = await ctx.newPage();
+  const errors = watchErrors(page);
+  await page.goto(`${BASE}/?emulators=1`);
+  await page.waitForSelector("#roteiro li");
+  const sw = page.locator('.site-nav #modeSwitch[role="switch"]');
+  assert.equal(await sw.getAttribute("aria-checked"), "false");
+  assert.match(await sw.evaluate((el) => getComputedStyle(el).animationName), /ms-buzz/, "vibra em CLASSIC");
+  const box = await sw.boundingBox();
+  const y = box.y + box.height / 2;
+  await page.mouse.move(box.x + 18, y);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 70, y, { steps: 6 });
+  await page.mouse.move(box.x + box.width - 10, y, { steps: 6 });
+  await page.waitForFunction(() => document.querySelector("#gameChat .game-chat__typed")?.textContent === "/games_on");
+  await page.mouse.up();
+  await page.waitForFunction(() => document.documentElement.dataset.mode === "games");
+  assert.equal(await sw.getAttribute("aria-checked"), "true");
+  assert.match(await page.locator("#gameChat").innerText(), /\/games_on[\s\S]*Modo GAMES ativado/);
+  assert.equal(await sw.evaluate((el) => getComputedStyle(el).animationName), "none", "não vibra em GAMES");
+  assert.equal(await page.locator("#classicProgram").isHidden(), true);
+  assert.equal(await page.locator("#gamesProgram").isVisible(), true);
+  assert.equal(await page.locator("#gamesProgram .cg-level").count(), 6);
+  assert.equal(await page.locator("#mapa").isHidden(), true);
+  assert.equal(page.url(), `${BASE}/?emulators=1`, "não muda de página");
+  await page.locator("#gamesProgram .cg-player").scrollIntoViewIfNeeded();
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: join(OUT, "mode-games.png") });
+  // fica guardado e volta com clique
+  await page.reload();
+  await page.waitForSelector("#gamesProgram .cg-level");
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.mode), "games");
+  await page.locator("#modeSwitch").click();
+  await page.waitForFunction(() => !document.documentElement.dataset.mode);
+  assert.match(await page.locator("#gameChat").innerText(), /\/games_off/);
+  assert.equal(await page.locator("#roteiro li").count(), 9);
+  assert.equal(await page.locator("#mapa").isVisible(), true);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

@@ -19,6 +19,9 @@
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/site.css" />
+    <link rel="stylesheet" href="assets/css/citygames.css" />
+    <link rel="stylesheet" href="assets/css/mode.css" />
+    <script src="assets/js/site/mode-boot.js"></script>
     <script>
       document.documentElement.classList.add("js");
     </script>
@@ -66,7 +69,20 @@
         <nav class="site-nav" aria-label="Navegação principal">
           <a class="site-nav__link" href="#programa">Programa</a>
           <a class="site-nav__link" href="#mapa">Mapa</a>
-          <a class="site-nav__link site-nav__link--alt" href="citygames.html">Prog. secundário</a>
+          <button class="mode-switch" id="modeSwitch" type="button" role="switch" aria-checked="false" aria-label="Programa secundário: modo GAMES" title="Arrasta para o modo GAMES">
+            <span class="mode-switch__track" aria-hidden="true">
+              <span class="ms-face">
+                <span class="ms-half ms-half--classic"><span class="ms-label ms-label--classic">Classic</span></span>
+                <span class="ms-half ms-half--games"><span class="ms-label ms-label--games">Games</span></span>
+              </span>
+            </span>
+            <span class="mode-switch__thumb" aria-hidden="true">
+              <span class="ms-face ms-face--lens">
+                <span class="ms-half ms-half--classic"><span class="ms-label ms-label--classic">Classic</span></span>
+                <span class="ms-half ms-half--games"><span class="ms-label ms-label--games">Games</span></span>
+              </span>
+            </span>
+          </button>
           <button class="btn btn--solid" type="button" data-open-rsvp>Confirmar presença</button>
         </nav>
       </header>
@@ -149,6 +165,7 @@
             <path d="M600 140C460 220 420 380 500 540S600 820 460 1000" stroke-opacity="0.08" />
           </svg>
           <div class="section__inner">
+            <div class="program-classic" id="classicProgram">
             <header class="section__head reveal">
               <div>
                 <p class="section__eyebrow eyebrow">O programa</p>
@@ -169,6 +186,53 @@
                 <span class="ou-btn__sub">Minigames · Bowling City</span>
               </a>
               <span class="ou-cta__rule" aria-hidden="true"></span>
+            </div>
+            </div>
+
+            <!-- Programa secundário (modo GAMES): gerado por assets/js/site/games.js -->
+            <div class="program-games cg cg-embed" id="gamesProgram" hidden>
+              <header class="section__head">
+                <div>
+                  <p class="section__eyebrow eyebrow">Programa secundário</p>
+                  <h2 class="section__title" id="gamesTitle">Seis níveis, <em>um só dia</em></h2>
+                </div>
+                <p class="section__aside">Minigames no Bowling City, no Coimbra Shopping, com a comida toda do Continente. Não vamos jogar bowling.</p>
+              </header>
+
+              <figure class="cg-player" id="gamesPlayer">
+                <div class="cg-screen">
+                  <canvas width="960" height="540" role="img" aria-label="Animação do programa secundário: encontro no Coimbra Shopping, compras no Continente, refeição, minigames no Bowling City, torneio de minigames e parabéns."></canvas>
+                  <button class="cg-bigplay" type="button" aria-label="Reproduzir animação" hidden>
+                    <svg viewBox="0 0 24 24" width="34" height="34" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+                  </button>
+                </div>
+                <div class="cg-controls">
+                  <button class="cg-play" type="button" aria-label="Pausar">
+                    <svg class="i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z" fill="currentColor" /></svg>
+                    <svg class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor" /></svg>
+                  </button>
+                  <input class="cg-seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Posição da animação" />
+                  <output class="cg-time">0:00 / 0:30</output>
+                </div>
+                <ol class="cg-chapters" aria-label="Capítulos"></ol>
+              </figure>
+
+              <h3 class="cg-h2 games-sub"><span>01</span> Nível a nível</h3>
+              <ol class="cg-levels" aria-label="Programa secundário"></ol>
+
+              <h3 class="cg-h2 games-sub"><span>02</span> Inventário · Menu Continente</h3>
+              <p class="cg-lead">Toda a comida vem do <b>Continente do Coimbra Shopping</b>, comprada no próprio dia. A lista final ainda está por confirmar e tem em conta as alergias indicadas na confirmação de presença.</p>
+              <ul class="cg-inventory"></ul>
+
+              <h3 class="cg-h2 games-sub"><span>03</span> Ponto de partida</h3>
+              <div class="cg-where">
+                <div>
+                  <p class="cg-where__name">Coimbra Shopping</p>
+                  <p class="cg-where__addr">Avenida Dr. Mendes Silva, 3030-193 Coimbra</p>
+                  <p class="cg-where__note">Horário a confirmar. Não confundir com o Fórum Coimbra.</p>
+                </div>
+                <a class="cg-btn" href="https://www.openstreetmap.org/search?query=Coimbra%20Shopping%2C%20Avenida%20Dr.%20Mendes%20Silva%2C%20Coimbra" target="_blank" rel="noopener noreferrer">Abrir no mapa ↗</a>
+              </div>
             </div>
           </div>
         </section>
