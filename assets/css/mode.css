@@ -458,19 +458,44 @@ html[data-mode="games"] .mode-switch--hero .mode-switch__track {
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 36px rgba(34, 243, 255, 0.25), 0 0 60px rgba(255, 43, 214, 0.15);
 }
 .hero__switch-hint {
+  /* aparece só depois de 5 s sem arrastar (mode.js); brilho a deslizar, como o "slide to unlock" */
   margin: 0;
-  font-size: 0.68rem;
-  letter-spacing: 0.26em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-family: "Instrument Serif", "Iowan Old Style", serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  background: linear-gradient(100deg, rgba(214, 186, 120, 0.8) 0%, rgba(214, 186, 120, 0.8) 40%, #fff6dc 50%, rgba(214, 186, 120, 0.8) 60%, rgba(214, 186, 120, 0.8) 100%);
+  background-size: 250% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.8s var(--ease), transform 0.8s var(--ease);
+  pointer-events: none;
 }
-.hero__switch-hint b {
-  color: #22f3ff;
-  font-weight: 700;
-  text-shadow: 0 0 8px rgba(34, 243, 255, 0.7);
+.hero__switch-hint.is-visible {
+  opacity: 1;
+  transform: none;
+  animation: hint-shine 2.6s linear infinite;
+}
+@keyframes hint-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
 }
 html[data-mode="games"] .hero__switch-hint {
-  visibility: hidden;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__switch-hint.is-visible {
+    animation: none;
+    color: var(--gold);
+    background: none;
+  }
 }
 @media (max-width: 720px) {
   .mode-switch--hero {

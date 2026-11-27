@@ -203,7 +203,27 @@ function initSwitch(sw) {
   });
 }
 
+/* Dica "desliza para jogar": só depois de 5 s em CLASSIC sem mexer no switch. */
+const HINT_DELAY = 5000;
+let hintTimer = 0;
+
+function scheduleHint() {
+  const hint = document.getElementById("switchHint");
+  if (!hint) return;
+  clearTimeout(hintTimer);
+  hint.classList.remove("is-visible");
+  if (currentMode() !== "classic") return;
+  hintTimer = setTimeout(() => {
+    if (currentMode() === "classic") hint.classList.add("is-visible");
+  }, HINT_DELAY);
+}
+
 export function initMode() {
   applyMode(currentMode());
-  document.querySelectorAll(".mode-switch").forEach(initSwitch);
+  document.querySelectorAll(".mode-switch").forEach((sw) => {
+    initSwitch(sw);
+    sw.addEventListener("pointerdown", scheduleHint);
+  });
+  document.addEventListener("modechange", scheduleHint);
+  scheduleHint();
 }
