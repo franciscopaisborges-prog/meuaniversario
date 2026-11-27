@@ -12,20 +12,28 @@ const YELLOW = "#ffe14d";
 const ORANGE = "#ff8a1f";
 const VIOLET = "#9b6bff";
 
-/** Programa, nível a nível (sem horários: a confirmar). */
+/** Horário: começa às 18:00; cada nível 30 min, os minigames 1 h 15. */
+export const GAMES_START = "18:00";
+export const GAMES_END = "21:45";
+
+/** Programa, nível a nível. */
 export const LEVELS = [
   {
     tag: "Nível 1 · Início",
     icon: "📍",
     color: CYAN,
     title: "Encontro no Coimbra Shopping",
-    text: "Os 8 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva. Hora a confirmar.",
+    start: "18:00",
+    end: "18:30",
+    text: "Os 8 jogadores encontram-se à entrada do Coimbra Shopping, na Avenida Dr. Mendes Silva, às 18:00.",
   },
   {
     tag: "Nível 2 · Missão",
     icon: "🛒",
     color: LIME,
     title: "Missão Continente",
+    start: "18:30",
+    end: "19:00",
     text: "Vamos juntos ao Continente do Coimbra Shopping buscar a comida e a bebida para o dia. Cada um ajuda a encher o carrinho.",
   },
   {
@@ -33,6 +41,8 @@ export const LEVELS = [
     icon: "🍕",
     color: ORANGE,
     title: "Recarregar energia",
+    start: "19:00",
+    end: "19:30",
     text: "Refeição em grupo com o que comprámos no Continente, para ganhar energia antes dos jogos.",
   },
   {
@@ -40,13 +50,18 @@ export const LEVELS = [
     icon: "🕹️",
     color: PINK,
     title: "Minigames no Bowling City",
-    text: "Minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping. Em equipa ou uns contra os outros. Não vamos jogar bowling.",
+    start: "19:30",
+    end: "20:45",
+    main: true,
+    text: "O momento principal: 1 h 15 de minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping. Em equipa ou uns contra os outros. Não vamos jogar bowling.",
   },
   {
     tag: "Nível 5 · Boss final",
     icon: "🏆",
     color: YELLOW,
     title: "Torneio de minigames",
+    start: "20:45",
+    end: "21:15",
     text: "Um último desafio de minigames entre todos para decidir quem fica com o recorde do dia.",
   },
   {
@@ -54,6 +69,8 @@ export const LEVELS = [
     icon: "🎂",
     color: VIOLET,
     title: "Parabéns, Francisco",
+    start: "21:15",
+    end: "21:45",
     text: "Bolo do Continente, velas e parabéns. Fim de jogo… ou carregar em continuar.",
   },
 ];
@@ -85,6 +102,7 @@ export function renderLists(root = document) {
         <div class="cg-level__icon" aria-hidden="true">${l.icon}</div>
         <div>
           <p class="cg-level__tag">${l.tag}</p>
+          <p class="cg-level__time">${l.start} – ${l.end}${l.main ? ' <span class="cg-level__main">★ 1 h 15</span>' : ""}</p>
           <h3>${l.title}</h3>
           <p>${l.text}</p>
           <div class="cg-level__xp" aria-hidden="true">XP <span class="cg-level__bar"><i style="--xp:${Math.round(((i + 1) / LEVELS.length) * 100)}%"></i></span> ${i + 1}/${LEVELS.length}</div>
@@ -107,7 +125,7 @@ export function renderLists(root = document) {
   const ch = root.querySelector(".cg-chapters");
   if (ch) {
     ch.innerHTML = LEVELS.map(
-      (l, i) => `<li><button class="cg-chapter" type="button" data-chapter="${i}" style="--c:${l.color}"><b>${fmt(i * SCENE)}</b>${l.title}</button></li>`
+      (l, i) => `<li><button class="cg-chapter" type="button" data-chapter="${i}" style="--c:${l.color}"><b>${l.start}</b>${l.title}</button></li>`
     ).join("");
   }
 }
@@ -231,6 +249,7 @@ function hud(ctx, t, idx) {
   const lvl = LEVELS[idx];
   text(ctx, lvl.tag.toUpperCase(), 28, 34, { size: 18, color: lvl.color, align: "left", blur: 12 });
   text(ctx, lvl.title.toUpperCase(), 28, 64, { size: 26, color: "#fff", align: "left", blur: 10 });
+  text(ctx, `${lvl.start}–${lvl.end}`, 28, 94, { size: 18, color: lvl.color, align: "left", blur: 8 });
   const score = Math.floor(t * 333);
   text(ctx, `SCORE ${String(score).padStart(5, "0")}`, W - 28, 34, { size: 18, color: YELLOW, align: "right", blur: 10 });
   // vidas = 8 jogadores

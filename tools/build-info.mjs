@@ -74,14 +74,14 @@ const html = `<!doctype html>
     ${activities}
 
     <h2>Plano alternativo (OU): minigames no Bowling City</h2>
-    <p>No fim do programa há um botão <b>OU</b> que abre um plano alternativo: comer e jogar minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Não se joga bowling. Horários a confirmar. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
+    <p>No fim do programa há um botão <b>OU</b> que abre um plano alternativo: comer e jogar minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Não se joga bowling. Horário: das 18:00 às 21:45. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
     <ol>
-      <li>Encontro no Coimbra Shopping.</li>
-      <li>Missão Continente: compras de comida e bebida (pizzas, sandes e wraps, snacks, fruta, sumos e águas, doces e bolo de aniversário; lista final a confirmar, tendo em conta as alergias).</li>
-      <li>Refeição em grupo.</li>
-      <li>Minigames no Bowling City (não se joga bowling).</li>
-      <li>Torneio de minigames entre todos.</li>
-      <li>Bolo e parabéns ao Francisco.</li>
+      <li>18:00–18:30 · Encontro no Coimbra Shopping.</li>
+      <li>18:30–19:00 · Missão Continente: compras de comida e bebida (pizzas, sandes e wraps, snacks, fruta, sumos e águas, doces e bolo de aniversário; lista final a confirmar, tendo em conta as alergias).</li>
+      <li>19:00–19:30 · Refeição em grupo.</li>
+      <li>19:30–20:45 · Minigames no Bowling City, o momento principal (1 h 15; não se joga bowling).</li>
+      <li>20:45–21:15 · Torneio de minigames entre todos.</li>
+      <li>21:15–21:45 · Bolo e parabéns ao Francisco.</li>
     </ol>
 
     <h2>Avisos para quem vai</h2>
