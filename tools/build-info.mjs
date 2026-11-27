@@ -73,14 +73,14 @@ const html = `<!doctype html>
     <h2>Programa em detalhe</h2>
     ${activities}
 
-    <h2>Plano alternativo (OU): City Games · Bowling City</h2>
-    <p>No fim do programa há um botão <b>OU</b> que abre um plano alternativo: comer, jogar e fazer bowling na City Games · Bowling City, no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Horários a confirmar. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
+    <h2>Plano alternativo (OU): minigames no Bowling City</h2>
+    <p>No fim do programa há um botão <b>OU</b> que abre um plano alternativo: comer e jogar minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping (Avenida Dr. Mendes Silva, 3030-193 Coimbra), com a comida comprada no Continente do Coimbra Shopping. Não se joga bowling. Horários a confirmar. Página: <a href="${SITE}/citygames.html">${SITE}/citygames.html</a></p>
     <ol>
       <li>Encontro no Coimbra Shopping.</li>
       <li>Missão Continente: compras de comida e bebida (pizzas, sandes e wraps, snacks, fruta, sumos e águas, doces e bolo de aniversário; lista final a confirmar, tendo em conta as alergias).</li>
       <li>Refeição em grupo.</li>
-      <li>Bowling e jogos na City Games · Bowling City.</li>
-      <li>Torneio de bowling entre todos.</li>
+      <li>Minigames no Bowling City (não se joga bowling).</li>
+      <li>Torneio de minigames entre todos.</li>
       <li>Bolo e parabéns ao Francisco.</li>
     </ol>
 

@@ -1,5 +1,5 @@
 /**
- * OU · City Games · Bowling City — plano alternativo.
+ * OU · City Games · Bowling City (minigames) — plano alternativo.
  * Gera os níveis e o inventário, e desenha a animação ("trailer") em <canvas>
  * com controlos de vídeo: reproduzir/pausar, barra de posição e capítulos.
  */
@@ -41,15 +41,15 @@ export const LEVELS = [
     tag: "Nível 4 · Jogos",
     icon: "🕹️",
     color: PINK,
-    title: "Bowling City",
-    text: "Bowling e jogos na City Games · Bowling City, no Coimbra Shopping. Partidas em equipa ou uns contra os outros.",
+    title: "Minigames no Bowling City",
+    text: "Minigames na zona de jogos do Bowling City (City Games), no Coimbra Shopping. Em equipa ou uns contra os outros. Não vamos jogar bowling.",
   },
   {
     tag: "Nível 5 · Boss final",
     icon: "🏆",
     color: YELLOW,
-    title: "Torneio de bowling",
-    text: "Uma última partida de bowling entre todos para decidir quem fica com o recorde do dia.",
+    title: "Torneio de minigames",
+    text: "Um último desafio de minigames entre todos para decidir quem fica com o recorde do dia.",
   },
   {
     tag: "Nível 6 · Bónus",
@@ -423,96 +423,52 @@ function sceneArcade(ctx, p, t) {
     ctx.fillStyle = PINK;
     ctx.fillRect(x + 3 * cw + 1, fy, cw * 2 - 2, cw - 2);
   });
-  text(ctx, "CITY GAMES · BOWLING CITY", W / 2, 118, { size: 30, color: PINK, blur: 24 });
+  text(ctx, "MINIGAMES · BOWLING CITY", W / 2, 118, { size: 30, color: PINK, blur: 24 });
   PLAYER_COLORS.forEach((c, i) => player(ctx, 190 + (i % 3) * 265 + (i > 2 ? 50 : 0), 470, c, t * 1.4 + i, { s: 0.8, jump: Math.max(0, Math.sin(t * 6 + i)) * 10 }));
   if (Math.sin(t * 8) > 0) text(ctx, "INSERT COIN", W / 2, 432, { size: 16, color: YELLOW, blur: 10 });
 }
 
-/** Pista de bowling: a bola rola até aos pinos e faz STRIKE. */
-function bowlingLane(ctx, q, t) {
-  // pista em perspetiva
+/** Duelo de minigame (P1 vs P2) antes do placar final. */
+function duel(ctx, q, t) {
+  const top = 130;
+  const bottom = 470;
+  neonRect(ctx, 140, top, 680, bottom - top, VIOLET, { r: 14, lw: 3, fill: "rgba(155,107,255,.05)" });
   ctx.save();
-  glow(ctx, YELLOW, 16);
-  ctx.strokeStyle = YELLOW;
-  ctx.lineWidth = 3;
-  ctx.fillStyle = "rgba(255,225,77,.06)";
+  ctx.setLineDash([10, 12]);
+  ctx.strokeStyle = "rgba(255,255,255,.35)";
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(W / 2 - 70, 120);
-  ctx.lineTo(W / 2 + 70, 120);
-  ctx.lineTo(W / 2 + 230, 520);
-  ctx.lineTo(W / 2 - 230, 520);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(W / 2, top + 10);
+  ctx.lineTo(W / 2, bottom - 10);
   ctx.stroke();
   ctx.restore();
-  for (let k = 0; k < 7; k += 1) {
-    ctx.fillStyle = "rgba(255,225,77,.5)";
-    ctx.beginPath();
-    ctx.moveTo(W / 2 - 60 + k * 20, 440);
-    ctx.lineTo(W / 2 - 54 + k * 20, 452);
-    ctx.lineTo(W / 2 - 66 + k * 20, 452);
-    ctx.fill();
-  }
-  // bola
-  const roll = clamp(q / 0.6);
-  const by = lerp(480, 175, ease(roll));
-  const br = lerp(34, 12, roll);
-  const bx = W / 2 + Math.sin(roll * Math.PI) * 26;
-  // pinos (triângulo 4-3-2-1)
-  const hit = clamp((q - 0.6) / 0.25);
-  let n = 0;
-  for (let row = 0; row < 4; row += 1) {
-    for (let k = 0; k <= row; k += 1) {
-      const x = W / 2 + (k - row / 2) * 26;
-      const y = 175 - row * 16;
-      const dir = (k - row / 2) || (n % 2 ? 1 : -1);
-      ctx.save();
-      ctx.translate(x + dir * 60 * hit, y - 30 * hit * (1 - hit) * 4);
-      ctx.rotate(dir * 1.6 * hit);
-      glow(ctx, "#fff", 12);
-      ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.ellipse(0, 0, 6, 14, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = PINK;
-      ctx.fillRect(-6, -6, 12, 3);
-      ctx.restore();
-      n += 1;
-    }
-  }
-  if (roll < 1 || hit < 1) {
+  const span = bottom - top - 40;
+  const bx = 170 + Math.abs(((t * 420) % 1240) - 620);
+  const by = top + 20 + Math.abs(((t * 260) % (2 * span)) - span);
+  const p1 = clamp(by - 45, top + 10, bottom - 100);
+  const p2 = clamp(by - 45 + Math.sin(t * 5) * 30, top + 10, bottom - 100);
+  [[160, p1, CYAN], [785, p2, PINK]].forEach(([x, y, c]) => {
     ctx.save();
-    glow(ctx, CYAN, 22);
-    ctx.fillStyle = "#06222a";
-    ctx.strokeStyle = CYAN;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(bx, by, br, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = CYAN;
-    const a = t * 12;
-    [0, 0.5, 1].forEach((d) => {
-      ctx.beginPath();
-      ctx.arc(bx + Math.cos(a + d) * br * 0.45, by + Math.sin(a + d) * br * 0.45, br * 0.12, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    glow(ctx, c, 18);
+    ctx.fillStyle = c;
+    ctx.fillRect(x, y, 14, 90);
     ctx.restore();
-  }
-  if (hit > 0.4) {
-    const s = 1 + Math.sin(t * 20) * 0.04;
-    ctx.save();
-    ctx.translate(W / 2, 300);
-    ctx.scale(s, s);
-    text(ctx, "STRIKE!", 0, 0, { size: 84, color: PINK, blur: 34 });
-    ctx.restore();
-  }
-  text(ctx, "BOWLING CITY", W / 2, 96, { size: 22, color: YELLOW, blur: 16 });
+  });
+  ctx.save();
+  glow(ctx, YELLOW, 22);
+  ctx.fillStyle = YELLOW;
+  ctx.fillRect(bx - 8, by - 8, 16, 16);
+  ctx.restore();
+  text(ctx, String(Math.floor(q * 7)), W / 2 - 70, top + 45, { size: 44, color: CYAN });
+  text(ctx, String(Math.floor(q * 6)), W / 2 + 70, top + 45, { size: 44, color: PINK });
+  text(ctx, "VS", W / 2, 100, { size: 30, color: YELLOW, blur: 20 });
+  text(ctx, "P1", 200, 100, { size: 20, color: CYAN });
+  text(ctx, "P2", 760, 100, { size: 20, color: PINK });
 }
 
 function sceneTournament(ctx, p, t) {
   if (p < 0.5) {
-    bowlingLane(ctx, p / 0.5, t);
+    duel(ctx, p / 0.5, t);
     return;
   }
   const q = ease(clamp((p - 0.5) / 0.4));
