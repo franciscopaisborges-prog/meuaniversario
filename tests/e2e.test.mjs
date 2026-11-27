@@ -1167,6 +1167,9 @@ await test("OU: botão no fim do programa abre City Games (preto/néon) com anim
   const errors = watchErrors(page);
   await page.goto(`${BASE}/?emulators=1`);
   await page.waitForSelector("#roteiro li");
+  const nav = page.locator('.site-nav a.site-nav__link--alt[href="citygames.html"]');
+  assert.equal(await nav.count(), 1);
+  assert.match(await nav.innerText(), /prog\. secundário/i);
   const ou = page.locator('#programa a.ou-btn[href="citygames.html"]');
   assert.equal(await ou.count(), 1);
   assert.match(await ou.innerText(), /^OU/);
